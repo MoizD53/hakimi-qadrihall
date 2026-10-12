@@ -1,6 +1,6 @@
 {
   "name": "evan-e-hakimi-booking",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Evan-e-Hakimi & Evan-e-Qadri Banquet Halls Booking Website & Management System",
   "main": "api/index.js",
   "scripts": {
