@@ -4,6 +4,7 @@
   "description": "Evan-e-Hakimi & Evan-e-Qadri Banquet Halls Booking Website & Management System",
   "main": "api/index.js",
   "scripts": {
+    "build": "node scripts/sync_public.js",
     "start": "node backend/server.js",
     "migrate": "node backend/migration.js",
     "test": "node backend/test_audit.js"

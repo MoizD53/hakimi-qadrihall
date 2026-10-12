@@ -114,6 +114,12 @@ app.use(['/backend', '/local.db', '/package.json', '/package-lock.json', '/verce
 
 // 4. Public static assets (assets/, js/, robots.txt, sitemap.xml)
 app.use(express.static(rootDir));
+const publicDir = path.join(rootDir, 'public');
+app.use(express.static(publicDir));
+app.use('/assets', express.static(path.join(rootDir, 'assets')));
+app.use('/assets', express.static(path.join(publicDir, 'assets')));
+app.use('/js', express.static(path.join(rootDir, 'js')));
+app.use('/js', express.static(path.join(publicDir, 'js')));
 
 // 5. Health & Service info routes
 app.get('/health', (req, res) => res.status(200).json({
