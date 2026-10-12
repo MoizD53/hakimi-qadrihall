@@ -1,8 +1,5 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
-  "outputDirectory": "public",
-  "cleanUrls": false,
   "redirects": [
     {
       "source": "/index.html",
@@ -55,10 +52,5 @@
       "source": "/pay/",
       "destination": "/pay.html"
     }
-  ],
-  "functions": {
-    "api/*.js": {
-      "includeFiles": "{assets/**,public/**}"
-    }
-  }
+  ]
 }

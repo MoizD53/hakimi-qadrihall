@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f0d49a"/>
+      <stop offset="50%" stop-color="#c9a96e"/>
+      <stop offset="100%" stop-color="#a67c38"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#0e0b08"/>
+  <rect x="2" y="2" width="60" height="60" rx="12" fill="none" stroke="url(#gold)" stroke-width="2"/>
+  <path d="M32 12 L38 20 L26 20 Z" fill="url(#gold)"/>
+  <text x="32" y="43" font-family="'Cinzel', 'Times New Roman', Georgia, serif" font-size="22" font-weight="600" fill="url(#gold)" text-anchor="middle" letter-spacing="1">EH</text>
+  <circle cx="32" cy="52" r="2.2" fill="url(#gold)"/>
+</svg>
