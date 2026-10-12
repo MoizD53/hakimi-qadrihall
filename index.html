@@ -58,8 +58,8 @@
       --glass-border: rgba(201,169,110,0.18);
       --shadow-gold: rgba(201,169,110,0.25);
     }
-    html { scroll-behavior:smooth; }
-    body { font-family:'DM Sans',sans-serif; background:var(--ink); color:var(--cream); overflow-x:hidden; }
+    html { scroll-behavior:smooth; overflow-x:hidden; max-width:100%; width:100%; }
+    body { font-family:'DM Sans',sans-serif; background:var(--ink); color:var(--cream); overflow-x:hidden; max-width:100%; width:100%; position:relative; }
  
     /* ── NOISE TEXTURE ── */
     body::before {
@@ -167,29 +167,36 @@
       background:linear-gradient(170deg, rgba(10,7,4,.78) 0%, rgba(42,30,18,.5) 60%, rgba(20,30,18,.45) 100%);
     }
     .hero-bottom-fade { position:absolute; bottom:0; left:0; right:0; height:200px; background:linear-gradient(to top,var(--ink),transparent); }
-    .hero-inner { position:relative; z-index:2; max-width:860px; padding:0 1.5rem; }
+    .hero-inner {
+      position:relative; z-index:2; width:100%; max-width:860px;
+      margin-left:auto; margin-right:auto;
+      padding:0 max(1.5rem, env(safe-area-inset-right)) 0 max(1.5rem, env(safe-area-inset-left));
+      display:flex; flex-direction:column; align-items:center; text-align:center; box-sizing:border-box;
+    }
     .hero-eyebrow {
-      display:inline-flex; align-items:center; gap:.7rem;
-      font-size:.68rem; letter-spacing:4px; text-transform:uppercase;
-      color:var(--wheat); margin-bottom:1.8rem;
+      display:inline-flex; align-items:center; justify-content:center; gap:.7rem;
+      font-size:.68rem; letter-spacing:4px; text-indent:4px; text-transform:uppercase;
+      color:var(--wheat); margin:0 auto 1.8rem;
+      max-width:100%; text-align:center;
       opacity:0; animation:fadeUp .9s ease .3s forwards;
     }
-    .hero-eyebrow::before, .hero-eyebrow::after { content:''; width:28px; height:1px; background:var(--wheat); opacity:.5; }
+    .hero-eyebrow::before, .hero-eyebrow::after { content:''; width:28px; height:1px; background:var(--wheat); opacity:.5; flex-shrink:0; }
     .hero h1, .hero-heading {
       font-family:'Cormorant Garamond',serif;
       font-weight:300; color:#fff;
       margin-bottom:1.6rem;
-      display:flex; flex-direction:column; align-items:center;
-      line-height:1.08;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      line-height:1.08; width:100%; text-align:center;
       opacity:0; animation:fadeUp .9s ease .45s forwards;
     }
     .hero-hall {
       font-size:clamp(2.4rem, 6.2vw, 4.6rem);
-      letter-spacing:3px;
+      letter-spacing:3px; text-indent:3px;
       text-transform:uppercase;
       color:#ffffff;
       font-weight:300;
       text-shadow:0 4px 24px rgba(0,0,0,0.5);
+      display:block; width:100%; text-align:center;
     }
     .hero-connector {
       font-size:clamp(1.6rem, 3.6vw, 2.5rem);
@@ -197,15 +204,16 @@
       color:var(--wheat);
       font-weight:300;
       display:inline-flex;
-      align-items:center;
+      align-items:center; justify-content:center;
       gap:1rem;
-      margin:0.25rem 0;
+      margin:0.25rem auto; text-align:center;
     }
     .hero-connector::before, .hero-connector::after {
       content:'';
       width:38px;
       height:1px;
       background:linear-gradient(90deg, transparent, rgba(201,169,110,0.6));
+      flex-shrink:0;
     }
     .hero-connector::after {
       background:linear-gradient(90deg, rgba(201,169,110,0.6), transparent);
@@ -213,12 +221,13 @@
     .hero h1 em { font-style:italic; color:var(--wheat); }
     .hero-sub {
       font-size:clamp(1rem, 2vw, 1.25rem); color:rgba(255,255,255,.78); line-height:1.7;
-      max-width:580px; margin:0 auto 2.8rem;
-      font-weight:300; letter-spacing:0.5px;
+      max-width:580px; width:100%; margin:0 auto 2.8rem;
+      font-weight:300; letter-spacing:0.5px; text-align:center;
       opacity:0; animation:fadeUp .9s ease .6s forwards;
     }
     .hero-ctas {
-      display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;
+      display:flex; gap:1rem; justify-content:center; align-items:center; flex-wrap:wrap;
+      width:100%; margin-left:auto; margin-right:auto;
       opacity:0; animation:fadeUp .9s ease .75s forwards;
     }
     .scroll-hint { display:none; }
@@ -443,7 +452,7 @@
     /* ── TESTIMONIALS ── */
     .testi-section { background:var(--ink); padding:7rem 1.5rem; }
     .testi-inner { max-width:1100px; margin:0 auto; }
-    .testi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:1.2rem; margin-top:3rem; }
+    .testi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%, 280px),1fr)); gap:1.2rem; margin-top:3rem; }
     .testi-card {
       background:var(--glass); border:1px solid var(--glass-border); border-radius:8px;
       padding:2rem; -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
@@ -820,10 +829,14 @@
       .form-body{padding:1.4rem 1.1rem}
       .ff input, .ff select, .ff textarea, .cal-display { font-size:16px !important; min-height:44px; border-radius:8px; -webkit-appearance:none; }
       .ff textarea { min-height:84px; }
-      .hero-inner{padding:0 1rem}
-      .hero h1{font-size:clamp(2.1rem,8vw,3.6rem);letter-spacing:-0.5px}
-      .hero-sub{font-size:.92rem;margin-bottom:2rem}
-      .hero-ctas{gap:.75rem}
+      .hero-inner{padding:0 max(1rem, env(safe-area-inset-right)) 0 max(1rem, env(safe-area-inset-left)); width:100%; margin:0 auto; display:flex; flex-direction:column; align-items:center; text-align:center;}
+      .hero-eyebrow{font-size:clamp(0.56rem, 2.2vw, 0.65rem); letter-spacing:2px; text-indent:2px; gap:.5rem; margin-bottom:1.4rem; justify-content:center; max-width:100%;}
+      .hero-eyebrow::before, .hero-eyebrow::after{width:20px;}
+      .hero h1{font-size:clamp(2.1rem,8vw,3.6rem);letter-spacing:0;width:100%;text-align:center;align-items:center;}
+      .hero-hall{text-align:center;width:100%;}
+      .hero-connector{justify-content:center;margin:0.2rem auto;}
+      .hero-sub{font-size:.92rem;margin:0 auto 2rem;width:100%;text-align:center;}
+      .hero-ctas{gap:.75rem;width:100%;justify-content:center;align-items:center;}
       .btn-gold,.btn-ghost{padding:.85rem 1.8rem;font-size:.75rem; min-height:46px; -webkit-tap-highlight-color:transparent;}
       .gallery-header{flex-direction:column;gap:.8rem}
       .gallery-header p{max-width:100%}
@@ -844,8 +857,8 @@
       .thumb{flex:0 0 68px;height:48px}
       .frow{grid-template-columns:1fr}
       .slot-grid.cols-2{grid-template-columns:1fr}
-      .hero-ctas{flex-direction:column;width:100%}
-      .hero-ctas .btn-gold, .hero-ctas .btn-ghost{width:100%;max-width:320px;justify-content:center}
+      .hero-ctas{flex-direction:column;width:100%;align-items:center;justify-content:center;}
+      .hero-ctas .btn-gold, .hero-ctas .btn-ghost{width:100%;max-width:320px;margin-left:auto;margin-right:auto;justify-content:center;text-align:center;}
       #lightbox img{max-width:95vw;max-height:80vh}
       .lb-close{top:calc(1rem + env(safe-area-inset-top));right:1rem;width:44px;height:44px}
       .lb-nav{width:44px;height:44px;font-size:.85rem;top:auto;bottom:calc(1.5rem + env(safe-area-inset-bottom));transform:none}
@@ -855,13 +868,17 @@
       .nav-brand-names{flex-direction:column;align-items:flex-start;gap:1px}
       .nav-brand-hall{font-size:.72rem;letter-spacing:0.8px;line-height:1.15}
       .nav-brand-sub{display:none}
-      .hero-hall{font-size:clamp(1.65rem, 7.5vw, 2.3rem);letter-spacing:1.5px}
-      .hero-connector{font-size:1.3rem;gap:.5rem;margin:.15rem 0}
+      .hero-eyebrow{font-size:0.56rem;letter-spacing:1.5px;text-indent:1.5px;gap:.35rem;margin-bottom:1.2rem;}
+      .hero-eyebrow::before, .hero-eyebrow::after{width:14px;}
+      .hero-hall{font-size:clamp(1.65rem, 7.5vw, 2.3rem);letter-spacing:1.5px;text-indent:1.5px;text-align:center;}
+      .hero-connector{font-size:1.3rem;gap:.5rem;margin:.15rem auto;justify-content:center;}
       .hero-connector::before, .hero-connector::after{width:20px}
     }
-    @media(max-width:350px){
+    @media(max-width:360px){
+      .hero-eyebrow{font-size:0.52rem;letter-spacing:1px;text-indent:1px;gap:.25rem;}
+      .hero-eyebrow::before, .hero-eyebrow::after{width:10px;}
       .facilities-grid{grid-template-columns:1fr !important}
-      .hero-hall{font-size:1.5rem;letter-spacing:1px}
+      .hero-hall{font-size:1.45rem;letter-spacing:1px;text-indent:1px;text-align:center;}
       .nav-brand-hall{font-size:.68rem}
     }
     @media (prefers-reduced-motion: reduce) {
@@ -1704,7 +1721,7 @@
 
 .jafaf-center .slot{
   width:48%;
-  min-width:280px;
+  min-width:min(100%, 260px);
 }
 
 /* GARDEN OPTION */
@@ -1820,8 +1837,7 @@
 
     <!-- VIEW 1: TERMS AND CONDITIONS AGREEMENT VIEW -->
     <div id="tcTermsView">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;">
-        <span style="font-family:'Cinzel',serif;font-size:0.68rem;letter-spacing:3px;color:var(--wheat);text-transform:uppercase;">Evan-e-Hakimi &bull; 2nd Floor &bull; Dahod</span>
+      <div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;margin-bottom:12px;">
         <span style="font-size:0.65rem;padding:3px 10px;border-radius:20px;background:rgba(201,169,110,0.15);border:1px solid rgba(201,169,110,0.3);color:var(--wheat);">Mandatory Acknowledgment</span>
       </div>
 
@@ -1838,60 +1854,55 @@
           <div class="important-top" style="display:flex;gap:12px;align-items:flex-start;">
             <div class="important-icon" style="color:var(--wheat);font-size:1.1rem;margin-top:2px;">✦</div>
             <div>
-              <h4>1. Booking Confirmation</h4>
-              <p>Submitting an enquiry does not confirm a booking. Confirmation is subject to availability and written approval by the manager.</p>
+              <h4>1. Permission</h4>
+              <p><strong>All functions, Majlis, and events require permission and approval from Aamil Saheb.</strong></p>
             </div>
           </div>
         </div>
 
         <div class="term-item">
-          <h4>2. Payment Terms</h4>
+          <h4>2. Booking Confirmation</h4>
+          <p>Submitting an enquiry does not confirm a booking. Confirmation is subject to availability and written approval by the manager.</p>
+        </div>
+
+        <div class="term-item">
+          <h4>3. Payment Terms</h4>
           <p>A <strong>40% non-refundable advance</strong> is required after booking approval by management. The remaining 60% must be paid at least 2 days before the event date.</p>
         </div>
 
         <div class="term-item">
-          <h4>3. Hall Availability</h4>
+          <h4>4. Hall Availability</h4>
           <p>Our venue offers two banquet halls: <strong>Evan-e-Hakimi (2nd Floor)</strong> is open for current bookings, and <strong>Qadri Hall (3rd Floor)</strong> will be available for bookings from 15th Nov 26.</p>
         </div>
 
         <div class="term-item">
-          <h4>4. Capacity</h4>
+          <h4>5. Capacity</h4>
           <p>Approximate capacity is <strong>35&ndash;40 thals</strong> for dining and seating.</p>
         </div>
 
         <div class="term-item">
-          <h4>5. Timings</h4>
+          <h4>6. Timings</h4>
           <p>Events must end and the hall must be vacated within the booked slot (Morning: 10:30 AM &ndash; 2:30 PM, Evening: 6:30 PM &ndash; 10:30 PM, Full Day: 10:00 AM &ndash; 10:00 PM). Additional charges may apply for late departure.</p>
         </div>
 
         <div class="term-item">
-          <h4>6. Noise &amp; Safety</h4>
+          <h4>7. Noise &amp; Safety</h4>
           <p>All guests must follow local noise restrictions, fire-safety rules, and applicable laws.</p>
         </div>
 
         <div class="term-item">
-          <h4>7. Cleanliness &amp; Damage</h4>
+          <h4>8. Cleanliness &amp; Damage</h4>
           <p>The event organizer must maintain cleanliness and may be responsible for damage caused to venue property.</p>
         </div>
 
         <div class="term-item">
-          <h4>8. Dress Code</h4>
+          <h4>9. Dress Code</h4>
           <p>Wearing Libas-ul-Anwar is compulsory for all guests attending the function.</p>
         </div>
 
         <div class="term-item">
-          <h4>9. Parking</h4>
+          <h4>10. Parking</h4>
           <p>Guests must not block entrances, driveways, or neighboring properties.</p>
-        </div>
-
-        <div class="term-item important-term">
-          <div class="important-top" style="display:flex;gap:12px;align-items:flex-start;">
-            <div class="important-icon" style="color:var(--wheat);font-size:1.1rem;margin-top:2px;">✦</div>
-            <div>
-              <h4>10. Permission</h4>
-              <p><strong>All functions, Majlis, and events require permission and approval from Aamil Saheb.</strong></p>
-            </div>
-          </div>
         </div>
 
         <div class="term-item">
@@ -2081,7 +2092,7 @@
     </p>
   </div>
 
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:2rem;">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%, 280px),1fr));gap:2rem;">
 
     <!-- HALL 1: EVAN-E-HAKIMI -->
     <div class="reveal" style="background:rgba(255,255,255,0.03);border:1px solid rgba(201,169,110,0.3);border-radius:18px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 15px 40px rgba(0,0,0,0.4);">
