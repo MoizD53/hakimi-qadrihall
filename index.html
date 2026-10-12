@@ -718,19 +718,41 @@
       min-height: 52px;
       padding: 0.85rem 1.1rem;
       font-size: 1.05rem;
-      color: #fff;
-      background: rgba(255, 255, 255, 0.06);
-      border: 1.5px solid rgba(201, 169, 110, 0.28);
+      color: #ffffff !important;
+      background: #18130a !important;
+      border: 1.5px solid rgba(201, 169, 110, 0.32);
       border-radius: 10px;
       outline: none;
       transition: all 0.2s ease;
       font-family: inherit;
       box-sizing: border-box;
+      caret-color: var(--wheat);
     }
     .wizard-input:focus, .wizard-select:focus, .wizard-textarea:focus {
-      border-color: var(--wheat);
-      background: rgba(201, 169, 110, 0.08);
-      box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.15);
+      border-color: var(--wheat) !important;
+      background: #20180d !important;
+      color: #ffffff !important;
+      box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.2) !important;
+    }
+    /* Stop browser autofill from turning inputs stark white */
+    .wizard-input:-webkit-autofill,
+    .wizard-input:-webkit-autofill:hover, 
+    .wizard-input:-webkit-autofill:focus,
+    .wizard-input:-webkit-autofill:active,
+    .wizard-textarea:-webkit-autofill,
+    .wizard-textarea:-webkit-autofill:hover,
+    .wizard-textarea:-webkit-autofill:focus,
+    .wizard-textarea:-webkit-autofill:active,
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus,
+    input:-webkit-autofill:active {
+      -webkit-box-shadow: 0 0 0 1000px #18130a inset !important;
+      box-shadow: 0 0 0 1000px #18130a inset !important;
+      -webkit-text-fill-color: #ffffff !important;
+      color: #ffffff !important;
+      caret-color: #ffffff !important;
+      transition: background-color 5000s ease-in-out 0s !important;
     }
     .wizard-select option {
       background: #120d06;
@@ -2617,11 +2639,12 @@
 <!-- TERMS & CONDITIONS POPUP -->
 <div id="termsPopup" class="terms-popup" role="dialog" aria-modal="true" aria-labelledby="tcModalTitle" style="display:none; visibility:hidden; opacity:0;">
 
-  <!-- OVERLAY (Clicks blocked from closing) -->
-  <div class="terms-overlay"></div>
+  <!-- OVERLAY (Clicks allow closing if already agreed) -->
+  <div class="terms-overlay" onclick="closeTermsModalIfAgreed()"></div>
 
   <!-- CONTENT -->
   <div class="terms-content">
+    <button type="button" class="tc-close-btn" id="tcCloseBtn" onclick="closeTermsModal()" aria-label="Close Terms & Conditions" style="display:none;"><i class="fas fa-times"></i></button>
 
     <!-- GLOW -->
     <div class="terms-glow"></div>
@@ -2629,7 +2652,7 @@
     <!-- VIEW 1: TERMS AND CONDITIONS AGREEMENT VIEW -->
     <div id="tcTermsView">
       <div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;margin-bottom:12px;">
-        <span style="font-size:0.65rem;padding:3px 10px;border-radius:20px;background:rgba(201,169,110,0.15);border:1px solid rgba(201,169,110,0.3);color:var(--wheat);">Mandatory Acknowledgment</span>
+        <span id="tcBadgeText" style="font-size:0.65rem;padding:3px 10px;border-radius:20px;background:rgba(201,169,110,0.15);border:1px solid rgba(201,169,110,0.3);color:var(--wheat);">Mandatory Acknowledgment</span>
       </div>
 
       <h2 id="tcModalTitle">Terms &amp; Conditions</h2>
@@ -2709,20 +2732,27 @@
       </div>
 
       <!-- CHECKBOX (Unselected by default) -->
-      <div class="terms-check">
+      <div class="terms-check" id="tcCheckWrap">
         <input type="checkbox" id="termsAgree" aria-describedby="tcAgreeLabel">
         <label for="termsAgree" id="tcAgreeLabel">
           I have read, understood, and agree to comply with all Terms &amp; Conditions and venue rules.
         </label>
       </div>
 
-      <!-- BUTTONS -->
-      <div class="terms-btns">
+      <!-- BUTTONS FOR MANDATORY FIRST VISIT -->
+      <div class="terms-btns" id="tcBtnsWrap">
         <button class="accept-btn" id="acceptBtn" onclick="acceptTerms()" disabled>
           <i class="fas fa-check" style="margin-right:6px"></i> I Agree &amp; Continue
         </button>
         <button class="decline-btn" id="declineBtn" onclick="tcDecline()">
           Decline
+        </button>
+      </div>
+
+      <!-- VIEW CLOSE BUTTON FOR RETURNING USERS -->
+      <div id="tcViewCloseWrap" style="display:none;margin-top:1.2rem;">
+        <button class="accept-btn" onclick="closeTermsModal()" style="width:100%;margin:0;padding:14px 20px;">
+          <i class="fas fa-check" style="margin-right:8px;"></i> Close &amp; Return to Page
         </button>
       </div>
     </div>
@@ -3647,7 +3677,7 @@
           <label class="wizard-terms-label">
             <input type="checkbox" id="termsAgreeWiz" checked required>
             <span>
-              I agree to the venue <a href="javascript:void(0)" onclick="showTermsModal()" style="color:var(--wheat);text-decoration:underline;">Terms &amp; Conditions</a>, including prior permission from Aamil Saheb and Libas-ul-Anwar dress code.
+              I agree to the venue <a href="javascript:void(0)" onclick="openTermsModal()" style="color:var(--wheat);text-decoration:underline;">Terms &amp; Conditions</a>, including prior permission from Aamil Saheb and Libas-ul-Anwar dress code.
             </span>
           </label>
 
@@ -3712,7 +3742,7 @@
         <li><a href="#pricing"><i class="fas fa-chevron-right"></i>Pricing &amp; Slots</a></li>
         <li><a href="#gallery"><i class="fas fa-chevron-right"></i>Gallery</a></li>
         <li><a href="#booking"><i class="fas fa-chevron-right"></i>Book Hall</a></li>
-        <li><a href="javascript:void(0)" onclick="showTermsModal()"><i class="fas fa-chevron-right"></i>Terms &amp; Conditions</a></li>
+        <li><a href="javascript:void(0)" onclick="openTermsModal()"><i class="fas fa-chevron-right"></i>Terms &amp; Conditions</a></li>
       </ul>
     </div>
 
@@ -3806,8 +3836,8 @@ window.addEventListener('load', () => {
     l.classList.add('done');
     setTimeout(() => {
       l.style.display = 'none';
-      // Show Terms & Conditions modal after loader hides
-      showTermsModal();
+      // Show Terms & Conditions modal after loader hides (only if not agreed)
+      showTermsModal(false);
     }, 600);
   }, loaderDelay);
 });
@@ -3831,11 +3861,19 @@ function unfreezeBodyScroll() {
   }
 }
 
-function showTermsModal() {
-  if (localStorage.getItem(TC_STORAGE_KEY) === 'true') {
+function openTermsModal() {
+  showTermsModal(true);
+}
+
+function showTermsModal(force = true) {
+  const isAgreed = localStorage.getItem(TC_STORAGE_KEY) === 'true';
+
+  // If called automatically on initial page load and already agreed, do not interrupt
+  if (force === false && isAgreed) {
     unfreezeBodyScroll();
     return;
   }
+
   const popup = document.getElementById('termsPopup');
   if (!popup) return;
 
@@ -3844,10 +3882,32 @@ function showTermsModal() {
   if (tv) tv.style.display = 'block';
   if (dv) dv.style.display = 'none';
 
-  const cb = document.getElementById('termsAgree');
-  const ab = document.getElementById('acceptBtn');
-  if (cb) cb.checked = false;
-  if (ab) ab.disabled = true;
+  const checkWrap = document.getElementById('tcCheckWrap');
+  const btnsWrap = document.getElementById('tcBtnsWrap');
+  const viewCloseWrap = document.getElementById('tcViewCloseWrap');
+  const closeBtn = document.getElementById('tcCloseBtn');
+  const badgeText = document.getElementById('tcBadgeText');
+
+  if (isAgreed) {
+    // Returning user viewing terms: show clean close button and hide mandatory agreement checkbox
+    if (checkWrap) checkWrap.style.display = 'none';
+    if (btnsWrap) btnsWrap.style.display = 'none';
+    if (viewCloseWrap) viewCloseWrap.style.display = 'block';
+    if (closeBtn) closeBtn.style.display = 'flex';
+    if (badgeText) badgeText.textContent = 'Venue Policies';
+  } else {
+    // First time visitor: mandatory agreement required
+    if (checkWrap) checkWrap.style.display = 'flex';
+    if (btnsWrap) btnsWrap.style.display = 'flex';
+    if (viewCloseWrap) viewCloseWrap.style.display = 'none';
+    if (closeBtn) closeBtn.style.display = 'none';
+    if (badgeText) badgeText.textContent = 'Mandatory Acknowledgment';
+
+    const cb = document.getElementById('termsAgree');
+    const ab = document.getElementById('acceptBtn');
+    if (cb) cb.checked = false;
+    if (ab) ab.disabled = true;
+  }
 
   popup.style.display = 'flex';
   popup.style.visibility = 'visible';
@@ -3858,8 +3918,7 @@ function showTermsModal() {
   freezeBodyScroll();
 }
 
-function acceptTerms() {
-  localStorage.setItem(TC_STORAGE_KEY, 'true');
+function closeTermsModal() {
   const popup = document.getElementById('termsPopup');
   if (popup) {
     popup.classList.remove('active');
@@ -3868,10 +3927,21 @@ function acceptTerms() {
       popup.style.display = 'none';
       popup.style.visibility = 'hidden';
       unfreezeBodyScroll();
-    }, 450);
+    }, 350);
   } else {
     unfreezeBodyScroll();
   }
+}
+
+function closeTermsModalIfAgreed() {
+  if (localStorage.getItem(TC_STORAGE_KEY) === 'true') {
+    closeTermsModal();
+  }
+}
+
+function acceptTerms() {
+  localStorage.setItem(TC_STORAGE_KEY, 'true');
+  closeTermsModal();
 }
 
 function tcDecline() {
@@ -3969,6 +4039,8 @@ function selectHakimiHall() {
           e.preventDefault();
           if (localStorage.getItem(TC_STORAGE_KEY) !== 'true') {
             tcDecline();
+          } else {
+            closeTermsModal();
           }
         }
       });
@@ -5367,6 +5439,40 @@ document.querySelectorAll('a[href^="#"]').forEach(a => a.addEventListener('click
   opacity:0;
 
   transition:.45s cubic-bezier(.2,.8,.2,1);
+}
+
+/* TERMS CLOSE BUTTON */
+.tc-close-btn{
+  position:absolute;
+  top:20px;
+  right:20px;
+  width:38px;
+  height:38px;
+  border-radius:50%;
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(201,169,110,0.35);
+  color:var(--wheat);
+  font-size:1.1rem;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  z-index:100;
+  transition:all .2s ease;
+}
+.tc-close-btn:hover{
+  background:rgba(201,169,110,0.22);
+  border-color:var(--wheat);
+  transform:scale(1.08);
+}
+@media(max-width:600px){
+  .tc-close-btn{
+    top:14px;
+    right:14px;
+    width:34px;
+    height:34px;
+    font-size:0.95rem;
+  }
 }
 
 /* VENUE SELECTOR CARDS */
