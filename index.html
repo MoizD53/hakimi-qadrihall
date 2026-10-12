@@ -487,154 +487,498 @@
     .faq-a-inner { padding:0 0 1.4rem; font-size:.88rem; color:rgba(245,240,232,.45); line-height:1.8; }
     .faq-item.open .faq-a { max-height:200px; }
  
-    /* ── BOOKING — TWO-COLUMN SPLIT ── */
-    .booking-section { background:linear-gradient(160deg,var(--soil) 0%,#120d06 100%); padding:6rem 1.5rem; border-top:1px solid rgba(201,169,110,.06); }
-    .booking-inner { max-width:1280px; margin:0 auto; }
-    .booking-split { display:grid; grid-template-columns:1fr 420px; gap:3rem; align-items:start; margin-top:3rem; }
-
-    /* ── LEFT PANEL: SLOT PICKER ── */
-    .slots-panel { display:flex; flex-direction:column; gap:1.8rem; }
-
-    /* Category block wrapper */
-    .slot-category {
-      border:1px solid rgba(201,169,110,0.1); border-radius:14px;
-      overflow:hidden; background:rgba(255,255,255,0.02);
-      transition:border-color .3s;
+    /* ── SENIOR-FRIENDLY STEP-BY-STEP BOOKING WIZARD ── */
+    .booking-section {
+      background: linear-gradient(160deg, var(--soil) 0%, #120d06 100%);
+      padding: 5rem 1.2rem;
+      border-top: 1px solid rgba(201,169,110,0.12);
     }
-    .slot-category:hover { border-color:rgba(201,169,110,0.2); }
-
-    /* SPACE BETWEEN BOXES */
-.slot-category{
-  margin-bottom:28px;
-}
-
-
-/* DETAILS GAP */
-.form-wrap{
-  margin-top:28px;
-}
-
-    /* Category header bar */
-    .slot-cat-header {
-      display:flex; align-items:center; justify-content:space-between;
-      padding:1.1rem 1.6rem;
-      background:linear-gradient(90deg,rgba(201,169,110,0.07),rgba(201,169,110,0.02));
-      border-bottom:1px solid rgba(201,169,110,0.1);
+    .booking-inner {
+      max-width: 760px;
+      margin: 0 auto;
     }
-    .slot-cat-left { display:flex; align-items:center; gap:.8rem; }
-    .slot-cat-icon {
-      width:34px; height:34px; border-radius:8px;
-      background:linear-gradient(135deg,rgba(201,169,110,0.2),rgba(201,169,110,0.06));
-      border:1px solid rgba(201,169,110,0.2);
-      display:flex; align-items:center; justify-content:center;
-      color:var(--wheat); font-size:.9rem; flex-shrink:0;
+    .wizard-card {
+      background: rgba(255, 255, 255, 0.035);
+      border: 1.5px solid rgba(201, 169, 110, 0.28);
+      border-radius: 18px;
+      padding: 2.2rem 2rem;
+      box-shadow: 0 16px 45px rgba(0, 0, 0, 0.5);
+      position: relative;
     }
-    .slot-cat-title {
-      font-family:'Cinzel',serif; font-size:.72rem; letter-spacing:3px;
-      text-transform:uppercase; color:var(--wheat);
-    }
-    .slot-cat-sub { font-size:.68rem; color:rgba(245,240,232,.3); letter-spacing:.5px; margin-top:.1rem; }
-    .slot-cat-badge {
-      font-size:.58rem; letter-spacing:2px; text-transform:uppercase;
-      padding:.3rem .8rem; border-radius:20px;
-      background:rgba(201,169,110,.1); color:rgba(201,169,110,.7);
-      border:1px solid rgba(201,169,110,.18);
+    @media (max-width: 600px) {
+      .wizard-card {
+        padding: 1.5rem 1.1rem;
+        border-radius: 14px;
+      }
+      .booking-section {
+        padding: 3.5rem 0.8rem;
+      }
     }
 
-    /* Subcategory label (Daris / Birthday) */
-    .slot-sub-label {
-      font-size:.68rem; letter-spacing:2px; text-transform:uppercase;
-      color:rgba(245,240,232,.3); padding:.9rem 1.6rem .5rem;
-      display:flex; align-items:center; gap:.6rem;
+    /* Progress Stepper Bar */
+    .wizard-stepper {
+      margin-bottom: 2rem;
     }
-    .slot-sub-label::after { content:''; flex:1; height:1px; background:rgba(201,169,110,.06); }
-
-    /* Slot grid inside a category */
-    .slot-grid { display:grid; gap:0; }
-    .slot-grid.cols-1 { grid-template-columns:1fr; }
-    .slot-grid.cols-2 { grid-template-columns:1fr 1fr; }
-    .slot-grid .slot:not(:last-child) { border-right:1px solid rgba(201,169,110,.07); }
-    .slot-grid.cols-1 .slot:not(:last-child) { border-right:none; border-bottom:1px solid rgba(201,169,110,.07); }
-
-    /* Redesigned slot card */
-    .slot {
-      background:transparent; border:none; border-radius:0;
-      padding:1.5rem 1.8rem; text-align:left; cursor:pointer;
-      transition:all .25s; position:relative; overflow:hidden;
+    .wizard-step-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 0.75rem;
+      flex-wrap: wrap;
     }
-    .slot::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(201,169,110,.04),transparent); opacity:0; transition:opacity .25s; }
-    .slot:hover::before { opacity:1; }
-    .slot:hover { background:rgba(201,169,110,.04); }
-    .slot.sel { background:rgba(201,169,110,.09); }
-    .slot.sel::before { opacity:1; }
-    /* Selected indicator: left accent bar */
-    .slot.sel::after { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:linear-gradient(to bottom,var(--wheat),var(--bark)); }
-    .slot-inner { display:flex; align-items:center; justify-content:space-between; gap:1rem; }
-    .slot-left { flex:1; }
-    .slot-name { font-family:'Cinzel',serif; font-size:.7rem; letter-spacing:2.5px; text-transform:uppercase; color:var(--wheat); margin-bottom:.3rem; display:flex; align-items:center; gap:.5rem; }
-    .slot-name .sel-dot { width:6px; height:6px; background:var(--wheat); border-radius:50%; opacity:0; transition:opacity .2s; flex-shrink:0; }
-    .slot.sel .slot-name .sel-dot { opacity:1; }
-    .slot-time { font-size:.75rem; color:rgba(245,240,232,.35); letter-spacing:.4px; }
-    .slot-right { text-align:right; flex-shrink:0; }
-    .slot-price { font-family:'Cormorant Garamond',serif; font-size:1.7rem; font-weight:300; color:var(--cream); line-height:1; }
-    .slot-price::before { content:'₹'; font-size:.8rem; vertical-align:top; margin-top:.25rem; display:inline-block; color:var(--wheat); }
-    .slot-advance { font-size:.66rem; color:rgba(201,169,110,.55); margin-top:.3rem; letter-spacing:.3px; }
-    .slot.sel .slot-advance { color:var(--wheat); font-weight:500; }
-    .slot.sel .slot-price { color:var(--wheat); }
-
-    /* Slot disabled state */
-    .slot.slot-disabled { opacity:.4; cursor:not-allowed; pointer-events:none; }
-
-    /* Best Value badge */
-    .slot-badge {
-      position:absolute; top:.8rem; right:.8rem;
-      font-size:.52rem; letter-spacing:1.5px; text-transform:uppercase;
-      background:linear-gradient(135deg,var(--wheat),var(--bark));
-      color:var(--soil); padding:.2rem .6rem; border-radius:3px; font-weight:700;
+    .wizard-step-pill {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--wheat);
+      letter-spacing: 0.5px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .wizard-step-name {
+      font-size: 0.9rem;
+      color: rgba(245, 240, 232, 0.75);
+    }
+    .wizard-progress-track {
+      height: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 0.85rem;
+    }
+    .wizard-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--wheat), #e2b96a);
+      border-radius: 8px;
+      transition: width 0.35s ease;
+    }
+    .wizard-step-bubbles {
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    .wizard-step-bubble {
+      flex: 1;
+      padding: 6px 4px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(201, 169, 110, 0.15);
+      border-radius: 6px;
+      color: rgba(245, 240, 232, 0.5);
+      font-size: 0.75rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    .wizard-step-bubble.active {
+      background: rgba(201, 169, 110, 0.2);
+      border-color: var(--wheat);
+      color: var(--wheat);
+      font-weight: 700;
+    }
+    .wizard-step-bubble.completed {
+      background: rgba(134, 239, 172, 0.1);
+      border-color: rgba(134, 239, 172, 0.35);
+      color: #86efac;
     }
 
-    /* ── RIGHT PANEL: STICKY FORM ── */
-    .form-panel { position:sticky; top:90px; }
-    .form-wrap { background:rgba(255,255,255,.03); border:1px solid rgba(201,169,110,.15); border-radius:14px; overflow:hidden; -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); }
-    .form-head { padding:1.6rem 1.8rem; border-bottom:1px solid rgba(201,169,110,.1); background:linear-gradient(135deg,rgba(201,169,110,.05),transparent); }
-    .form-head h2 { font-family:'Cormorant Garamond',serif; font-size:1.3rem; font-weight:300; color:var(--cream); }
-    .form-head p { font-size:.7rem; color:rgba(245,240,232,.3); margin-top:.2rem; letter-spacing:.4px; }
-    .form-body { padding:1.6rem 1.8rem; }
-    .frow { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem; }
-    .frow.full { grid-template-columns:1fr; }
-    .ff { display:flex; flex-direction:column; gap:.35rem; }
-    .ff label { font-size:.65rem; letter-spacing:1.5px; text-transform:uppercase; color:rgba(245,240,232,.35); }
-    .ff input, .ff select, .ff textarea {
-      background:rgba(255,255,255,.04); border:1px solid rgba(201,169,110,.13);
-      border-radius:6px; padding:.8rem .9rem; color:var(--cream);
-      font-family:'DM Sans',sans-serif; font-size:.85rem;
-      transition:border-color .2s,background .2s; outline:none;
+    /* Step Panes */
+    .wizard-step {
+      display: none;
     }
-    .ff input:focus, .ff select:focus, .ff textarea:focus { border-color:rgba(201,169,110,.5); background:rgba(201,169,110,.04); }
-    .ff select { appearance:none; cursor:pointer; }
-    .ff select option { background:var(--soil); color:var(--cream); }
-    .ff textarea { resize:vertical; min-height:70px; }
-    .ff input::placeholder, .ff textarea::placeholder { color:rgba(245,240,232,.18); }
-    .wa-note { font-size:.66rem; color:rgba(245,240,232,.2); text-align:center; margin-top:.5rem; letter-spacing:.3px; }
-
-    /* Selected slot summary strip inside form */
-    .form-slot-summary {
-      background:rgba(201,169,110,.07); border:1px solid rgba(201,169,110,.18);
-      border-radius:8px; padding:.9rem 1.1rem; margin-bottom:1.2rem;
-      display:flex; align-items:center; justify-content:space-between; gap:.5rem;
+    .wizard-step.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
     }
-    .fss-left { font-size:.72rem; color:rgba(245,240,232,.5); letter-spacing:.5px; }
-    .fss-left strong { display:block; font-size:.85rem; color:var(--cream); font-weight:500; margin-bottom:.1rem; }
-    .fss-right { text-align:right; flex-shrink:0; }
-    .fss-price { font-family:'Cormorant Garamond',serif; font-size:1.4rem; color:var(--wheat); line-height:1; }
-    .fss-price::before { content:'₹'; font-size:.75rem; vertical-align:top; margin-top:.2rem; display:inline-block; }
-    .fss-advance { font-size:.65rem; color:rgba(201,169,110,.55); }
 
-    .advance-banner { display:none; } /* hidden — replaced by form-slot-summary */
+    /* Headings */
+    .wizard-h {
+      font-family: 'Cinzel', serif;
+      font-size: 1.35rem;
+      color: var(--cream);
+      margin-bottom: 0.5rem;
+      line-height: 1.35;
+    }
+    .wizard-p {
+      font-size: 1.02rem;
+      color: rgba(245, 240, 232, 0.85);
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
 
-    /* Responsive */
-    @media(max-width:900px) { .booking-split { grid-template-columns:1fr; } .form-panel { position:static; } }
-    @media(max-width:600px) { .frow { grid-template-columns:1fr; } .slot-grid.cols-2 { grid-template-columns:1fr; } .slot-grid .slot:not(:last-child) { border-right:none; border-bottom:1px solid rgba(201,169,110,.07); } }
+    /* Choice Cards (Step 1, 3) */
+    .wizard-choice-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1.25rem 1.4rem;
+      border: 2px solid rgba(201, 169, 110, 0.22);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.02);
+      margin-bottom: 1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-height: 76px;
+      user-select: none;
+    }
+    .wizard-choice-card:hover {
+      background: rgba(201, 169, 110, 0.06);
+      border-color: rgba(201, 169, 110, 0.45);
+    }
+    .wizard-choice-card.selected {
+      border-color: var(--wheat);
+      background: rgba(201, 169, 110, 0.12);
+      box-shadow: 0 4px 20px rgba(201, 169, 110, 0.16);
+    }
+    .wcc-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .wcc-radio {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid rgba(201, 169, 110, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+    .wizard-choice-card.selected .wcc-radio {
+      border-color: var(--wheat);
+      background: var(--wheat);
+    }
+    .wcc-radio::after {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #120d06;
+      display: none;
+    }
+    .wizard-choice-card.selected .wcc-radio::after {
+      display: block;
+    }
+    .wcc-title {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--cream);
+      margin-bottom: 2px;
+    }
+    .wcc-sub {
+      font-size: 0.92rem;
+      color: rgba(245, 240, 232, 0.7);
+    }
+    .wcc-badge {
+      font-size: 0.72rem;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .wcc-badge-active {
+      color: #86efac;
+      background: #1a4d2e;
+      border: 1px solid #4ade80;
+    }
+    .wcc-badge-soon {
+      color: #fcd34d;
+      background: #3a2e12;
+      border: 1px solid #e2b96a;
+    }
+
+    /* Senior-Friendly Form Fields */
+    .wizard-field {
+      margin-bottom: 1.4rem;
+    }
+    .wizard-label {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--cream);
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+    .wizard-hint {
+      font-size: 0.9rem;
+      color: rgba(245, 240, 232, 0.65);
+      margin-bottom: 0.6rem;
+      line-height: 1.5;
+    }
+    .wizard-input, .wizard-select, .wizard-textarea {
+      width: 100%;
+      min-height: 52px;
+      padding: 0.85rem 1.1rem;
+      font-size: 1.05rem;
+      color: #fff;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1.5px solid rgba(201, 169, 110, 0.28);
+      border-radius: 10px;
+      outline: none;
+      transition: all 0.2s ease;
+      font-family: inherit;
+      box-sizing: border-box;
+    }
+    .wizard-input:focus, .wizard-select:focus, .wizard-textarea:focus {
+      border-color: var(--wheat);
+      background: rgba(201, 169, 110, 0.08);
+      box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.15);
+    }
+    .wizard-select option {
+      background: #120d06;
+      color: #fff;
+      padding: 10px;
+    }
+    .wizard-textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    /* Date Selector Button */
+    .wizard-date-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      width: 100%;
+      min-height: 54px;
+      padding: 0.9rem 1.2rem;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1.5px solid rgba(201, 169, 110, 0.3);
+      border-radius: 10px;
+      color: var(--cream);
+      font-size: 1.08rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: left;
+    }
+    .wizard-date-btn:hover {
+      border-color: var(--wheat);
+      background: rgba(201, 169, 110, 0.08);
+    }
+    .wizard-date-btn.has-date {
+      border-color: var(--wheat);
+      background: rgba(201, 169, 110, 0.12);
+      font-weight: 600;
+    }
+
+    /* Price Summary Box */
+    .simple-price-box {
+      background: rgba(201, 169, 110, 0.09);
+      border: 1.5px solid rgba(201, 169, 110, 0.35);
+      border-radius: 14px;
+      padding: 1.4rem;
+      margin: 1.5rem 0 0.8rem;
+    }
+    .spb-header {
+      font-size: 0.82rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--wheat);
+      font-weight: 700;
+      margin-bottom: 0.6rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .spb-main-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 0.8rem;
+      padding-bottom: 0.8rem;
+      border-bottom: 1px solid rgba(201, 169, 110, 0.15);
+    }
+    .spb-amount {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: var(--wheat);
+      line-height: 1;
+    }
+    .spb-date-tag {
+      font-size: 0.82rem;
+      color: rgba(245, 240, 232, 0.65);
+    }
+    .spb-breakdown {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .spb-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.95rem;
+      color: rgba(245, 240, 232, 0.85);
+    }
+    .spb-adv {
+      color: #86efac;
+      font-weight: 700;
+      font-size: 1.05rem;
+    }
+
+    /* Summary Review Card (Step 5) */
+    .wizard-review-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(201, 169, 110, 0.22);
+      border-radius: 14px;
+      padding: 1.4rem;
+      margin-bottom: 1.4rem;
+    }
+    .wrb-title {
+      font-size: 0.82rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--wheat);
+      font-weight: 700;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid rgba(201, 169, 110, 0.15);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .wrb-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      font-size: 1rem;
+    }
+    .wrb-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      border-bottom: 1px dashed rgba(201, 169, 110, 0.1);
+      padding-bottom: 0.45rem;
+    }
+    .wrb-label {
+      color: rgba(245, 240, 232, 0.65);
+      font-size: 0.95rem;
+    }
+    .wrb-val {
+      color: var(--cream);
+      font-weight: 600;
+      text-align: right;
+    }
+
+    /* Reassurance Box */
+    .wizard-reassurance-box {
+      background: rgba(201, 169, 110, 0.08);
+      border: 1px solid rgba(201, 169, 110, 0.25);
+      border-radius: 10px;
+      padding: 1rem 1.2rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: rgba(245, 240, 232, 0.9);
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .wizard-reassurance-box i {
+      color: var(--wheat);
+      font-size: 1.2rem;
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+
+    /* Terms Checkbox */
+    .wizard-terms-label {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: rgba(245, 240, 232, 0.85);
+      margin-bottom: 1.5rem;
+      user-select: none;
+    }
+    .wizard-terms-label input {
+      width: 22px;
+      height: 22px;
+      accent-color: var(--wheat);
+      margin-top: 2px;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+
+    /* Navigation Action Buttons */
+    .wizard-actions {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 2rem;
+    }
+    .btn-wiz-next {
+      min-height: 52px;
+      padding: 0.95rem 2rem;
+      font-size: 1.05rem;
+      font-weight: 700;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--wheat), #b89347);
+      color: #120d06;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex: 1;
+      min-width: 180px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 16px rgba(201, 169, 110, 0.25);
+    }
+    .btn-wiz-next:hover {
+      background: linear-gradient(135deg, #dfc082, var(--wheat));
+      transform: translateY(-1px);
+      box-shadow: 0 6px 22px rgba(201, 169, 110, 0.35);
+    }
+    .btn-wiz-back {
+      min-height: 52px;
+      padding: 0.95rem 1.6rem;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      color: rgba(245, 240, 232, 0.85);
+      border: 1.5px solid rgba(201, 169, 110, 0.25);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .btn-wiz-back:hover {
+      background: rgba(201, 169, 110, 0.12);
+      border-color: var(--wheat);
+      color: #fff;
+    }
+    @media (max-width: 540px) {
+      .wizard-actions {
+        flex-direction: column-reverse;
+        gap: 0.8rem;
+      }
+      .btn-wiz-next, .btn-wiz-back {
+        width: 100%;
+        flex: unset;
+      }
+    }
+    .advance-banner { display:none; } /* hidden */
  
     /* ── QR PAYMENT SECTION ── */
     .qr-section { background:var(--ink); padding:7rem 1.5rem; border-top:1px solid rgba(201,169,110,.06); }
@@ -2775,357 +3119,460 @@
   </div>
 </section>
  
-<!-- BOOKING -->
+<!-- BOOKING (SENIOR-FRIENDLY 5-STEP FLOW) -->
 <section class="booking-section" id="booking">
   <div class="booking-inner">
-    <!-- Section header -->
-    <div class="reveal" style="max-width:680px;margin-bottom:0">
-      <span class="sec-tag">Reserve Your Date</span>
-      <h2 class="sec-h">Book Hall</h2>
-      <div class="rule"></div>
-      <p class="sec-p">
-        Choose your slot, select the applicable package, and submit your enquiry. Please note that submitting an enquiry does not confirm your booking — all bookings are subject to availability verification and confirmation by the manager.
+    <!-- Header -->
+    <div class="reveal" style="text-align:center;max-width:700px;margin:0 auto 2.5rem;">
+      <span class="sec-tag" style="justify-content:center;">Simple 5-Step Booking</span>
+      <h2 class="sec-h" style="text-align:center;">Book Your Banquet Date</h2>
+      <div class="rule" style="margin:0.8rem auto 1.2rem;"></div>
+      <p class="sec-p" style="margin:0 auto;font-size:1.05rem;line-height:1.7;color:rgba(245,240,232,0.85);">
+        A simple, step-by-step way to choose your hall, select your event date and timings, and submit an enquiry directly to our management.
       </p>
     </div>
 
-    <!-- TWO-COLUMN SPLIT -->
-    <div class="booking-split" style="position: relative;">
+    <!-- Hidden Server Loader Overlay (kept for server wake-up compatibility) -->
+    <div id="bookingLoaderOverlay" class="booking-loader-overlay" style="display:none;">
+      <div class="blo-content">
+        <div class="blo-spinner">
+          <div class="blo-ring"></div>
+          <i class="fas fa-database blo-icon"></i>
+        </div>
+        <h3 class="blo-title">Connecting to Server</h3>
+        <p class="blo-desc">Connecting to our secure booking server...</p>
+        <div class="blo-progress"><div class="blo-bar" id="bloBar"></div></div>
+        <ul class="blo-steps">
+          <li id="bloStep1" class="active"><i class="fas fa-circle-notch fa-spin"></i> Connecting...</li>
+          <li id="bloStep2"><i class="far fa-circle"></i> Connected</li>
+          <li id="bloStep3"><i class="far fa-circle"></i> Ready</li>
+        </ul>
+        <button id="bloRetryBtn" class="btn-gold" style="display:none;margin:1rem auto 0;padding:0.6rem 1.5rem;font-size:0.75rem;"><i class="fas fa-redo"></i> Retry</button>
+      </div>
+    </div>
 
-      <!-- WAKE-UP SERVER LOADER OVERLAY -->
-      <div id="bookingLoaderOverlay" class="booking-loader-overlay">
-        <div class="blo-content">
-          <div class="blo-spinner">
-            <div class="blo-ring"></div>
-            <i class="fas fa-database blo-icon"></i>
-          </div>
-          <h3 class="blo-title">Connecting to Server</h3>
-          <p class="blo-desc">Waking up our secure booking server. This might take 20-30 seconds if it was inactive.</p>
-          <div class="blo-progress">
-            <div class="blo-bar" id="bloBar"></div>
-          </div>
-          <ul class="blo-steps">
-            <li id="bloStep1" class="active"><i class="fas fa-circle-notch fa-spin"></i> Waking up server...</li>
-            <li id="bloStep2"><i class="far fa-circle"></i> Establishing database connection...</li>
-            <li id="bloStep3"><i class="far fa-circle"></i> Fetching slot availability...</li>
-          </ul>
-          <button id="bloRetryBtn" class="btn-gold" style="display:none; margin: 1.5rem auto 0; padding: 0.6rem 1.5rem; font-size: 0.7rem;"><i class="fas fa-redo"></i> Retry Connection</button>
+    <!-- MAIN SENIOR-FRIENDLY WIZARD CARD -->
+    <div class="wizard-card reveal">
+      
+      <!-- Progress Stepper -->
+      <div class="wizard-stepper">
+        <div class="wizard-step-header">
+          <span class="wizard-step-pill" id="wizStepPill">
+            <i class="fas fa-check-circle" style="color:var(--wheat);"></i> Step 1 of 5
+          </span>
+          <span class="wizard-step-name" id="wizStepName">Choose Your Hall</span>
+        </div>
+        <div class="wizard-progress-track">
+          <div class="wizard-progress-fill" id="wizProgressFill" style="width: 20%;"></div>
+        </div>
+        <div class="wizard-step-bubbles">
+          <button type="button" class="wizard-step-bubble active" id="wizBubble1" onclick="goToStep(1)">1. Hall</button>
+          <button type="button" class="wizard-step-bubble" id="wizBubble2" onclick="goToStep(2)">2. Event</button>
+          <button type="button" class="wizard-step-bubble" id="wizBubble3" onclick="goToStep(3)">3. Timing</button>
+          <button type="button" class="wizard-step-bubble" id="wizBubble4" onclick="goToStep(4)">4. Contact</button>
+          <button type="button" class="wizard-step-bubble" id="wizBubble5" onclick="goToStep(5)">5. Review</button>
         </div>
       </div>
 
-      <!-- ══ LEFT: SLOT & PACKAGE PICKER ══ -->
-      <div class="slots-panel reveal" style="transition-delay:.1s">
+      <!-- IN-WIZARD ALERTS (High-contrast, senior-friendly) -->
+      <div id="wizAlert" style="display:none;background:rgba(239,68,68,0.15);border:1.5px solid #ef4444;color:#fca5a5;border-radius:10px;padding:0.9rem 1.2rem;margin-bottom:1.5rem;font-size:1rem;font-weight:600;align-items:center;gap:10px;">
+        <i class="fas fa-exclamation-circle" style="font-size:1.2rem;flex-shrink:0;"></i>
+        <span id="wizAlertText">Please fill in the required field to continue.</span>
+      </div>
 
-        <!-- HALL SELECTION INDICATOR -->
-        <div style="background:rgba(201,169,110,0.06);border:1px solid rgba(201,169,110,0.22);border-radius:12px;padding:1.1rem 1.3rem;margin-bottom:1.5rem;">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:0.6rem;flex-wrap:wrap;">
-            <span style="font-size:0.68rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--wheat);font-weight:600;">
-              <i class="fas fa-building" style="margin-right:6px;"></i> Selected Venue &amp; Floor
-            </span>
-            <span style="font-size:0.68rem;color:rgba(245,240,232,0.5);">
-              Tap to view venue details
-            </span>
-          </div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <!-- EVAN-E-HAKIMI CARD -->
-            <div id="venueCardHakimi"
-                 onclick="selectHakimiHall()"
-                 role="button"
-                 tabindex="0"
-                 aria-label="Evan-e-Hakimi 2nd Floor - Active venue for booking. Click to select."
-                 class="venue-selector-card"
-                 style="flex:1;min-width:min(100%, 200px);background:rgba(201,169,110,0.16);border:1.5px solid var(--wheat);border-radius:10px;padding:0.85rem 1rem;user-select:none;box-shadow:0 4px 16px rgba(201,169,110,0.12);">
-              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-                <strong style="color:var(--cream);font-size:0.95rem;display:flex;align-items:center;gap:6px;">
-                  <i class="fas fa-check-circle" style="color:var(--wheat);font-size:0.85rem;"></i>
-                  Evan-e-Hakimi (2nd Floor)
-                </strong>
-                <span style="font-size:0.65rem;color:#86efac;background:#1a4d2e;padding:2px 8px;border-radius:12px;border:1px solid #4ade80;font-weight:600;">Active</span>
-              </div>
-              <span style="display:block;font-size:0.75rem;color:rgba(245,240,232,0.7);margin-top:4px;">Available for enquiries &amp; bookings</span>
-            </div>
+      <form id="bookForm" novalidate>
+        <!-- HIDDEN BUSINESS / SUBMISSION INPUTS -->
+        <input type="hidden" id="selHall" value="Evan-e-Hakimi">
+        <input type="hidden" id="selSlot" value="morning">
+        <input type="hidden" id="selPackage" value="without_jaman">
+        <input type="hidden" id="selPrice" value="11000">
+        <input type="hidden" id="bDate" value="">
 
-            <!-- QADRI HALL CARD -->
-            <div id="venueCardQadri"
-                 onclick="openQadriModal()"
-                 role="button"
-                 tabindex="0"
-                 aria-label="Qadri Hall 3rd Floor - Bookings available from 15th Nov 26. Click to view details and enquire."
-                 class="venue-selector-card"
-                 style="flex:1;min-width:min(100%, 200px);background:rgba(201,169,110,0.08);border:1.5px solid rgba(201,169,110,0.35);border-radius:10px;padding:0.85rem 1rem;user-select:none;">
-              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-                <strong style="color:var(--cream);font-size:0.95rem;display:flex;align-items:center;gap:6px;">
-                  <i class="fas fa-info-circle" style="color:var(--wheat);font-size:0.85rem;"></i>
-                  Qadri Hall (3rd Floor)
-                </strong>
-                <span style="font-size:0.65rem;color:#fcd34d;background:#3a2e12;padding:2px 8px;border-radius:12px;border:1px solid #e2b96a;font-weight:600;">15 Nov 26</span>
-              </div>
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
-                <span style="display:block;font-size:0.75rem;color:rgba(245,240,232,0.65);">Bookings available from 15th Nov 26</span>
-                <span style="font-size:0.7rem;color:var(--wheat);display:inline-flex;align-items:center;gap:4px;font-weight:600;">
-                  Details <i class="fas fa-arrow-right" style="font-size:0.6rem;"></i>
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <!-- ══════════════════════════════════════════
+             STEP 1: CHOOSE YOUR HALL
+        ══════════════════════════════════════════ -->
+        <div class="wizard-step active" id="stepPane1">
+          <h3 class="wizard-h">Which hall would you like to book?</h3>
+          <p class="wizard-p">Please choose the banquet hall for your occasion:</p>
 
-
-        <!-- ① MORNING SLOT -->
-        <div class="slot-category" style="margin-bottom:1.5rem;">
-          <div class="slot-cat-header">
-            <div class="slot-cat-left">
-              <div class="slot-cat-icon"><i class="fas fa-sun"></i></div>
+          <!-- Hall 1: Evan-e-Hakimi -->
+          <div class="wizard-choice-card selected" id="venueCardHakimi" onclick="selectHall('Evan-e-Hakimi')">
+            <div class="wcc-left">
+              <div class="wcc-radio"></div>
               <div>
-                <div class="slot-cat-title">Morning Slot</div>
-                <div class="slot-cat-sub">10:30 AM &ndash; 2:30 PM &bull; 4 Hours</div>
+                <div class="wcc-title">Evan-e-Hakimi (2nd Floor)</div>
+                <div class="wcc-sub">Sandstone arches &bull; Up to 35&ndash;40 Thals (280&ndash;320 guests)</div>
               </div>
             </div>
-            <span class="slot-cat-badge">Morning</span>
+            <span class="wcc-badge wcc-badge-active"><i class="fas fa-check-circle"></i> Available Now</span>
           </div>
 
-          <div class="slot-grid cols-2">
-            <!-- Morning Without Jaman -->
-            <div class="slot sel" data-slot="morning" data-package="without_jaman" data-price="11000" id="slot-morning-wo">
-              <span class="slot-status" id="sstatus-morning"></span>
-              <div class="slot-inner">
-                <div class="slot-left">
-                  <div class="slot-name"><span class="sel-dot"></span>Without Jaman</div>
-                  <div class="slot-time"><i class="fas fa-clock" style="font-size:.6rem;margin-right:.3rem;opacity:.5"></i>10:30 AM &ndash; 2:30 PM</div>
-                </div>
-                <div class="slot-right">
-                  <div class="slot-price"> ₹11,000</div>
-                  <div class="slot-advance">Adv: &#8377;4,400</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Morning With Jaman -->
-            <div class="slot" data-slot="morning" data-package="with_jaman" data-price="15000" id="slot-morning-w">
-              <span class="slot-status"></span>
-              <div class="slot-inner">
-                <div class="slot-left">
-                  <div class="slot-name"><span class="sel-dot"></span>With Jaman</div>
-                  <div class="slot-time"><i class="fas fa-clock" style="font-size:.6rem;margin-right:.3rem;opacity:.5"></i>10:30 AM &ndash; 2:30 PM</div>
-                </div>
-                <div class="slot-right">
-                  <div class="slot-price"> ₹15,000</div>
-                  <div class="slot-advance">Adv: &#8377;6,000</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- ② EVENING SLOT -->
-        <div class="slot-category" style="margin-bottom:1.5rem;">
-          <div class="slot-cat-header">
-            <div class="slot-cat-left">
-              <div class="slot-cat-icon"><i class="fas fa-moon"></i></div>
+          <!-- Hall 2: Qadri Hall -->
+          <div class="wizard-choice-card" id="venueCardQadri" onclick="selectHall('Qadri Hall')">
+            <div class="wcc-left">
+              <div class="wcc-radio"></div>
               <div>
-                <div class="slot-cat-title">Evening Slot</div>
-                <div class="slot-cat-sub">6:30 PM &ndash; 10:30 PM &bull; 4 Hours</div>
+                <div class="wcc-title">Qadri Hall (3rd Floor)</div>
+                <div class="wcc-sub">Upper-level hall &bull; Up to 35&ndash;40 Thals (280&ndash;320 guests)</div>
               </div>
             </div>
-            <span class="slot-cat-badge">Evening</span>
+            <span class="wcc-badge wcc-badge-soon"><i class="fas fa-calendar-alt"></i> Opens 15 Nov 2026</span>
           </div>
 
-          <div class="slot-grid cols-2">
-            <!-- Evening Without Jaman -->
-            <div class="slot" data-slot="evening" data-package="without_jaman" data-price="11000" id="slot-evening-wo">
-              <span class="slot-status" id="sstatus-evening"></span>
-              <div class="slot-inner">
-                <div class="slot-left">
-                  <div class="slot-name"><span class="sel-dot"></span>Without Jaman</div>
-                  <div class="slot-time"><i class="fas fa-clock" style="font-size:.6rem;margin-right:.3rem;opacity:.5"></i>6:30 PM &ndash; 10:30 PM</div>
-                </div>
-                <div class="slot-right">
-                  <div class="slot-price"> ₹11,000</div>
-                  <div class="slot-advance">Adv: &#8377;4,400</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Evening With Jaman -->
-            <div class="slot" data-slot="evening" data-package="with_jaman" data-price="15000" id="slot-evening-w">
-              <span class="slot-status"></span>
-              <div class="slot-inner">
-                <div class="slot-left">
-                  <div class="slot-name"><span class="sel-dot"></span>With Jaman</div>
-                  <div class="slot-time"><i class="fas fa-clock" style="font-size:.6rem;margin-right:.3rem;opacity:.5"></i>6:30 PM &ndash; 10:30 PM</div>
-                </div>
-                <div class="slot-right">
-                  <div class="slot-price"> ₹15,000</div>
-                  <div class="slot-advance">Adv: &#8377;6,000</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- ③ FULL DAY -->
-        <div class="slot-category" style="margin-bottom:1.5rem;">
-          <div class="slot-cat-header">
-            <div class="slot-cat-left">
-              <div class="slot-cat-icon"><i class="fas fa-crown"></i></div>
-              <div>
-                <div class="slot-cat-title">Full Day Package</div>
-                <div class="slot-cat-sub">10:00 AM &ndash; 10:00 PM &bull; 12 Hours Comprehensive Access</div>
-              </div>
-            </div>
-            <span class="slot-cat-badge">Full Day</span>
-          </div>
-
-          <div class="slot-grid cols-1">
-            <div class="slot" data-slot="fullday" data-package="full_day" data-price="30000" id="slot-fullday">
-              <span class="slot-badge">All Day Event</span>
-              <span class="slot-status" id="sstatus-fullday"></span>
-              <div class="slot-inner">
-                <div class="slot-left">
-                  <div class="slot-name"><span class="sel-dot"></span>Full Day Booking</div>
-                  <div class="slot-time"><i class="fas fa-clock" style="font-size:.6rem;margin-right:.3rem;opacity:.5"></i>10:00 AM &ndash; 10:00 PM</div>
-                </div>
-                <div class="slot-right">
-                  <div class="slot-price"> ₹30,000</div>
-                  <div class="slot-advance">Advance: &#8377;12,000</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Availability info bar -->
-        <div id="dateAvailInfo" role="status" aria-live="polite"></div>
-
-      </div><!-- /slots-panel -->
-
-      <!-- ══ RIGHT: STICKY FORM ══ -->
-      <div class="form-panel reveal" style="transition-delay:.2s">
-        <div class="form-wrap">
-          <div class="form-head">
-            <h2>Enquiry Details</h2>
-            <p>Evan-e-Hakimi (2nd Floor) &bull; Manager Confirmation Required</p>
-          </div>
-          <div class="form-body">
-
-            <!-- Selected slot summary -->
-            <div class="form-slot-summary" id="formSlotSummary">
-              <div class="fss-left">
-                <div style="font-size:0.68rem;letter-spacing:1px;color:var(--wheat);text-transform:uppercase;margin-bottom:2px;">
-                  <i class="fas fa-building" style="margin-right:4px;"></i> Evan-e-Hakimi &bull; 2nd Floor
-                </div>
-                <strong id="fssSlotName">Morning Slot &ndash; Without Jaman</strong>
-                <span id="fssSlotTime">10:30 AM &ndash; 2:30 PM</span>
-              </div>
-              <div class="fss-right">
-                <div class="fss-price" id="fssPriceDisplay">11,000</div>
-                <div class="fss-advance">Adv: &#8377;<span id="advanceBannerAmt">4,400</span> (40%)</div>
-                <div class="fss-balance" style="font-size:0.68rem;color:rgba(245,240,232,0.65);margin-top:2px;">Bal: &#8377;<span id="balanceBannerAmt">6,600</span> (60% due -2d)</div>
-              </div>
-            </div>
-
-            <form id="bookForm" novalidate>
-              <input type="hidden" id="selHall" value="Evan-e-Hakimi">
-              <input type="hidden" id="selSlot" value="morning">
-              <input type="hidden" id="selPackage" value="without_jaman">
-              <input type="hidden" id="selPrice" value="11000">
-
-              <div class="frow">
-                <div class="ff">
-                  <label for="bName">Full Name *</label>
-                  <input type="text" id="bName" placeholder="Your full name" autocomplete="name" required>
-                </div>
-                <div class="ff">
-                  <label for="bPhone">WhatsApp Mobile *</label>
-                  <input type="tel" id="bPhone" placeholder="10-digit number" inputmode="numeric" pattern="[0-9]{10}" autocomplete="tel" required maxlength="10">
-                </div>
-              </div>
-
-              <p class="booking-note" style="margin-bottom:1rem;font-size:0.75rem;line-height:1.5;">
-                <i class="fab fa-whatsapp" style="color:#25d366;margin-right:4px;"></i>
-                <strong>Important:</strong> Please provide an active WhatsApp number. All availability verification and updates will be communicated via WhatsApp.
-              </p>
-
-              <div class="frow">
-                <div class="ff">
-                  <label for="bEmail">Email Address (Optional)</label>
-                  <input type="email" id="bEmail" placeholder="e.g. name@gmail.com" autocomplete="email">
-                </div>
-                <div class="ff">
-                  <label>Event Date *</label>
-                  <input type="hidden" id="bDate">
-                  <div class="cal-trigger" id="calTrigger">
-                    <div class="cal-display" id="calDisplay" tabindex="0" role="button" aria-haspopup="true" aria-label="Open date picker">
-                      <span id="calPlaceholder" class="cal-placeholder">Choose a date</span>
-                      <i class="fas fa-calendar-alt cal-icon"></i>
-                    </div>
-                    <div class="cal-panel" id="calPanel" role="dialog" aria-label="Date picker">
-                      <div class="cal-header">
-                        <button class="cal-nav" id="calPrev" type="button" aria-label="Previous month"><i class="fas fa-chevron-left"></i></button>
-                        <span class="cal-month-label" id="calMonthLabel"></span>
-                        <button class="cal-nav" id="calNext" type="button" aria-label="Next month"><i class="fas fa-chevron-right"></i></button>
-                      </div>
-                      <div class="cal-weekdays">
-                        <div class="cal-weekday">Su</div><div class="cal-weekday">Mo</div>
-                        <div class="cal-weekday">Tu</div><div class="cal-weekday">We</div>
-                        <div class="cal-weekday">Th</div><div class="cal-weekday">Fr</div>
-                        <div class="cal-weekday">Sa</div>
-                      </div>
-                      <div class="cal-days" id="calDays"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="frow">
-                <div class="ff">
-                  <label for="bOccasion">Occasion / Function *</label>
-                  <select id="bOccasion" required>
-                    <option value="">Select occasion&hellip;</option>
-                    <option>Wedding</option>
-                    <option>Nikah</option>
-                    <option>Majlis</option>
-                    <option>Jaman</option>
-                    <option>Birthday</option>
-                    <option>Engagement</option>
-                    <option>Family Gathering</option>
-                    <option>Other</option>
-                  </select>
-                </div>
-                <div class="ff">
-                  <label for="bGuests">Approx. Guests / Thals *</label>
-                  <input type="number" id="bGuests" placeholder="e.g. 35 thals / 280 guests" inputmode="numeric" min="10" max="500" required>
-                </div>
-              </div>
-
-              <div class="frow full">
-                <div class="ff">
-                  <label for="bNotes">Special Requirements / Notes</label>
-                  <textarea id="bNotes" placeholder="Catering details, stage decoration, special timing requirements&hellip;"></textarea>
-                </div>
-              </div>
-
-              <!-- MANDATORY DISCLAIMER NOTICE -->
-              <div style="background:rgba(201,169,110,0.08);border:1px solid rgba(201,169,110,0.25);border-radius:8px;padding:0.9rem;margin-bottom:1.2rem;font-size:0.75rem;line-height:1.5;color:rgba(245,240,232,0.85);">
-                <i class="fas fa-info-circle" style="color:var(--wheat);margin-right:5px;"></i>
-                <strong>Notice:</strong> Submitting an enquiry does not confirm your booking. Your booking is subject to availability verification and confirmation by the manager.
-              </div>
-
-              <button type="submit" id="submitBtn" class="btn-wa">
-                <i class="fas fa-paper-plane"></i> Send Booking Enquiry
+          <!-- Qadri Hall Note (Shown when Qadri is selected) -->
+          <div id="qadriNoticeBox" style="display:none;background:rgba(252,211,77,0.1);border:1.5px solid #fcd34d;border-radius:10px;padding:1.1rem;margin-top:1.2rem;color:rgba(245,240,232,0.92);font-size:0.95rem;line-height:1.6;">
+            <strong style="color:#fcd34d;display:block;margin-bottom:4px;font-size:1.05rem;"><i class="fas fa-info-circle"></i> Qadri Hall Booking Notice</strong>
+            Bookings for Qadri Hall will officially open from <strong>15th November 2026</strong>. For functions before this date, please choose <strong>Evan-e-Hakimi (2nd Floor)</strong>, or tap below to enquire with our manager directly on WhatsApp.
+            <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;">
+              <button type="button" onclick="selectHall('Evan-e-Hakimi')" style="background:var(--wheat);color:#120d06;border:none;padding:0.6rem 1.2rem;border-radius:8px;font-weight:600;font-size:0.9rem;cursor:pointer;">
+                <i class="fas fa-check"></i> Switch to Evan-e-Hakimi
               </button>
+              <a href="https://wa.me/919033647648?text=Hello%20Management%2C%20I%20am%20enquiring%20about%20Qadri%20Hall%20(3rd%20Floor)%20availability." target="_blank" style="background:#25d366;color:#fff;text-decoration:none;padding:0.6rem 1.2rem;border-radius:8px;font-weight:600;font-size:0.9rem;display:inline-flex;align-items:center;gap:6px;">
+                <i class="fab fa-whatsapp"></i> Chat on WhatsApp
+              </a>
+            </div>
+          </div>
 
-              <div id="bookingMessage" role="alert" aria-live="polite"></div>
-              <p class="wa-note">
-                <i class="fas fa-lock" style="font-size:.62rem;margin-right:3px"></i>
-                Enquiry saved securely &bull; Manager will verify and respond on WhatsApp
-              </p>
+          <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(201,169,110,0.18);border-radius:10px;padding:1rem 1.2rem;margin-top:1.4rem;font-size:0.92rem;color:rgba(245,240,232,0.8);line-height:1.6;">
+            <i class="fas fa-shield-alt" style="color:var(--wheat);margin-right:6px;"></i>
+            Both halls include complete elevator (lift) access, continuous air conditioning, clean washrooms, and dedicated pantry services.
+          </div>
 
-            </form>
+          <div class="wizard-actions">
+            <div></div>
+            <button type="button" class="btn-wiz-next" onclick="validateAndGo(1, 2)">
+              Continue to Step 2 &rarr;
+            </button>
           </div>
         </div>
-      </div><!-- /form-panel -->
 
-    </div><!-- /booking-split -->
+        <!-- ══════════════════════════════════════════
+             STEP 2: CHOOSE YOUR EVENT
+        ══════════════════════════════════════════ -->
+        <div class="wizard-step" id="stepPane2">
+          <h3 class="wizard-h">When is your event &amp; what are you celebrating?</h3>
+          <p class="wizard-p">Please pick your date and tell us about your occasion:</p>
+
+          <!-- 1. Event Date -->
+          <div class="wizard-field">
+            <label class="wizard-label">1. When is your event? *</label>
+            <div class="wizard-hint">Tap below to open the calendar and choose your date:</div>
+            
+            <button type="button" id="wizDateBtn" class="wizard-date-btn" onclick="toggleCalendarDropdown()">
+              <span id="wizDateLabel"><i class="fas fa-calendar-alt" style="color:var(--wheat);margin-right:8px;"></i> Tap here to select your date</span>
+              <i class="fas fa-chevron-down" id="wizDateChevron" style="color:var(--wheat);font-size:0.9rem;"></i>
+            </button>
+
+            <!-- Inline / Dropdown Calendar Wrapper -->
+            <div id="wizCalContainer" style="display:none;margin-top:10px;background:linear-gradient(160deg,#1c1408 0%,#120d06 100%);border:1.5px solid rgba(201,169,110,0.35);border-radius:14px;padding:1.2rem;box-shadow:0 12px 36px rgba(0,0,0,0.6);">
+              <div class="cal-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+                <button type="button" class="btn-wiz-back" style="min-height:38px;padding:0.4rem 0.9rem;font-size:0.85rem;" id="calPrev" onclick="navigateCalendarMonth(-1)">
+                  &larr; Prev Month
+                </button>
+                <span id="calMonthLabel" style="font-family:'Cinzel',serif;font-size:1.05rem;font-weight:700;color:var(--wheat);letter-spacing:1px;">Month Year</span>
+                <button type="button" class="btn-wiz-back" style="min-height:38px;padding:0.4rem 0.9rem;font-size:0.85rem;" id="calNext" onclick="navigateCalendarMonth(1)">
+                  Next Month &rarr;
+                </button>
+              </div>
+              <div class="cal-weekdays" style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-weight:700;color:var(--wheat);font-size:0.85rem;margin-bottom:0.6rem;padding-bottom:0.4rem;border-bottom:1px solid rgba(201,169,110,0.15);">
+                <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
+              </div>
+              <div id="calDays" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;"></div>
+            </div>
+
+            <!-- Native date fallback option -->
+            <div style="margin-top:0.8rem;display:flex;align-items:center;gap:10px;font-size:0.88rem;color:rgba(245,240,232,0.6);flex-wrap:wrap;">
+              <span>Or use phone's date picker:</span>
+              <input type="date" id="nativeDateInput" style="background:rgba(255,255,255,0.06);border:1px solid rgba(201,169,110,0.3);color:var(--cream);padding:0.4rem 0.8rem;border-radius:8px;font-size:0.9rem;outline:none;" onchange="handleNativeDateChange(this.value)">
+            </div>
+          </div>
+
+          <!-- 2. Occasion -->
+          <div class="wizard-field" style="margin-top:1.6rem;">
+            <label class="wizard-label" for="bOccasion">2. What are you celebrating? *</label>
+            <select id="bOccasion" class="wizard-select" required onchange="handleOccasionChange(this.value)">
+              <option value="">-- Tap to select celebration type --</option>
+              <option value="Wedding">Wedding</option>
+              <option value="Nikah">Nikah</option>
+              <option value="Majlis">Majlis</option>
+              <option value="Jaman">Jaman</option>
+              <option value="Birthday">Birthday</option>
+              <option value="Engagement">Engagement</option>
+              <option value="Family Function">Family Function / Gathering</option>
+              <option value="Other">Other Occasion</option>
+            </select>
+          </div>
+
+          <!-- 3. Approximate Guests / Thals -->
+          <div class="wizard-field">
+            <label class="wizard-label" for="bGuests">3. Approximate Guests or Thals *</label>
+            <div class="wizard-hint">Hall capacity is 35 to 40 thals (approx. 280 to 320 seated guests):</div>
+            <input type="number" id="bGuests" class="wizard-input" placeholder="e.g. 35 thals / 280 guests" inputmode="numeric" min="10" max="500" value="35" required>
+          </div>
+
+          <div class="wizard-actions">
+            <button type="button" class="btn-wiz-back" onclick="goToStep(1)">
+              &larr; Back to Hall
+            </button>
+            <button type="button" class="btn-wiz-next" onclick="validateAndGo(2, 3)">
+              Continue to Timing &amp; Rate &rarr;
+            </button>
+          </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════
+             STEP 3: CHOOSE YOUR TIMING & PACKAGE
+        ══════════════════════════════════════════ -->
+        <div class="wizard-step" id="stepPane3">
+          <h3 class="wizard-h">Choose Your Timing &amp; Catering Option</h3>
+          <p class="wizard-p">Select the hours you need and whether food will be served:</p>
+
+          <!-- Part A: Timing -->
+          <div class="wizard-label">1. Choose Slot Timing *</div>
+          
+          <div class="wizard-choice-card selected" id="slotChoiceMorning" onclick="selectSlotTiming('morning')">
+            <div class="wcc-left">
+              <div class="wcc-radio"></div>
+              <div>
+                <div class="wcc-title"><i class="fas fa-sun" style="color:#fcd34d;margin-right:6px;"></i> Morning Slot</div>
+                <div class="wcc-sub">10:30 AM &ndash; 2:30 PM &bull; 4 Hours</div>
+              </div>
+            </div>
+            <span class="wcc-badge" style="background:rgba(201,169,110,0.12);color:var(--wheat);">Morning</span>
+          </div>
+
+          <div class="wizard-choice-card" id="slotChoiceEvening" onclick="selectSlotTiming('evening')">
+            <div class="wcc-left">
+              <div class="wcc-radio"></div>
+              <div>
+                <div class="wcc-title"><i class="fas fa-moon" style="color:#93c5fd;margin-right:6px;"></i> Evening Slot</div>
+                <div class="wcc-sub">6:30 PM &ndash; 10:30 PM &bull; 4 Hours</div>
+              </div>
+            </div>
+            <span class="wcc-badge" style="background:rgba(201,169,110,0.12);color:var(--wheat);">Evening</span>
+          </div>
+
+          <div class="wizard-choice-card" id="slotChoiceFullday" onclick="selectSlotTiming('fullday')">
+            <div class="wcc-left">
+              <div class="wcc-radio"></div>
+              <div>
+                <div class="wcc-title"><i class="fas fa-crown" style="color:#f59e0b;margin-right:6px;"></i> Full Day Package</div>
+                <div class="wcc-sub">10:00 AM &ndash; 10:00 PM &bull; 12 Hours Comprehensive Access</div>
+              </div>
+            </div>
+            <span class="wcc-badge" style="background:rgba(245,158,11,0.15);color:#fcd34d;">Full Day</span>
+          </div>
+
+          <!-- Part B: Catering Option (Only if Morning or Evening) -->
+          <div id="cateringOptionsWrap" style="margin-top:1.6rem;">
+            <div class="wizard-label">2. Will food / jaman be served in the hall? *</div>
+            
+            <div class="wizard-choice-card selected" id="pkgChoiceWithout" onclick="selectCateringOption('without_jaman')">
+              <div class="wcc-left">
+                <div class="wcc-radio"></div>
+                <div>
+                  <div class="wcc-title">Without Jaman</div>
+                  <div class="wcc-sub">Hall rental only (no dining / thals arrangement)</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="wizard-choice-card" id="pkgChoiceWith" onclick="selectCateringOption('with_jaman')">
+              <div class="wcc-left">
+                <div class="wcc-radio"></div>
+                <div>
+                  <div class="wcc-title">With Jaman</div>
+                  <div class="wcc-sub">Complete hall &amp; community dining / thals arrangement</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Part C: ONE CLEAR PRICE SUMMARY BOX -->
+          <div class="simple-price-box" id="wizardPriceBox">
+            <div class="spb-header">
+              <i class="fas fa-receipt"></i> Official Rate For Selected Slot
+            </div>
+            <div class="spb-main-row">
+              <div>
+                <div style="font-size:0.88rem;color:rgba(245,240,232,0.7);margin-bottom:2px;">Total Hall Rate:</div>
+                <div class="spb-amount" id="wizPriceAmount">₹11,000</div>
+              </div>
+              <span class="spb-date-tag" id="wizPriceDateTag">Rate valid for selected event date</span>
+            </div>
+            <div class="spb-breakdown">
+              <div class="spb-row">
+                <span>40% Advance Payment:</span>
+                <span class="spb-adv" id="wizAdvanceAmount">₹4,400</span>
+              </div>
+              <div style="font-size:0.82rem;color:rgba(245,240,232,0.6);margin-top:-2px;">
+                (Advance is required only after manager approves your slot)
+              </div>
+              <div class="spb-row" style="margin-top:0.4rem;padding-top:0.5rem;border-top:1px dashed rgba(201,169,110,0.15);">
+                <span>Remaining 60% Balance:</span>
+                <span style="font-weight:700;color:var(--cream);" id="wizBalanceAmount">₹6,600</span>
+              </div>
+              <div style="font-size:0.82rem;color:rgba(245,240,232,0.6);margin-top:-2px;">
+                (Payable at least 2 days before the event date)
+              </div>
+            </div>
+          </div>
+
+          <div class="wizard-actions">
+            <button type="button" class="btn-wiz-back" onclick="goToStep(2)">
+              &larr; Back to Event
+            </button>
+            <button type="button" class="btn-wiz-next" onclick="validateAndGo(3, 4)">
+              Continue to Contact Details &rarr;
+            </button>
+          </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════
+             STEP 4: YOUR CONTACT DETAILS
+        ══════════════════════════════════════════ -->
+        <div class="wizard-step" id="stepPane4">
+          <h3 class="wizard-h">Who should our manager contact?</h3>
+          <p class="wizard-p">Please provide your contact details so our manager can reach you directly on WhatsApp:</p>
+
+          <div class="wizard-field">
+            <label class="wizard-label" for="bName">Your Full Name *</label>
+            <input type="text" id="bName" class="wizard-input" placeholder="e.g. Shabbir Bhai" autocomplete="name" required>
+          </div>
+
+          <div class="wizard-field">
+            <label class="wizard-label" for="bPhone">WhatsApp Mobile Number *</label>
+            <div class="wizard-hint">
+              <i class="fab fa-whatsapp" style="color:#25d366;margin-right:4px;"></i>
+              Please provide an active 10-digit number. All confirmations are sent via WhatsApp.
+            </div>
+            <input type="tel" id="bPhone" class="wizard-input" placeholder="10-digit mobile number (e.g. 9033647648)" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" autocomplete="tel" required>
+          </div>
+
+          <div class="wizard-field">
+            <label class="wizard-label" for="bEmail">Email Address (Optional)</label>
+            <input type="email" id="bEmail" class="wizard-input" placeholder="e.g. name@gmail.com" autocomplete="email">
+          </div>
+
+          <div class="wizard-field">
+            <label class="wizard-label" for="bNotes">Special Requirements or Notes (Optional)</label>
+            <div class="wizard-hint">Stage decoration, seating layout, specific timing requests, etc.:</div>
+            <textarea id="bNotes" class="wizard-textarea" placeholder="Write any notes or special requirements here..."></textarea>
+          </div>
+
+          <div class="wizard-actions">
+            <button type="button" class="btn-wiz-back" onclick="goToStep(3)">
+              &larr; Back to Timing
+            </button>
+            <button type="button" class="btn-wiz-next" onclick="validateAndGo(4, 5)">
+              Review Enquiry &rarr;
+            </button>
+          </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════
+             STEP 5: REVIEW & SEND ENQUIRY
+        ══════════════════════════════════════════ -->
+        <div class="wizard-step" id="stepPane5">
+          <h3 class="wizard-h">Review &amp; Send Your Enquiry</h3>
+          <p class="wizard-p">Please verify your booking details below before submitting:</p>
+
+          <!-- Review Box -->
+          <div class="wizard-review-box">
+            <div class="wrb-title">
+              <i class="fas fa-list-alt"></i> Booking Details Summary
+            </div>
+            <div class="wrb-list">
+              <div class="wrb-item">
+                <span class="wrb-label">Selected Hall:</span>
+                <span class="wrb-val" id="revHall">Evan-e-Hakimi (2nd Floor)</span>
+              </div>
+              <div class="wrb-item">
+                <span class="wrb-label">Event Date:</span>
+                <span class="wrb-val" id="revDate" style="color:var(--wheat);">Not Selected</span>
+              </div>
+              <div class="wrb-item">
+                <span class="wrb-label">Occasion / Celebration:</span>
+                <span class="wrb-val" id="revOccasion">Wedding</span>
+              </div>
+              <div class="wrb-item">
+                <span class="wrb-label">Approximate Guests:</span>
+                <span class="wrb-val" id="revGuests">35 Thals</span>
+              </div>
+              <div class="wrb-item">
+                <span class="wrb-label">Slot Timing:</span>
+                <span class="wrb-val" id="revSlot">Morning (10:30 AM &ndash; 2:30 PM)</span>
+              </div>
+              <div class="wrb-item">
+                <span class="wrb-label">Catering Option:</span>
+                <span class="wrb-val" id="revPackage">Without Jaman</span>
+              </div>
+              <div class="wrb-item">
+                <span class="wrb-label">Contact Person:</span>
+                <span class="wrb-val" id="revName">&mdash;</span>
+              </div>
+              <div class="wrb-item">
+                <span class="wrb-label">WhatsApp Number:</span>
+                <span class="wrb-val" id="revPhone">&mdash;</span>
+              </div>
+            </div>
+
+            <!-- Price Breakdown in Review -->
+            <div class="wrb-title" style="margin-top:1.4rem;">
+              <i class="fas fa-money-bill-wave"></i> Payment Summary
+            </div>
+            <div class="wrb-list">
+              <div class="wrb-item">
+                <span class="wrb-label">Total Hall Rate:</span>
+                <span class="wrb-val" id="revTotal" style="font-size:1.25rem;color:var(--wheat);font-family:'Cormorant Garamond',serif;">₹11,000</span>
+              </div>
+              <div class="wrb-item">
+                <span class="wrb-label">40% Advance to Confirm:</span>
+                <span class="wrb-val" id="revAdvance" style="color:#86efac;">₹4,400</span>
+              </div>
+              <div class="wrb-item">
+                <span class="wrb-label">Remaining 60% Balance:</span>
+                <span class="wrb-val" id="revBalance">₹6,600 (due 2 days before event)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Plain Reassurance Note -->
+          <div class="wizard-reassurance-box">
+            <i class="fas fa-check-circle"></i>
+            <div>
+              <strong>Reassurance Guarantee:</strong> Submitting this enquiry does not require immediate payment. Your enquiry will be reviewed personally by our manager. Your booking is confirmed only after manager approval.
+            </div>
+          </div>
+
+          <!-- Terms Checkbox -->
+          <label class="wizard-terms-label">
+            <input type="checkbox" id="termsAgreeWiz" checked required>
+            <span>
+              I agree to the venue <a href="javascript:void(0)" onclick="showTermsModal()" style="color:var(--wheat);text-decoration:underline;">Terms &amp; Conditions</a>, including prior permission from Aamil Saheb and Libas-ul-Anwar dress code.
+            </span>
+          </label>
+
+          <!-- Message Box -->
+          <div id="bookingMessage" role="alert" aria-live="polite" style="display:none;margin-bottom:1rem;"></div>
+
+          <div class="wizard-actions">
+            <button type="button" class="btn-wiz-back" onclick="goToStep(4)">
+              &larr; Make Changes
+            </button>
+            <button type="submit" id="submitBtn" class="btn-wiz-next" style="background:#25d366;color:#fff;box-shadow:0 6px 20px rgba(37,211,102,0.35);">
+              <i class="fas fa-paper-plane"></i> Send Booking Enquiry
+            </button>
+          </div>
+
+          <div style="text-align:center;margin-top:1rem;font-size:0.85rem;color:rgba(245,240,232,0.6);">
+            <i class="fas fa-lock" style="color:var(--wheat);margin-right:4px;"></i>
+            Secure enquiry &bull; Manager will verify slot &amp; contact you on WhatsApp
+          </div>
+        </div>
+
+      </form>
+    </div>
 
   </div>
 </section>
@@ -3417,17 +3864,15 @@ function closeQadriModal() {
 }
 
 function selectHakimiHall() {
-  const hakimiCard = document.getElementById('venueCardHakimi');
-  if (hakimiCard) {
-    hakimiCard.style.borderColor = 'var(--wheat)';
-    hakimiCard.style.boxShadow = '0 0 24px rgba(201,169,110,0.35)';
-    setTimeout(() => {
-      hakimiCard.style.boxShadow = '0 4px 16px rgba(201,169,110,0.12)';
-    }, 600);
+  if (typeof selectHall === 'function') {
+    selectHall('Evan-e-Hakimi');
   }
-  const picker = document.querySelector('.slot-category');
-  if (picker) {
-    picker.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (typeof goToStep === 'function') {
+    goToStep(2);
+  }
+  const wizard = document.querySelector('.wizard-card');
+  if (wizard) {
+    wizard.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 }
 
@@ -3701,333 +4146,503 @@ const SLOT_CONFIG = {
   }
 };
 
-function refreshSlotPrices(dateStr) {
-  const slots = [
-    { id: 'slot-morning-wo', slot: 'morning', pkg: 'without_jaman' },
-    { id: 'slot-morning-w',  slot: 'morning', pkg: 'with_jaman' },
-    { id: 'slot-evening-wo', slot: 'evening', pkg: 'without_jaman' },
-    { id: 'slot-evening-w',  slot: 'evening', pkg: 'with_jaman' },
-    { id: 'slot-fullday',    slot: 'fullday', pkg: 'full_day' }
-  ];
+/* ══════════════════════════════════════════════════════════════
+   SENIOR-FRIENDLY BOOKING WIZARD CONTROLLER (5-STEP FLOW)
+   Specially crafted for accessible, effortless venue booking
+══════════════════════════════════════════════════════════════ */
+let currentWizardStep = 1;
+let calCurrentYear = new Date().getFullYear();
+let calCurrentMonth = new Date().getMonth();
 
-  slots.forEach(item => {
-    const el = document.getElementById(item.id);
-    if (!el) return;
-    const price = getSlotPackagePrice(item.slot, item.pkg, dateStr);
-    const advance = Math.round(price * 0.40);
-    el.dataset.price = price;
+const CAL_MONTHS = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
 
-    const priceEl = el.querySelector('.slot-price');
-    if (priceEl) priceEl.textContent = ' ₹' + price.toLocaleString('en-IN');
-
-    const advEl = el.querySelector('.slot-advance');
-    if (advEl) advEl.innerHTML = 'Adv: &#8377;' + advance.toLocaleString('en-IN');
-  });
-
-  const curSlot = document.getElementById('selSlot')?.value || 'morning';
-  const curPkg = document.getElementById('selPackage')?.value || 'without_jaman';
-  const currentPrice = getSlotPackagePrice(curSlot, curPkg, dateStr);
-
-  const priceInput = document.getElementById('selPrice');
-  if (priceInput) priceInput.value = currentPrice;
-
-  updateAdvanceDisplay(currentPrice);
+/* ── STEP NAVIGATION ── */
+function goToStep(stepNum) {
+  if (stepNum > currentWizardStep) {
+    return validateAndGo(currentWizardStep, stepNum);
+  }
+  setWizardStepDirect(stepNum);
 }
 
-function selectSlot(slotKey, pkgKey, price) {
-  const currentDate = document.getElementById('bDate')?.value;
-  const applicablePrice = getSlotPackagePrice(slotKey, pkgKey, currentDate);
+function setWizardStepDirect(stepNum) {
+  currentWizardStep = stepNum;
 
-  const slotEl = document.querySelector(`.slot[data-slot="${slotKey}"][data-package="${pkgKey}"]`);
-  if (!slotEl || slotEl.classList.contains('slot-disabled')) return;
+  // Update panes
+  for (let i = 1; i <= 5; i++) {
+    const pane = document.getElementById(`stepPane${i}`);
+    if (pane) pane.classList.toggle('active', i === stepNum);
 
-  document.querySelectorAll('.slot').forEach(s => s.classList.remove('sel'));
-  slotEl.classList.add('sel');
+    const bubble = document.getElementById(`wizBubble${i}`);
+    if (bubble) bubble.classList.toggle('active', i === stepNum);
+  }
 
+  // Update pill & step name
+  const pill = document.getElementById('wizStepPill');
+  if (pill) pill.innerHTML = `<i class="fas fa-check-circle" style="color:var(--wheat);"></i> Step ${stepNum} of 5`;
+
+  const stepNames = {
+    1: 'Choose Your Hall',
+    2: 'Choose Your Event',
+    3: 'Choose Timing & Rate',
+    4: 'Your Contact Details',
+    5: 'Review & Send Enquiry'
+  };
+  const sName = document.getElementById('wizStepName');
+  if (sName) sName.textContent = stepNames[stepNum] || '';
+
+  // Update progress bar
+  const pFill = document.getElementById('wizProgressFill');
+  if (pFill) pFill.style.width = (stepNum * 20) + '%';
+
+  // Clear alert
+  const alertBox = document.getElementById('wizAlert');
+  if (alertBox) alertBox.style.display = 'none';
+
+  // Review step initialization
+  if (stepNum === 5) {
+    populateReviewSummary();
+  }
+
+  // Senior accessibility: gently scroll to top of wizard card
+  const card = document.querySelector('.wizard-card');
+  if (card) {
+    const y = card.getBoundingClientRect().top + window.pageYOffset - 80;
+    window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+  }
+}
+
+function showWizAlert(msg) {
+  const alertBox = document.getElementById('wizAlert');
+  const alertText = document.getElementById('wizAlertText');
+  if (alertBox && alertText) {
+    alertText.textContent = msg;
+    alertBox.style.display = 'flex';
+    alertBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+
+function validateAndGo(fromStep, toStep) {
+  if (toStep > fromStep) {
+    // Validate Step 1
+    if (fromStep <= 1 && toStep > 1) {
+      const hall = document.getElementById('selHall')?.value;
+      if (!hall) {
+        showWizAlert('Please select a hall to proceed.');
+        return;
+      }
+    }
+
+    // Validate Step 2
+    if (fromStep <= 2 && toStep > 2) {
+      const date = document.getElementById('bDate')?.value;
+      if (!date) {
+        showWizAlert('Please select your event date from the calendar to continue.');
+        return;
+      }
+      const hall = document.getElementById('selHall')?.value;
+      if (hall === 'Qadri Hall' && date < '2026-11-15') {
+        showWizAlert('Qadri Hall is available for events starting 15 November 2026. Please pick a date on or after 15 Nov 2026, or switch to Evan-e-Hakimi.');
+        return;
+      }
+      const occasion = document.getElementById('bOccasion')?.value;
+      if (!occasion) {
+        showWizAlert('Please tell us what you are celebrating (e.g. Wedding, Majlis, Birthday).');
+        return;
+      }
+      const guests = document.getElementById('bGuests')?.value;
+      if (!guests || parseInt(guests) <= 0) {
+        showWizAlert('Please enter the approximate number of guests or thals.');
+        return;
+      }
+    }
+
+    // Validate Step 4
+    if (fromStep <= 4 && toStep > 4) {
+      const name = document.getElementById('bName')?.value.trim();
+      if (!name) {
+        showWizAlert('Please enter your full name.');
+        return;
+      }
+      const phone = document.getElementById('bPhone')?.value.trim();
+      if (!phone || !/^[0-9]{10}$/.test(phone)) {
+        showWizAlert('Please enter a valid 10-digit WhatsApp mobile number (e.g. 9033647648).');
+        return;
+      }
+    }
+  }
+
+  setWizardStepDirect(toStep);
+}
+
+/* ── STEP 1: HALL SELECTION ── */
+function selectHall(hallName) {
   const hallInput = document.getElementById('selHall');
-  if (hallInput) hallInput.value = 'Evan-e-Hakimi';
+  if (hallInput) hallInput.value = hallName;
 
+  const hakimiCard = document.getElementById('venueCardHakimi');
+  const qadriCard = document.getElementById('venueCardQadri');
+  const qadriNotice = document.getElementById('qadriNoticeBox');
+
+  if (hallName === 'Qadri Hall') {
+    if (qadriCard) qadriCard.classList.add('selected');
+    if (hakimiCard) hakimiCard.classList.remove('selected');
+    if (qadriNotice) qadriNotice.style.display = 'block';
+  } else {
+    if (hakimiCard) hakimiCard.classList.add('selected');
+    if (qadriCard) qadriCard.classList.remove('selected');
+    if (qadriNotice) qadriNotice.style.display = 'none';
+  }
+
+  const curDate = document.getElementById('bDate')?.value;
+  if (curDate) {
+    fetchSlotAvailability(curDate, hallName);
+  }
+}
+
+/* ── STEP 2: EVENT DATE & CALENDAR SYSTEM ── */
+function toggleCalendarDropdown() {
+  const calBox = document.getElementById('wizCalContainer');
+  const chevron = document.getElementById('wizDateChevron');
+  if (!calBox) return;
+  const isHidden = calBox.style.display === 'none' || calBox.style.display === '';
+  calBox.style.display = isHidden ? 'block' : 'none';
+  if (chevron) chevron.style.transform = isHidden ? 'rotate(180deg)' : 'none';
+  if (isHidden) renderWizardCalendar();
+}
+
+function navigateCalendarMonth(dir) {
+  calCurrentMonth += dir;
+  if (calCurrentMonth < 0) {
+    calCurrentMonth = 11;
+    calCurrentYear--;
+  } else if (calCurrentMonth > 11) {
+    calCurrentMonth = 0;
+    calCurrentYear++;
+  }
+  renderWizardCalendar();
+}
+
+function renderWizardCalendar() {
+  const label = document.getElementById('calMonthLabel');
+  if (label) label.textContent = `${CAL_MONTHS[calCurrentMonth]} ${calCurrentYear}`;
+  const container = document.getElementById('calDays');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const firstDay = new Date(calCurrentYear, calCurrentMonth, 1).getDay();
+  const daysInMonth = new Date(calCurrentYear, calCurrentMonth + 1, 0).getDate();
+  const selectedDateStr = document.getElementById('bDate')?.value || '';
+
+  for (let i = 0; i < firstDay; i++) {
+    const emptyCell = document.createElement('div');
+    emptyCell.className = 'cal-day empty';
+    container.appendChild(emptyCell);
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const cell = document.createElement('div');
+    const dateObj = new Date(calCurrentYear, calCurrentMonth, d);
+    dateObj.setHours(0,0,0,0);
+    const pad = n => String(n).padStart(2, '0');
+    const dateStr = `${calCurrentYear}-${pad(calCurrentMonth + 1)}-${pad(d)}`;
+
+    cell.className = 'cal-day';
+    cell.textContent = d;
+
+    if (dateObj < today) {
+      cell.classList.add('past');
+    } else {
+      if (dateObj.getTime() === today.getTime()) cell.classList.add('today');
+      cell.classList.add('selectable');
+      if (dateStr === selectedDateStr) cell.classList.add('selected');
+      cell.addEventListener('click', () => {
+        setSelectedDate(dateStr);
+      });
+    }
+    container.appendChild(cell);
+  }
+}
+
+function setSelectedDate(dateStr) {
+  const dateInput = document.getElementById('bDate');
+  if (dateInput) dateInput.value = dateStr;
+
+  const nativeInput = document.getElementById('nativeDateInput');
+  if (nativeInput) nativeInput.value = dateStr;
+
+  const [yr, mo, dy] = dateStr.split('-').map(Number);
+  const dateObj = new Date(yr, mo - 1, dy);
+  const formatted = dateObj.toLocaleDateString('en-IN', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  });
+
+  const labelEl = document.getElementById('wizDateLabel');
+  if (labelEl) {
+    labelEl.innerHTML = `<i class="fas fa-check-circle" style="color:#86efac;margin-right:8px;"></i> <strong>${formatted}</strong>`;
+  }
+
+  const calBox = document.getElementById('wizCalContainer');
+  const chevron = document.getElementById('wizDateChevron');
+  if (calBox) calBox.style.display = 'none';
+  if (chevron) chevron.style.transform = 'none';
+
+  const alertBox = document.getElementById('wizAlert');
+  if (alertBox) alertBox.style.display = 'none';
+
+  updateWizardPriceDisplay();
+
+  const hall = document.getElementById('selHall')?.value || 'Evan-e-Hakimi';
+  fetchSlotAvailability(dateStr, hall);
+}
+
+function handleNativeDateChange(val) {
+  if (!val) return;
+  setSelectedDate(val);
+}
+
+function handleOccasionChange(val) {
+  const alertBox = document.getElementById('wizAlert');
+  if (alertBox) alertBox.style.display = 'none';
+}
+
+/* ── STEP 3: TIMING & CATERING SELECTION ── */
+function selectSlotTiming(slotKey) {
   const slotInput = document.getElementById('selSlot');
   if (slotInput) slotInput.value = slotKey;
 
+  const cards = {
+    'morning': document.getElementById('slotChoiceMorning'),
+    'evening': document.getElementById('slotChoiceEvening'),
+    'fullday': document.getElementById('slotChoiceFullday')
+  };
+
+  Object.keys(cards).forEach(k => {
+    if (cards[k]) cards[k].classList.toggle('selected', k === slotKey);
+  });
+
+  const cateringWrap = document.getElementById('cateringOptionsWrap');
+  if (slotKey === 'fullday') {
+    if (cateringWrap) cateringWrap.style.display = 'none';
+    const pkgInput = document.getElementById('selPackage');
+    if (pkgInput) pkgInput.value = 'full_day';
+  } else {
+    if (cateringWrap) cateringWrap.style.display = 'block';
+    const pkgInput = document.getElementById('selPackage');
+    if (!pkgInput || pkgInput.value === 'full_day') {
+      if (pkgInput) pkgInput.value = 'without_jaman';
+    }
+    selectCateringOption(pkgInput ? pkgInput.value : 'without_jaman');
+  }
+
+  updateWizardPriceDisplay();
+}
+
+function selectCateringOption(pkgKey) {
   const pkgInput = document.getElementById('selPackage');
   if (pkgInput) pkgInput.value = pkgKey;
 
+  const wo = document.getElementById('pkgChoiceWithout');
+  const w = document.getElementById('pkgChoiceWith');
+  if (wo) wo.classList.toggle('selected', pkgKey === 'without_jaman');
+  if (w) w.classList.toggle('selected', pkgKey === 'with_jaman');
+
+  updateWizardPriceDisplay();
+}
+
+/* ── REAL-TIME PRICE COMPUTATION ── */
+function updateWizardPriceDisplay() {
+  const slot = document.getElementById('selSlot')?.value || 'morning';
+  const pkg = document.getElementById('selPackage')?.value || 'without_jaman';
+  const date = document.getElementById('bDate')?.value || '';
+  const price = getSlotPackagePrice(slot, pkg, date);
+  const advance = Math.round(price * 0.40);
+  const balance = price - advance;
+
   const priceInput = document.getElementById('selPrice');
-  if (priceInput) priceInput.value = applicablePrice;
+  if (priceInput) priceInput.value = price;
 
-  updateAdvanceDisplay(applicablePrice);
+  const pAmt = document.getElementById('wizPriceAmount');
+  if (pAmt) pAmt.textContent = '₹' + price.toLocaleString('en-IN');
 
-  const slotData = SLOT_CONFIG[slotKey];
-  if (slotData) {
-    const pkgData = slotData.packages[pkgKey];
-    const nameEl = document.getElementById('fssSlotName');
-    const timeEl = document.getElementById('fssSlotTime');
-    if (nameEl) nameEl.textContent = pkgData ? pkgData.name : slotData.name;
-    if (timeEl) timeEl.textContent = slotData.time;
+  const advAmt = document.getElementById('wizAdvanceAmount');
+  if (advAmt) advAmt.textContent = '₹' + advance.toLocaleString('en-IN');
+
+  const balAmt = document.getElementById('wizBalanceAmount');
+  if (balAmt) balAmt.textContent = '₹' + balance.toLocaleString('en-IN');
+
+  const dateTag = document.getElementById('wizPriceDateTag');
+  if (dateTag) {
+    if (isDateOnOrAfterJan2027(date)) {
+      dateTag.textContent = '2027 Approved Pricing Tier';
+    } else if (date) {
+      dateTag.textContent = 'Official rate for selected date';
+    } else {
+      dateTag.textContent = 'Current rate (select date to confirm)';
+    }
+  }
+
+  updateAdvanceDisplay(price);
+}
+
+/* ── STEP 5: REVIEW SUMMARY BUILDER ── */
+function populateReviewSummary() {
+  const hall = document.getElementById('selHall')?.value || 'Evan-e-Hakimi';
+  const dateStr = document.getElementById('bDate')?.value || '';
+  const occasion = document.getElementById('bOccasion')?.value || 'Not specified';
+  const guests = document.getElementById('bGuests')?.value || '35';
+  const slot = document.getElementById('selSlot')?.value || 'morning';
+  const pkg = document.getElementById('selPackage')?.value || 'without_jaman';
+  const name = document.getElementById('bName')?.value.trim() || '—';
+  const phone = document.getElementById('bPhone')?.value.trim() || '—';
+
+  let formattedDate = 'Not selected';
+  if (dateStr) {
+    const [yr, mo, dy] = dateStr.split('-').map(Number);
+    formattedDate = new Date(yr, mo - 1, dy).toLocaleDateString('en-IN', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  }
+
+  const slotLabels = {
+    'morning': 'Morning (10:30 AM – 2:30 PM)',
+    'evening': 'Evening (6:30 PM – 10:30 PM)',
+    'fullday': 'Full Day (10:00 AM – 10:00 PM)'
+  };
+
+  const pkgLabels = {
+    'without_jaman': 'Without Jaman (Hall Only)',
+    'with_jaman': 'With Jaman (Dining & Thals)',
+    'full_day': 'Full Day Comprehensive Package'
+  };
+
+  const price = getSlotPackagePrice(slot, pkg, dateStr);
+  const advance = Math.round(price * 0.40);
+  const balance = price - advance;
+
+  const revHall = document.getElementById('revHall');
+  if (revHall) revHall.textContent = hall === 'Qadri Hall' ? 'Qadri Hall (3rd Floor)' : 'Evan-e-Hakimi (2nd Floor)';
+
+  const revDate = document.getElementById('revDate');
+  if (revDate) revDate.textContent = formattedDate;
+
+  const revOccasion = document.getElementById('revOccasion');
+  if (revOccasion) revOccasion.textContent = occasion;
+
+  const revGuests = document.getElementById('revGuests');
+  if (revGuests) revGuests.textContent = `${guests} Guests / Thals`;
+
+  const revSlot = document.getElementById('revSlot');
+  if (revSlot) revSlot.textContent = slotLabels[slot] || slot;
+
+  const revPkg = document.getElementById('revPackage');
+  if (revPkg) revPkg.textContent = pkgLabels[pkg] || pkg;
+
+  const revName = document.getElementById('revName');
+  if (revName) revName.textContent = name;
+
+  const revPhone = document.getElementById('revPhone');
+  if (revPhone) revPhone.textContent = phone;
+
+  const revTotal = document.getElementById('revTotal');
+  if (revTotal) revTotal.textContent = '₹' + price.toLocaleString('en-IN');
+
+  const revAdv = document.getElementById('revAdvance');
+  if (revAdv) revAdv.textContent = '₹' + advance.toLocaleString('en-IN');
+
+  const revBal = document.getElementById('revBalance');
+  if (revBal) revBal.textContent = '₹' + balance.toLocaleString('en-IN') + ' (due 2 days before event)';
+}
+
+/* ── REAL-TIME BACKEND AVAILABILITY VERIFICATION ── */
+async function fetchSlotAvailability(dateStr, hall) {
+  if (!dateStr) return;
+  const h = hall || document.getElementById('selHall')?.value || 'Evan-e-Hakimi';
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/bookings/availability?date=${dateStr}&hall=${encodeURIComponent(h)}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    const slots = data.slots || {};
+
+    ['morning', 'evening', 'fullday'].forEach(slotKey => {
+      const cap = slotKey.charAt(0).toUpperCase() + slotKey.slice(1);
+      const card = document.getElementById('slotChoice' + cap);
+      const slotData = slots[slotKey];
+      if (!card) return;
+
+      const badge = card.querySelector('.wcc-badge');
+      if (slotData && (slotData.status === 'confirmed_booked' || slotData.status === 'conflict_blocked')) {
+        card.classList.add('slot-disabled');
+        card.style.opacity = '0.55';
+        card.style.cursor = 'not-allowed';
+        if (badge) {
+          badge.style.background = 'rgba(239,68,68,0.2)';
+          badge.style.color = '#f87171';
+          badge.innerHTML = '<i class="fas fa-ban"></i> Booked';
+        }
+      } else {
+        card.classList.remove('slot-disabled');
+        card.style.opacity = '1';
+        card.style.cursor = 'pointer';
+        if (badge) {
+          if (slotKey === 'fullday') {
+            badge.style.background = 'rgba(245,158,11,0.15)';
+            badge.style.color = '#fcd34d';
+            badge.innerHTML = 'Full Day';
+          } else {
+            badge.style.background = 'rgba(201,169,110,0.12)';
+            badge.style.color = 'var(--wheat)';
+            badge.innerHTML = cap;
+          }
+        }
+      }
+    });
+
+    // If currently selected slot is disabled, auto-switch to first available slot
+    const curSlot = document.getElementById('selSlot')?.value || 'morning';
+    const curCap = curSlot.charAt(0).toUpperCase() + curSlot.slice(1);
+    const curCard = document.getElementById('slotChoice' + curCap);
+    if (curCard && curCard.classList.contains('slot-disabled')) {
+      const avail = ['morning', 'evening', 'fullday'].find(k => {
+        const c = document.getElementById('slotChoice' + k.charAt(0).toUpperCase() + k.slice(1));
+        return c && !c.classList.contains('slot-disabled');
+      });
+      if (avail) {
+        selectSlotTiming(avail);
+      }
+    }
+  } catch (err) {
+    console.warn('Real-time availability check note:', err.message);
   }
 }
 
-document.querySelectorAll('.slot').forEach(slot => {
-  slot.addEventListener('click', () => {
-    if (slot.classList.contains('slot-disabled')) return;
-    const s = slot.dataset.slot;
-    const p = slot.dataset.package;
-    const pr = parseInt(slot.dataset.price);
-    selectSlot(s, p, pr);
-  });
+/* ── BACKWARD-COMPATIBLE HELPERS ── */
+function selectSlot(slotKey, pkgKey, price) {
+  selectSlotTiming(slotKey);
+  if (slotKey !== 'fullday' && pkgKey) {
+    selectCateringOption(pkgKey);
+  }
+}
+
+function refreshSlotPrices(dateStr) {
+  updateWizardPriceDisplay();
+}
+
+// Initialize calendar & pricing on page load
+window.addEventListener('DOMContentLoaded', () => {
+  renderWizardCalendar();
+  updateWizardPriceDisplay();
 });
-
-/* ══════════════════════════════════════════════
-   CALENDAR SYSTEM — Simple date picker
-   No availability checks, all dates selectable
-══════════════════════════════════════════════ */
-(function CalendarSystem() {
-  let calYear, calMonth;
-  let calSelectedDate = null;
-
-  const MONTHS = ['January','February','March','April','May','June',
-                  'July','August','September','October','November','December'];
-
-  function renderCalendar() {
-    document.getElementById('calMonthLabel').textContent = MONTHS[calMonth] + ' ' + calYear;
-    const container = document.getElementById('calDays');
-    container.innerHTML = '';
-
-    const today = new Date(); today.setHours(0,0,0,0);
-    const firstDay   = new Date(calYear, calMonth, 1).getDay();
-    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
-
-    for (let i = 0; i < firstDay; i++) {
-      const e = document.createElement('div');
-      e.className = 'cal-day empty';
-      container.appendChild(e);
-    }
-
-    for (let d = 1; d <= daysInMonth; d++) {
-      const cell    = document.createElement('div');
-      const dateObj = new Date(calYear, calMonth, d);
-      dateObj.setHours(0,0,0,0);
-      const pad     = n => String(n).padStart(2,'0');
-      const dateStr = `${calYear}-${pad(calMonth+1)}-${pad(d)}`;
-
-      cell.className = 'cal-day';
-      cell.textContent = d;
-
-      if (dateObj < today) {
-        cell.classList.add('past');
-      } else {
-        if (dateObj.getTime() === today.getTime()) cell.classList.add('today');
-        cell.classList.add('selectable');
-        cell.addEventListener('click', () => selectDate(dateStr, cell));
-        if (dateStr === calSelectedDate) cell.classList.add('selected');
-      }
-      container.appendChild(cell);
-    }
-  }
-
-  function selectDate(dateStr, cell) {
-    calSelectedDate = dateStr;
-    document.getElementById('bDate').value = dateStr;
-
-    const [yr, mo, dy] = dateStr.split('-').map(Number);
-    const dateObj = new Date(yr, mo - 1, dy);
-    const label   = dateObj.toLocaleDateString('en-IN', {weekday:'short', day:'numeric', month:'short', year:'numeric'});
-    const ph = document.getElementById('calPlaceholder');
-    ph.textContent = label;
-    ph.className = 'cal-selected-text';
-
-    const calPanel   = document.getElementById('calPanel');
-    const calDisplay = document.getElementById('calDisplay');
-    const calBackdrop = document.getElementById('calBackdrop');
-    calPanel.classList.remove('open');
-    calDisplay.classList.remove('open');
-    calDisplay.setAttribute('aria-expanded', 'false');
-    if (calBackdrop) calBackdrop.classList.remove('active');
-    document.body.style.overflow = '';
-
-    renderCalendar();
-    refreshSlotPrices(dateStr);
-    const mb = document.getElementById('bookingMessage');
-    if (mb) { mb.style.display = 'none'; }
-
-    fetchSlotAvailability(dateStr);
-  }
-
-  async function fetchSlotAvailability(dateStr) {
-    const infoBar = document.getElementById('dateAvailInfo');
-    if (infoBar) {
-      infoBar.style.display = 'block';
-      infoBar.innerHTML = `<span style="color:var(--wheat);font-size:0.8rem;"><i class="fas fa-spinner fa-spin" style="margin-right:6px"></i> Checking real-time slot availability for <strong>${dateStr}</strong>...</span>`;
-    }
-
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/bookings/availability?date=${dateStr}&hall=Evan-e-Hakimi`);
-      if (!res.ok) throw new Error('Availability service response status ' + res.status);
-      const data = await res.json();
-
-      const slots = data.slots || {};
-
-      ['morning', 'evening', 'fullday'].forEach(slotKey => {
-        const statusBadge = document.getElementById(`sstatus-${slotKey}`);
-        const slotEls = document.querySelectorAll(`.slot[data-slot="${slotKey}"]`);
-        const slotData = slots[slotKey];
-
-        if (!slotData || slotData.status === 'available') {
-          if (statusBadge) {
-            statusBadge.className = 'slot-status';
-            statusBadge.style.cssText = 'color:#86efac;font-size:0.65rem;';
-            statusBadge.innerHTML = '<i class="fas fa-check-circle" style="margin-right:3px"></i>Available';
-          }
-          slotEls.forEach(el => el.classList.remove('slot-disabled'));
-        } else if (slotData.status === 'confirmed_booked') {
-          if (statusBadge) {
-            statusBadge.className = 'slot-status';
-            statusBadge.style.cssText = 'color:#f87171;font-size:0.65rem;';
-            statusBadge.innerHTML = '<i class="fas fa-times-circle" style="margin-right:3px"></i>Booked';
-          }
-          slotEls.forEach(el => {
-            el.classList.add('slot-disabled');
-            if (el.classList.contains('sel')) el.classList.remove('sel');
-          });
-        } else if (slotData.status === 'conflict_blocked') {
-          if (statusBadge) {
-            statusBadge.className = 'slot-status';
-            statusBadge.style.cssText = 'color:#fbbf24;font-size:0.65rem;';
-            statusBadge.innerHTML = '<i class="fas fa-ban" style="margin-right:3px"></i>Conflict Blocked';
-          }
-          slotEls.forEach(el => {
-            el.classList.add('slot-disabled');
-            if (el.classList.contains('sel')) el.classList.remove('sel');
-          });
-        } else if (slotData.status === 'pending_inquiry') {
-          if (statusBadge) {
-            statusBadge.className = 'slot-status';
-            statusBadge.style.cssText = 'color:#67e8f9;font-size:0.65rem;';
-            statusBadge.innerHTML = '<i class="fas fa-clock" style="margin-right:3px"></i>Enquiry Pending';
-          }
-          slotEls.forEach(el => el.classList.remove('slot-disabled'));
-        }
-      });
-
-      // If currently selected slot became disabled, reselect first available
-      const currentSelected = document.querySelector('.slot.sel');
-      if (!currentSelected || currentSelected.classList.contains('slot-disabled')) {
-        const firstAvail = document.querySelector('.slot:not(.slot-disabled)');
-        if (firstAvail) {
-          selectSlot(firstAvail.dataset.slot, firstAvail.dataset.package, parseInt(firstAvail.dataset.price));
-        }
-      }
-
-      if (infoBar) {
-        infoBar.innerHTML = `<span style="color:rgba(245,240,232,0.85);font-size:0.8rem;"><i class="fas fa-check-circle" style="color:#86efac;margin-right:6px"></i> Live status loaded for <strong>${dateStr}</strong> (Evan-e-Hakimi, 2nd Floor).</span>`;
-      }
-    } catch (err) {
-      console.warn('Real-time availability check failed, fallback to standard flow:', err);
-      if (infoBar) {
-        infoBar.innerHTML = `<span style="color:rgba(245,240,232,0.7);font-size:0.78rem;"><i class="fas fa-info-circle" style="color:var(--wheat);margin-right:6px"></i> Date selected. Availability is verified and confirmed directly by our manager.</span>`;
-      }
-    }
-  }
-
-  function initCalendar() {
-    const now = new Date();
-    calYear  = now.getFullYear();
-    calMonth = now.getMonth();
-
-    renderCalendar();
-
-    document.getElementById('calPrev').addEventListener('click', e => {
-      e.stopPropagation();
-      if (calMonth === 0) { calMonth = 11; calYear--; } else calMonth--;
-      renderCalendar();
-    });
-    document.getElementById('calNext').addEventListener('click', e => {
-      e.stopPropagation();
-      if (calMonth === 11) { calMonth = 0; calYear++; } else calMonth++;
-      renderCalendar();
-    });
-
-    const display = document.getElementById('calDisplay');
-    const panel   = document.getElementById('calPanel');
-
-    document.body.appendChild(panel);
-
-    let backdrop = document.getElementById('calBackdrop');
-    if (!backdrop) {
-      backdrop = document.createElement('div');
-      backdrop.id = 'calBackdrop';
-      document.body.appendChild(backdrop);
-    }
-    backdrop.onclick = closeCalendar;
-
-    function positionPanel() {
-      if (window.innerWidth <= 680) return;
-      const rect = display.getBoundingClientRect();
-      const panelW = 320;
-      const gap = 8;
-      let left = rect.left;
-      if (left + panelW > window.innerWidth - 12) {
-        left = window.innerWidth - panelW - 12;
-      }
-      if (left < 8) left = 8;
-      const spaceBelow = window.innerHeight - rect.bottom - gap;
-      const panelH = 340;
-      if (spaceBelow >= panelH || spaceBelow >= 200) {
-        panel.style.top    = (rect.bottom + gap) + 'px';
-        panel.style.bottom = 'auto';
-      } else {
-        panel.style.top    = Math.max(8, rect.top - panelH - gap) + 'px';
-        panel.style.bottom = 'auto';
-      }
-      panel.style.left  = left + 'px';
-      panel.style.width = panelW + 'px';
-    }
-
-    function openCalendar() {
-      panel.classList.add('open');
-      display.classList.add('open');
-      display.setAttribute('aria-expanded', 'true');
-      positionPanel();
-      if (window.innerWidth <= 680) {
-        backdrop.classList.add('active');
-        document.body.style.overflow = 'hidden';
-      }
-    }
-
-    function closeCalendar() {
-      panel.classList.remove('open');
-      display.classList.remove('open');
-      display.setAttribute('aria-expanded', 'false');
-      backdrop.classList.remove('active');
-      document.body.style.overflow = '';
-    }
-
-    display.addEventListener('click', e => {
-      e.stopPropagation();
-      if (panel.classList.contains('open')) { closeCalendar(); } else { openCalendar(); }
-    });
-    display.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); display.click(); }
-      if (e.key === 'Escape') closeCalendar();
-    });
-    panel.addEventListener('click', e => e.stopPropagation());
-    document.addEventListener('click', closeCalendar);
-    window.addEventListener('resize', () => {
-      if (panel.classList.contains('open')) positionPanel();
-    }, { passive: true });
-    window.addEventListener('scroll', () => {
-      if (!panel.classList.contains('open')) return;
-      if (window.innerWidth <= 680) {
-        closeCalendar();
-      } else {
-        positionPanel();
-      }
-    }, { passive: true });
-  }
-
-  initCalendar();
-})();
 
 /* ── SERVER WAKE-UP LOGIC ── */
 (function ServerWakeUp() {
@@ -4206,11 +4821,12 @@ document.querySelectorAll('.slot').forEach(slot => {
 
     hideMsg();
 
-    if (localStorage.getItem(TC_STORAGE_KEY) !== 'true') {
-      showTermsModal();
-      showMsg('warn', '<div class="msg-title"><span class="msg-icon">⚠️</span>You must agree to the Terms &amp; Conditions to submit booking enquiries.</div>');
+    const termsWiz = document.getElementById('termsAgreeWiz');
+    if (termsWiz && !termsWiz.checked) {
+      showMsg('warn', '<div class="msg-title"><span class="msg-icon">⚠️</span>Please check the box agreeing to the Terms &amp; Conditions before submitting.</div>');
       return;
     }
+    localStorage.setItem(TC_STORAGE_KEY, 'true');
 
     const name     = document.getElementById('bName').value.trim();
     const phone    = document.getElementById('bPhone').value.trim();
@@ -4306,9 +4922,12 @@ document.querySelectorAll('.slot').forEach(slot => {
         console.log("✅ BOOKING INQUIRY SAVED");
         const bookingId = fetcha.bookingId;
 
-        // Reset form
+        // Reset form & wizard to initial state
         this.reset();
-        selectSlot('morning', 'without_jaman', getSlotPackagePrice('morning', 'without_jaman', date));
+        selectHall('Evan-e-Hakimi');
+        selectSlotTiming('morning');
+        selectCateringOption('without_jaman');
+        goToStep(1);
         hideMsg();
 
         const balance = price - advance;
