@@ -238,22 +238,24 @@
  
     /* ── BUTTONS ── */
     .btn-gold {
-      background:var(--wheat); color:var(--soil); padding:.9rem 2.2rem;
-      border-radius:4px; font-weight:500; font-size:.75rem; letter-spacing:1.5px;
-      text-transform:uppercase; text-decoration:none; border:none; cursor:pointer;
-      transition:transform .25s,box-shadow .25s,background .25s;
-      box-shadow:0 8px 28px var(--shadow-gold);
-      display:inline-flex; align-items:center; gap:.5rem; position:relative; overflow:hidden;
+      background:linear-gradient(135deg, #e4c489 0%, #c9a96e 50%, #b28842 100%);
+      color:#1a1208; padding:.95rem 2.4rem;
+      border-radius:6px; font-weight:600; font-size:.76rem; letter-spacing:1.8px;
+      text-transform:uppercase; text-decoration:none; border:1px solid rgba(255,240,210,.45); cursor:pointer;
+      transition:transform .25s ease, box-shadow .25s ease, filter .25s ease;
+      box-shadow:0 6px 24px rgba(201,169,110,.32), inset 0 1px 1px rgba(255,255,255,.45);
+      display:inline-flex; align-items:center; gap:.65rem; position:relative; overflow:hidden;
     }
-    .btn-gold::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,255,255,.15),transparent); }
-    .btn-gold:hover { transform:translateY(-3px); box-shadow:0 16px 40px rgba(201,169,110,.4); background:var(--gold); }
+    .btn-gold::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,255,255,.22),transparent); pointer-events:none; }
+    .btn-gold:hover { transform:translateY(-3px); box-shadow:0 14px 38px rgba(201,169,110,.48), 0 0 20px rgba(201,169,110,.32); filter:brightness(1.06); }
     .btn-ghost {
-      background:transparent; color:#fff; padding:.9rem 2.2rem;
-      border-radius:4px; font-weight:400; font-size:.75rem; letter-spacing:1.5px;
-      text-transform:uppercase; text-decoration:none; border:1px solid rgba(255,255,255,.3);
-      cursor:pointer; transition:all .25s; display:inline-flex; align-items:center; gap:.5rem;
+      background:rgba(255,255,255,.035); color:#fff; padding:.95rem 2.4rem;
+      border-radius:6px; font-weight:500; font-size:.76rem; letter-spacing:1.8px;
+      text-transform:uppercase; text-decoration:none; border:1px solid rgba(201,169,110,.35);
+      backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+      cursor:pointer; transition:all .25s ease; display:inline-flex; align-items:center; gap:.65rem;
     }
-    .btn-ghost:hover { border-color:var(--wheat); color:var(--wheat); background:rgba(201,169,110,.06); }
+    .btn-ghost:hover { border-color:var(--wheat); color:var(--wheat); background:rgba(201,169,110,.12); box-shadow:0 0 22px rgba(201,169,110,.22); transform:translateY(-3px); }
     .btn-wa {
       background:var(--wa); color:#fff; padding:1rem 2rem;
       border-radius:6px; font-weight:500; font-size:.9rem;
@@ -349,54 +351,120 @@
     .about-badge .small { font-size:.62rem; letter-spacing:1.5px; text-transform:uppercase; color:rgba(42,30,18,.7); margin-top:.25rem; }
     /* ── FACILITIES & AMENITIES SECTION ── */
     .facilities-grid {
-      display:grid; grid-template-columns:repeat(3,1fr);
-      gap:1.8rem; max-width:1100px; margin:0 auto;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 1.8rem;
+      max-width: 1100px;
+      margin: 0 auto;
     }
     .facility-card {
-      background:rgba(255,255,255,0.025); border:1px solid rgba(201,169,110,0.2);
-      border-radius:14px; padding:2.2rem 1.8rem; display:flex; flex-direction:column;
-      transition:transform .3s ease, border-color .3s ease, background .3s ease, box-shadow .3s ease;
-      position:relative; overflow:hidden;
+      grid-column: span 2;
+      background: linear-gradient(145deg, rgba(30,22,14,0.7), rgba(16,12,8,0.85));
+      border: 1px solid rgba(201,169,110,0.22);
+      border-radius: 14px;
+      padding: 2.2rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+      transition: transform .3s ease, border-color .3s ease, background .3s ease, box-shadow .3s ease;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(201,169,110,0.15);
+    }
+    /* Centering bottom 2 cards on laptop/desktop (row 1: 3 cards, row 2: 2 cards centered) */
+    .facility-card:nth-child(4) {
+      grid-column: 2 / span 2;
+    }
+    .facility-card:nth-child(5) {
+      grid-column: 4 / span 2;
     }
     .facility-card::before {
-      content:''; position:absolute; top:0; left:0; right:0; height:1px;
-      background:linear-gradient(90deg,transparent,rgba(201,169,110,0.4),transparent);
-      opacity:0; transition:opacity .3s ease;
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1.5px;
+      background: linear-gradient(90deg, transparent, rgba(201,169,110,0.5), transparent);
+      opacity: 0; transition: opacity .3s ease;
     }
     .facility-card:hover {
-      transform:translateY(-4px); border-color:rgba(201,169,110,0.45);
-      background:rgba(201,169,110,0.04); box-shadow:0 14px 34px rgba(0,0,0,0.4);
+      transform: translateY(-5px); border-color: rgba(201,169,110,0.55);
+      background: linear-gradient(145deg, rgba(36,26,17,0.85), rgba(20,15,10,0.95));
+      box-shadow: 0 16px 36px rgba(0,0,0,0.55), 0 0 20px rgba(201,169,110,0.15);
     }
-    .facility-card:hover::before { opacity:1; }
+    .facility-card:hover::before { opacity: 1; }
     .facility-icon-wrap {
-      width:54px; height:54px; border-radius:12px;
-      background:rgba(201,169,110,0.08); border:1px solid rgba(201,169,110,0.25);
-      display:flex; align-items:center; justify-content:center;
-      color:var(--wheat); margin-bottom:1.3rem;
-      transition:background .3s ease, border-color .3s ease, color .3s ease;
+      width: 52px; height: 52px; border-radius: 12px;
+      background: linear-gradient(135deg, rgba(201,169,110,0.15), rgba(201,169,110,0.04));
+      border: 1px solid rgba(201,169,110,0.3);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--wheat); margin-bottom: 1.3rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      transition: all .3s ease;
     }
     .facility-card:hover .facility-icon-wrap {
-      background:rgba(201,169,110,0.18); border-color:var(--wheat); color:var(--gold-light);
+      background: linear-gradient(135deg, rgba(201,169,110,0.25), rgba(201,169,110,0.1));
+      border-color: var(--wheat); color: var(--gold-light);
+      transform: scale(1.05);
+      box-shadow: 0 6px 16px rgba(201,169,110,0.25);
     }
     .facility-title {
-      font-family:'Cormorant Garamond',serif; font-size:1.4rem; color:var(--cream);
-      font-weight:500; margin-bottom:.55rem; letter-spacing:.3px;
+      font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--cream);
+      font-weight: 500; margin-bottom: .55rem; letter-spacing: .3px;
     }
     .facility-desc {
-      font-size:.85rem; line-height:1.65; color:rgba(245,240,232,0.68); margin:0;
+      font-size: .85rem; line-height: 1.65; color: rgba(245,240,232,0.72); margin: 0;
     }
-    @media(max-width:900px){
-      .facilities-grid { grid-template-columns:repeat(2,1fr); gap:1.2rem; }
-      .facility-card { padding:1.6rem 1.2rem; }
-      .facility-title { font-size:1.25rem; }
+
+    /* Tablet layout (641px - 900px): 2-2-1 centered */
+    @media (max-width: 900px) and (min-width: 641px) {
+      .facilities-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.2rem;
+      }
+      .facility-card {
+        grid-column: span 2 !important;
+        padding: 1.8rem 1.4rem;
+      }
+      .facility-card:nth-child(5) {
+        grid-column: 2 / span 2 !important;
+      }
+      .facility-title { font-size: 1.3rem; }
     }
-    @media(max-width:480px){
-      .facilities-grid { grid-template-columns:repeat(2,1fr); gap:.85rem; }
-      .facility-card { padding:1.25rem .9rem; }
-      .facility-icon-wrap { width:42px; height:42px; margin-bottom:.8rem; }
-      .facility-icon-wrap svg { width:20px; height:20px; }
-      .facility-title { font-size:1.08rem; margin-bottom:.35rem; }
-      .facility-desc { font-size:.76rem; line-height:1.45; }
+
+    /* Mobile Phones (<= 640px): 2x2 grid + 5th signature card spanning both columns */
+    @media (max-width: 640px) {
+      .facilities-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.85rem;
+      }
+      .facility-card {
+        grid-column: auto !important;
+        padding: 1.3rem 0.95rem;
+        border-radius: 12px;
+      }
+      .facility-card:nth-child(5) {
+        grid-column: 1 / -1 !important;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 1.45rem 1.1rem;
+        background: linear-gradient(145deg, rgba(201,169,110,0.1), rgba(16,12,8,0.92));
+        border-color: rgba(201,169,110,0.4);
+      }
+      .facility-card:nth-child(5) .facility-icon-wrap {
+        margin-bottom: 0.8rem;
+      }
+      .facility-card:nth-child(5) .facility-desc {
+        max-width: 95%;
+        margin: 0 auto;
+      }
+      .facility-icon-wrap { width: 42px; height: 42px; margin-bottom: .8rem; }
+      .facility-icon-wrap svg { width: 20px; height: 20px; }
+      .facility-title { font-size: 1.1rem; margin-bottom: .35rem; }
+      .facility-desc { font-size: .78rem; line-height: 1.45; }
+    }
+
+    /* Smallest screens (<= 360px): 1 column clean stack */
+    @media (max-width: 360px) {
+      .facilities-grid { grid-template-columns: 1fr !important; }
+      .facility-card { grid-column: auto !important; }
     }
  
     /* ── GALLERY ── */
@@ -1697,6 +1765,7 @@
       .hero-eyebrow{font-size:0.52rem;letter-spacing:1px;text-indent:1px;gap:.25rem;}
       .hero-eyebrow::before, .hero-eyebrow::after{width:10px;}
       .facilities-grid{grid-template-columns:1fr !important}
+      .facility-card{grid-column:auto !important}
       .hero-hall{font-size:1.45rem;letter-spacing:1px;text-indent:1px;text-align:center;}
       .nav-brand-hall{font-size:.68rem}
     }
@@ -2929,7 +2998,7 @@
       Two Distinct Venues. Timeless Elegance for Unforgettable Celebrations.
     </p>
     <div class="hero-ctas">
-      <a href="#halls" class="btn-gold"><i class="fas fa-layer-group"></i> Explore Both Halls</a>
+      <a href="#halls" class="btn-gold"><i class="fas fa-archway"></i> Explore Our Halls</a>
       <a href="#contact" class="btn-ghost"><i class="fas fa-phone-alt"></i> Contact Us</a>
     </div>
   </div>
