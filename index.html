@@ -239,21 +239,21 @@
     /* ── BUTTONS ── */
     .btn-gold {
       background:linear-gradient(135deg, #e4c489 0%, #c9a96e 50%, #b28842 100%);
-      color:#1a1208; padding:.95rem 2.4rem;
-      border-radius:6px; font-weight:600; font-size:.76rem; letter-spacing:1.8px;
+      color:#1a1208; padding:1rem 2.4rem;
+      border-radius:6px; font-weight:700; font-size:.85rem; letter-spacing:1.2px;
       text-transform:uppercase; text-decoration:none; border:1px solid rgba(255,240,210,.45); cursor:pointer;
       transition:transform .25s ease, box-shadow .25s ease, filter .25s ease;
       box-shadow:0 6px 24px rgba(201,169,110,.32), inset 0 1px 1px rgba(255,255,255,.45);
-      display:inline-flex; align-items:center; gap:.65rem; position:relative; overflow:hidden;
+      display:inline-flex; align-items:center; gap:.7rem; position:relative; overflow:hidden;
     }
     .btn-gold::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,255,255,.22),transparent); pointer-events:none; }
     .btn-gold:hover { transform:translateY(-3px); box-shadow:0 14px 38px rgba(201,169,110,.48), 0 0 20px rgba(201,169,110,.32); filter:brightness(1.06); }
     .btn-ghost {
-      background:rgba(255,255,255,.035); color:#fff; padding:.95rem 2.4rem;
-      border-radius:6px; font-weight:500; font-size:.76rem; letter-spacing:1.8px;
+      background:rgba(255,255,255,.035); color:#fff; padding:1rem 2.4rem;
+      border-radius:6px; font-weight:600; font-size:.85rem; letter-spacing:1.2px;
       text-transform:uppercase; text-decoration:none; border:1px solid rgba(201,169,110,.35);
       backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
-      cursor:pointer; transition:all .25s ease; display:inline-flex; align-items:center; gap:.65rem;
+      cursor:pointer; transition:all .25s ease; display:inline-flex; align-items:center; gap:.7rem;
     }
     .btn-ghost:hover { border-color:var(--wheat); color:var(--wheat); background:rgba(201,169,110,.12); box-shadow:0 0 22px rgba(201,169,110,.22); transform:translateY(-3px); }
     .btn-wa {
@@ -2715,13 +2715,11 @@
 <!-- TERMS & CONDITIONS POPUP -->
 <div id="termsPopup" class="terms-popup" role="dialog" aria-modal="true" aria-labelledby="tcModalTitle" style="display:none; visibility:hidden; opacity:0;">
 
-  <!-- OVERLAY (Clicks allow closing if already agreed) -->
-  <div class="terms-overlay" onclick="closeTermsModalIfAgreed()"></div>
+  <!-- OVERLAY (Clicks cannot dismiss mandatory terms) -->
+  <div class="terms-overlay"></div>
 
   <!-- CONTENT -->
   <div class="terms-content">
-    <button type="button" class="tc-close-btn" id="tcCloseBtn" onclick="closeTermsModal()" aria-label="Close Terms & Conditions" style="display:none;"><i class="fas fa-times"></i></button>
-
     <!-- GLOW -->
     <div class="terms-glow"></div>
 
@@ -2966,8 +2964,8 @@
     <li><a href="#halls">Halls</a></li>
     <li><a href="#amenities">Amenities</a></li>
     <li><a href="#pricing">Pricing &amp; Slots</a></li>
-    <li><a href="#gallery">Gallery</a></li>
     <li><a href="#booking">Book Enquiry</a></li>
+    <li><a href="#gallery">Gallery</a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
   <button class="ham" id="ham" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="mobNav"><i class="fas fa-bars"></i></button>
@@ -2977,8 +2975,8 @@
   <a href="#halls" onclick="closeMob()">Our Halls</a>
   <a href="#amenities" onclick="closeMob()">Amenities</a>
   <a href="#pricing" onclick="closeMob()">Pricing &amp; Slots</a>
-  <a href="#gallery" onclick="closeMob()">Gallery</a>
   <a href="#booking" onclick="closeMob()">Book Enquiry</a>
+  <a href="#gallery" onclick="closeMob()">Gallery</a>
   <a href="#contact" onclick="closeMob()">Contact &amp; Location</a>
 </div>
  
@@ -2998,7 +2996,7 @@
       Two Distinct Venues. Timeless Elegance for Unforgettable Celebrations.
     </p>
     <div class="hero-ctas">
-      <a href="#halls" class="btn-gold"><i class="fas fa-archway"></i> Explore Our Halls</a>
+      <a href="#halls" class="btn-gold"><i class="fas fa-building"></i> View Hall Details</a>
       <a href="#contact" class="btn-ghost"><i class="fas fa-phone-alt"></i> Contact Us</a>
     </div>
   </div>
@@ -3268,51 +3266,6 @@
     </div>
   </div>
 </section>
- 
-<!-- GALLERY -->
-<section class="gallery-section" id="gallery">
-  <div class="gallery-inner">
-    <div class="gallery-header fade-in">
-      <div>
-        <span class="sec-tag">Visual Tour</span>
-        <h2 class="sec-h">The Venue, Up Close</h2>
-        <div class="rule"></div>
-      </div>
-      <p>Step inside our venue &mdash; featuring refined interior architecture, majestic arches, and warm golden lighting.</p>
-    </div>
-    <div class="slider-wrap fade-in d1">
-      <div class="slider" id="mainSlider">
-        <div class="slide" onclick="openLightbox(0)"><img src="/assets/venue_stage.png" alt="Illuminated Stage and Niche Dahod" loading="lazy"><div class="slide-badge">Central Stage</div><div class="slide-caption"><h4>Illuminated Stage &amp; Niche</h4><p>Graceful illuminated arch alcove and pillar lighting designed for auspicious functions.</p></div></div>
-        <div class="slide" onclick="openLightbox(1)"><img src="/assets/venue_hall.png" alt="Spacious Banquet Hall Interior Dahod" loading="lazy"><div class="slide-badge">Main Hall</div><div class="slide-caption"><h4>Spacious Hall Interior</h4><p>Expansive carpeted floor with classical arches, ceiling fans, and natural window lighting.</p></div></div>
-        <div class="slide" onclick="openLightbox(2)"><img src="/assets/venue_arch.png" alt="Architectural Archway Niche Dahod" loading="lazy"><div class="slide-badge">Architecture</div><div class="slide-caption"><h4>Architectural Archway</h4><p>Custom recessed ambient illumination, curved arch niches, and fluted pillar design.</p></div></div>
-        <div class="slide" onclick="openLightbox(3)"><img src="/assets/venue_entrance.png" alt="Foyer Entrance & Passage Dahod" loading="lazy"><div class="slide-badge">Foyer &amp; Entrance</div><div class="slide-caption"><h4>Private Foyer Entrance</h4><p>Welcoming arched passage and dedicated entry doors for event attendees.</p></div></div>
-        <div class="slide" onclick="openLightbox(4)"><img src="/assets/venue_washarea.png" alt="Hygienic Wash Facilities Dahod" loading="lazy"><div class="slide-badge">Wash Area</div><div class="slide-caption"><h4>Hygienic Wash Facilities</h4><p>Clean and well-maintained stainless steel wash facilities on venue premises.</p></div></div>
-      </div>
-      <div class="slider-controls">
-        <div class="slider-dots" id="sliderDots"></div>
-        <div class="slider-arrows">
-          <button class="arrow-btn" id="prevSlide" aria-label="Previous"><i class="fas fa-chevron-left"></i></button>
-          <button class="arrow-btn" id="nextSlide" aria-label="Next"><i class="fas fa-chevron-right"></i></button>
-        </div>
-      </div>
-      <div class="thumb-strip" id="thumbStrip">
-        <div class="thumb active" data-index="0"><img src="/assets/venue_stage.png" alt="Stage & Niche" loading="lazy"></div>
-        <div class="thumb" data-index="1"><img src="/assets/venue_hall.png" alt="Main Banquet Hall" loading="lazy"></div>
-        <div class="thumb" data-index="2"><img src="/assets/venue_arch.png" alt="Architectural Arch" loading="lazy"></div>
-        <div class="thumb" data-index="3"><img src="/assets/venue_entrance.png" alt="Foyer & Entrance" loading="lazy"></div>
-        <div class="thumb" data-index="4"><img src="/assets/venue_washarea.png" alt="Wash Facilities" loading="lazy"></div>
-      </div>
-    </div>
-  </div>
-</section>
- 
-<!-- LIGHTBOX -->
-<div id="lightbox">
-  <button class="lb-close" onclick="closeLightbox()"><i class="fas fa-times"></i></button>
-  <button class="lb-nav" id="lb-prev" onclick="lbNav(-1)"><i class="fas fa-chevron-left"></i></button>
-  <img id="lbImg" src="" alt="Evan-e-Hakimi & Qadri Hall Dahod">
-  <button class="lb-nav" id="lb-next" onclick="lbNav(1)"><i class="fas fa-chevron-right"></i></button>
-</div>
 
 <!-- BOOKING (SENIOR-FRIENDLY 5-STEP FLOW) -->
 <section class="booking-section" id="booking">
@@ -3771,7 +3724,52 @@
 
   </div>
 </section>
- 
+
+<!-- GALLERY -->
+<section class="gallery-section" id="gallery">
+  <div class="gallery-inner">
+    <div class="gallery-header fade-in">
+      <div>
+        <span class="sec-tag">Visual Tour</span>
+        <h2 class="sec-h">The Venue, Up Close</h2>
+        <div class="rule"></div>
+      </div>
+      <p>Step inside our venue &mdash; featuring refined interior architecture, majestic arches, and warm golden lighting.</p>
+    </div>
+    <div class="slider-wrap fade-in d1">
+      <div class="slider" id="mainSlider">
+        <div class="slide" onclick="openLightbox(0)"><img src="/assets/venue_stage.png" alt="Illuminated Stage and Niche Dahod" loading="lazy"><div class="slide-badge">Central Stage</div><div class="slide-caption"><h4>Illuminated Stage &amp; Niche</h4><p>Graceful illuminated arch alcove and pillar lighting designed for auspicious functions.</p></div></div>
+        <div class="slide" onclick="openLightbox(1)"><img src="/assets/venue_hall.png" alt="Spacious Banquet Hall Interior Dahod" loading="lazy"><div class="slide-badge">Main Hall</div><div class="slide-caption"><h4>Spacious Hall Interior</h4><p>Expansive carpeted floor with classical arches, ceiling fans, and natural window lighting.</p></div></div>
+        <div class="slide" onclick="openLightbox(2)"><img src="/assets/venue_arch.png" alt="Architectural Archway Niche Dahod" loading="lazy"><div class="slide-badge">Architecture</div><div class="slide-caption"><h4>Architectural Archway</h4><p>Custom recessed ambient illumination, curved arch niches, and fluted pillar design.</p></div></div>
+        <div class="slide" onclick="openLightbox(3)"><img src="/assets/venue_entrance.png" alt="Foyer Entrance & Passage Dahod" loading="lazy"><div class="slide-badge">Foyer &amp; Entrance</div><div class="slide-caption"><h4>Private Foyer Entrance</h4><p>Welcoming arched passage and dedicated entry doors for event attendees.</p></div></div>
+        <div class="slide" onclick="openLightbox(4)"><img src="/assets/venue_washarea.png" alt="Hygienic Wash Facilities Dahod" loading="lazy"><div class="slide-badge">Wash Area</div><div class="slide-caption"><h4>Hygienic Wash Facilities</h4><p>Clean and well-maintained stainless steel wash facilities on venue premises.</p></div></div>
+      </div>
+      <div class="slider-controls">
+        <div class="slider-dots" id="sliderDots"></div>
+        <div class="slider-arrows">
+          <button class="arrow-btn" id="prevSlide" aria-label="Previous"><i class="fas fa-chevron-left"></i></button>
+          <button class="arrow-btn" id="nextSlide" aria-label="Next"><i class="fas fa-chevron-right"></i></button>
+        </div>
+      </div>
+      <div class="thumb-strip" id="thumbStrip">
+        <div class="thumb active" data-index="0"><img src="/assets/venue_stage.png" alt="Stage & Niche" loading="lazy"></div>
+        <div class="thumb" data-index="1"><img src="/assets/venue_hall.png" alt="Main Banquet Hall" loading="lazy"></div>
+        <div class="thumb" data-index="2"><img src="/assets/venue_arch.png" alt="Architectural Arch" loading="lazy"></div>
+        <div class="thumb" data-index="3"><img src="/assets/venue_entrance.png" alt="Foyer & Entrance" loading="lazy"></div>
+        <div class="thumb" data-index="4"><img src="/assets/venue_washarea.png" alt="Wash Facilities" loading="lazy"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LIGHTBOX -->
+<div id="lightbox">
+  <button class="lb-close" onclick="closeLightbox()"><i class="fas fa-times"></i></button>
+  <button class="lb-nav" id="lb-prev" onclick="lbNav(-1)"><i class="fas fa-chevron-left"></i></button>
+  <img id="lbImg" src="" alt="Evan-e-Hakimi & Qadri Hall Dahod">
+  <button class="lb-nav" id="lb-next" onclick="lbNav(1)"><i class="fas fa-chevron-right"></i></button>
+</div>
+
 <!-- FOOTER -->
 <footer id="contact">
   <div class="foot-inner">
@@ -3807,8 +3805,8 @@
         <li><a href="#halls"><i class="fas fa-chevron-right"></i>Our Halls</a></li>
         <li><a href="#amenities"><i class="fas fa-chevron-right"></i>Amenities &amp; Pantry</a></li>
         <li><a href="#pricing"><i class="fas fa-chevron-right"></i>Pricing &amp; Slots</a></li>
-        <li><a href="#gallery"><i class="fas fa-chevron-right"></i>Gallery</a></li>
         <li><a href="#booking"><i class="fas fa-chevron-right"></i>Book Hall</a></li>
+        <li><a href="#gallery"><i class="fas fa-chevron-right"></i>Gallery</a></li>
         <li><a href="javascript:void(0)" onclick="openTermsModal()"><i class="fas fa-chevron-right"></i>Terms &amp; Conditions</a></li>
       </ul>
     </div>
@@ -3942,14 +3940,12 @@ function showTermsModal() {
   const checkWrap = document.getElementById('tcCheckWrap');
   const btnsWrap = document.getElementById('tcBtnsWrap');
   const viewCloseWrap = document.getElementById('tcViewCloseWrap');
-  const closeBtn = document.getElementById('tcCloseBtn');
   const badgeText = document.getElementById('tcBadgeText');
 
-  // Always display terms acknowledgment controls + close button
+  // Always display terms acknowledgment controls
   if (checkWrap) checkWrap.style.display = 'flex';
   if (btnsWrap) btnsWrap.style.display = 'flex';
   if (viewCloseWrap) viewCloseWrap.style.display = 'none';
-  if (closeBtn) closeBtn.style.display = 'flex';
   if (badgeText) badgeText.textContent = 'Mandatory Acknowledgment';
 
   const cb = document.getElementById('termsAgree');
@@ -4083,7 +4079,6 @@ function selectHakimiHall() {
         if (e.target === popup || e.target.classList.contains('terms-overlay')) {
           e.stopPropagation();
           e.preventDefault();
-          closeTermsModal();
         }
       });
     }
@@ -4113,7 +4108,6 @@ function selectHakimiHall() {
         const p = document.getElementById('termsPopup');
         if (p && p.classList.contains('active')) {
           e.preventDefault();
-          closeTermsModal();
         }
       }
     });
