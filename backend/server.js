@@ -3,6 +3,7 @@ require('dotenv').config();
 const express   = require('express');
 const path      = require('path');
 const fs        = require('fs');
+const https     = require('https');
 const cors      = require('cors');
 const helmet    = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -113,31 +114,75 @@ app.use(['/backend', '/local.db', '/package.json', '/package-lock.json', '/verce
   res.status(404).send('Not Found');
 });
 
-// 4. Public static assets & explicit asset routes (ensures Vercel Serverless Function serves images reliably)
-app.get('/assets/:filename', (req, res, next) => {
+// 4. Public static assets & resilient asset streaming
+const assetMemoryCache = new Map();
+
+function streamAssetFromRemote(res, subPath) {
+  if (assetMemoryCache.has(subPath)) {
+    const cached = assetMemoryCache.get(subPath);
+    res.setHeader('Content-Type', cached.contentType);
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    return res.end(cached.buffer);
+  }
+
+  const remoteUrl = `https://raw.githubusercontent.com/duokarma53-spec/HakimiConstruction/main/${subPath}`;
+  https.get(remoteUrl, (remoteRes) => {
+    if (remoteRes.statusCode === 200) {
+      const chunks = [];
+      const contentType = remoteRes.headers['content-type'] || 'application/octet-stream';
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      remoteRes.on('data', chunk => chunks.push(chunk));
+      remoteRes.on('end', () => {
+        const buffer = Buffer.concat(chunks);
+        assetMemoryCache.set(subPath, { buffer, contentType });
+        res.end(buffer);
+      });
+    } else {
+      res.status(404).sendFile(path.join(rootDir, '404.html'));
+    }
+  }).on('error', (err) => {
+    console.error('Remote asset fetch fallback error:', err.message);
+    res.status(404).sendFile(path.join(rootDir, '404.html'));
+  });
+}
+
+app.get('/assets/:filename', (req, res) => {
   const filename = path.basename(req.params.filename);
   const filePath = path.join(rootDir, 'assets', filename);
   if (fs.existsSync(filePath)) {
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
     return res.sendFile(filePath);
   }
-  next();
+  streamAssetFromRemote(res, `assets/${filename}`);
 });
 
-app.get('/js/:filename', (req, res, next) => {
+app.get('/js/:filename', (req, res) => {
   const filename = path.basename(req.params.filename);
   const filePath = path.join(rootDir, 'js', filename);
   if (fs.existsSync(filePath)) {
     res.setHeader('Cache-Control', 'public, max-age=86400');
     return res.sendFile(filePath);
   }
-  next();
+  streamAssetFromRemote(res, `js/${filename}`);
 });
 
 app.get('/favicon.ico', (req, res) => res.redirect(301, '/assets/favicon.svg'));
-app.get('/favicon.svg', (req, res) => res.sendFile(path.join(rootDir, 'assets', 'favicon.svg')));
-app.get('/robots.txt', (req, res) => res.sendFile(path.join(rootDir, 'robots.txt')));
-app.get('/sitemap.xml', (req, res) => res.sendFile(path.join(rootDir, 'sitemap.xml')));
+app.get('/favicon.svg', (req, res) => {
+  const filePath = path.join(rootDir, 'assets', 'favicon.svg');
+  if (fs.existsSync(filePath)) return res.sendFile(filePath);
+  streamAssetFromRemote(res, 'assets/favicon.svg');
+});
+app.get('/robots.txt', (req, res) => {
+  const filePath = path.join(rootDir, 'robots.txt');
+  if (fs.existsSync(filePath)) return res.sendFile(filePath);
+  streamAssetFromRemote(res, 'robots.txt');
+});
+app.get('/sitemap.xml', (req, res) => {
+  const filePath = path.join(rootDir, 'sitemap.xml');
+  if (fs.existsSync(filePath)) return res.sendFile(filePath);
+  streamAssetFromRemote(res, 'sitemap.xml');
+});
 
 app.use('/assets', express.static(path.join(rootDir, 'assets'), { maxAge: '1y', immutable: true }));
 app.use('/js', express.static(path.join(rootDir, 'js'), { maxAge: '1d' }));
