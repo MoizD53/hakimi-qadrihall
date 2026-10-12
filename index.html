@@ -1961,6 +1961,79 @@
 
 </div>
 
+<!-- QADRI HALL INFO MODAL -->
+<div id="qadriModal" class="qadri-modal-popup" role="dialog" aria-modal="true" aria-labelledby="qadriModalTitle" style="display:none; visibility:hidden; opacity:0;">
+  <div class="qadri-modal-overlay" onclick="closeQadriModal()"></div>
+  <div class="qadri-modal-content">
+    <button class="qadri-close-btn" onclick="closeQadriModal()" aria-label="Close modal">&times;</button>
+    
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+      <span style="font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:var(--wheat);padding:3px 10px;border-radius:20px;background:rgba(201,169,110,0.12);border:1px solid rgba(201,169,110,0.3);font-weight:600;">
+        ✦ 3rd Floor Banquet Venue
+      </span>
+      <span style="font-size:0.65rem;letter-spacing:1px;text-transform:uppercase;color:#fcd34d;background:#3a2e12;padding:3px 10px;border-radius:20px;border:1px solid #e2b96a;font-weight:600;">
+        Bookings Open 15 Nov 26
+      </span>
+    </div>
+
+    <h2 id="qadriModalTitle" style="font-family:'Cormorant Garamond',serif;font-size:clamp(1.8rem, 4vw, 2.3rem);color:var(--cream);font-weight:300;margin:0.4rem 0 0.8rem;line-height:1.2;">
+      Qadri Hall <span style="font-size:1.1rem;color:var(--wheat);font-style:italic;">(3rd Floor)</span>
+    </h2>
+
+    <p style="color:rgba(245,240,232,0.75);font-size:0.88rem;line-height:1.7;margin-bottom:1.4rem;">
+      Our prestigious upper-level banquet hall is currently receiving its final architectural finishes. Reservations and online bookings will officially open on <strong>15th November 2026</strong>.
+    </p>
+
+    <!-- HIGHLIGHTS GRID -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%, 150px),1fr));gap:10px;margin-bottom:1.5rem;">
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(201,169,110,0.2);border-radius:10px;padding:0.8rem 1rem;">
+        <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;color:var(--wheat);margin-bottom:2px;"><i class="fas fa-users" style="margin-right:4px;"></i> Capacity</div>
+        <strong style="color:var(--cream);font-size:0.88rem;">35&ndash;40 Thals</strong>
+      </div>
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(201,169,110,0.2);border-radius:10px;padding:0.8rem 1rem;">
+        <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;color:var(--wheat);margin-bottom:2px;"><i class="fas fa-layer-group" style="margin-right:4px;"></i> Location</div>
+        <strong style="color:var(--cream);font-size:0.88rem;">3rd Floor (Lift Access)</strong>
+      </div>
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(201,169,110,0.2);border-radius:10px;padding:0.8rem 1rem;">
+        <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;color:var(--wheat);margin-bottom:2px;"><i class="fas fa-snowflake" style="margin-right:4px;"></i> Climate</div>
+        <strong style="color:var(--cream);font-size:0.88rem;">Continuous Central AC</strong>
+      </div>
+    </div>
+
+    <!-- NOTICE BOX -->
+    <div style="background:rgba(201,169,110,0.08);border:1px solid rgba(201,169,110,0.3);border-radius:12px;padding:1rem 1.2rem;margin-bottom:1.6rem;">
+      <div style="font-size:0.75rem;font-weight:600;color:var(--wheat);margin-bottom:4px;display:flex;align-items:center;gap:6px;">
+        <i class="fas fa-calendar-alt"></i> Advance Enquiries Open
+      </div>
+      <p style="font-size:0.82rem;color:rgba(245,240,232,0.8);line-height:1.6;margin:0;">
+        Planning a wedding, majlis, or event for late November 2026 onwards? You can connect directly with our management team on WhatsApp or phone for preliminary details.
+      </p>
+    </div>
+
+    <!-- ACTION BUTTONS -->
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <a href="https://wa.me/919033647648?text=Hello%20Management%2C%20I%20would%20like%20to%20enquire%20about%20Qadri%20Hall%20(3rd%20Floor)%20bookings%20opening%20from%2015th%20Nov%202026."
+         target="_blank"
+         class="btn-gold"
+         style="justify-content:center;width:100%;text-align:center;min-height:48px;">
+        <i class="fab fa-whatsapp"></i> Enquire on WhatsApp for Qadri Hall
+      </a>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <a href="tel:+919033647648"
+           class="btn-ghost"
+           style="flex:1;min-width:140px;justify-content:center;text-align:center;min-height:44px;">
+          <i class="fas fa-phone-alt"></i> Call Management
+        </a>
+        <button onclick="closeQadriModal(); selectHakimiHall();"
+                class="btn-ghost"
+                style="flex:1;min-width:180px;justify-content:center;text-align:center;border-color:rgba(201,169,110,0.3);color:var(--wheat);min-height:44px;">
+          <i class="fas fa-check"></i> Book Evan-e-Hakimi
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- PROGRESS BAR -->
 <div id="progress"></div>
  
@@ -2170,7 +2243,7 @@
           </ul>
         </div>
 
-        <a href="#contact" class="btn-ghost" style="justify-content:center;width:100%;text-align:center;border-color:var(--wheat);color:var(--wheat);">
+        <a href="#contact" onclick="openQadriModal(); return false;" class="btn-ghost" style="justify-content:center;width:100%;text-align:center;border-color:var(--wheat);color:var(--wheat);cursor:pointer;">
           <i class="fas fa-calendar-alt"></i> Available from 15th Nov 26 &bull; Enquire
         </a>
       </div>
@@ -2431,23 +2504,54 @@
 
         <!-- HALL SELECTION INDICATOR -->
         <div style="background:rgba(201,169,110,0.06);border:1px solid rgba(201,169,110,0.22);border-radius:12px;padding:1.1rem 1.3rem;margin-bottom:1.5rem;">
-          <div style="font-size:0.68rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--wheat);margin-bottom:0.6rem;font-weight:600;">
-            <i class="fas fa-building" style="margin-right:6px;"></i> Selected Venue &amp; Floor
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:0.6rem;flex-wrap:wrap;">
+            <span style="font-size:0.68rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--wheat);font-weight:600;">
+              <i class="fas fa-building" style="margin-right:6px;"></i> Selected Venue &amp; Floor
+            </span>
+            <span style="font-size:0.68rem;color:rgba(245,240,232,0.5);">
+              Tap to view venue details
+            </span>
           </div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <div style="flex:1;min-width:200px;background:rgba(201,169,110,0.15);border:1px solid var(--wheat);border-radius:8px;padding:0.8rem 1rem;">
+            <!-- EVAN-E-HAKIMI CARD -->
+            <div id="venueCardHakimi"
+                 onclick="selectHakimiHall()"
+                 role="button"
+                 tabindex="0"
+                 aria-label="Evan-e-Hakimi 2nd Floor - Active venue for booking. Click to select."
+                 class="venue-selector-card"
+                 style="flex:1;min-width:min(100%, 200px);background:rgba(201,169,110,0.16);border:1.5px solid var(--wheat);border-radius:10px;padding:0.85rem 1rem;user-select:none;box-shadow:0 4px 16px rgba(201,169,110,0.12);">
               <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-                <strong style="color:var(--cream);font-size:0.95rem;">Evan-e-Hakimi (2nd Floor)</strong>
-                <span style="font-size:0.65rem;color:#86efac;background:#1a4d2e;padding:2px 8px;border-radius:12px;border:1px solid #4ade80;">Active</span>
+                <strong style="color:var(--cream);font-size:0.95rem;display:flex;align-items:center;gap:6px;">
+                  <i class="fas fa-check-circle" style="color:var(--wheat);font-size:0.85rem;"></i>
+                  Evan-e-Hakimi (2nd Floor)
+                </strong>
+                <span style="font-size:0.65rem;color:#86efac;background:#1a4d2e;padding:2px 8px;border-radius:12px;border:1px solid #4ade80;font-weight:600;">Active</span>
               </div>
-              <span style="display:block;font-size:0.75rem;color:rgba(245,240,232,0.65);margin-top:4px;">Available for enquiries &amp; bookings</span>
+              <span style="display:block;font-size:0.75rem;color:rgba(245,240,232,0.7);margin-top:4px;">Available for enquiries &amp; bookings</span>
             </div>
-            <div style="flex:1;min-width:200px;background:rgba(201,169,110,0.10);border:1px solid rgba(201,169,110,0.4);border-radius:8px;padding:0.8rem 1rem;">
+
+            <!-- QADRI HALL CARD -->
+            <div id="venueCardQadri"
+                 onclick="openQadriModal()"
+                 role="button"
+                 tabindex="0"
+                 aria-label="Qadri Hall 3rd Floor - Bookings available from 15th Nov 26. Click to view details and enquire."
+                 class="venue-selector-card"
+                 style="flex:1;min-width:min(100%, 200px);background:rgba(201,169,110,0.08);border:1.5px solid rgba(201,169,110,0.35);border-radius:10px;padding:0.85rem 1rem;user-select:none;">
               <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-                <strong style="color:var(--cream);font-size:0.95rem;">Qadri Hall (3rd Floor)</strong>
-                <span style="font-size:0.65rem;color:#fcd34d;background:#3a2e12;padding:2px 8px;border-radius:12px;border:1px solid #e2b96a;">15 Nov 26</span>
+                <strong style="color:var(--cream);font-size:0.95rem;display:flex;align-items:center;gap:6px;">
+                  <i class="fas fa-info-circle" style="color:var(--wheat);font-size:0.85rem;"></i>
+                  Qadri Hall (3rd Floor)
+                </strong>
+                <span style="font-size:0.65rem;color:#fcd34d;background:#3a2e12;padding:2px 8px;border-radius:12px;border:1px solid #e2b96a;font-weight:600;">15 Nov 26</span>
               </div>
-              <span style="display:block;font-size:0.75rem;color:rgba(245,240,232,0.65);margin-top:4px;">Bookings available from 15th Nov 26</span>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
+                <span style="display:block;font-size:0.75rem;color:rgba(245,240,232,0.65);">Bookings available from 15th Nov 26</span>
+                <span style="font-size:0.7rem;color:var(--wheat);display:inline-flex;align-items:center;gap:4px;font-weight:600;">
+                  Details <i class="fas fa-arrow-right" style="font-size:0.6rem;"></i>
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -2851,9 +2955,25 @@ window.addEventListener('load', () => {
 /* ── TERMS & CONDITIONS CONTROLLER ── */
 const TC_STORAGE_KEY = 'hall_tc_version_v4';
 
+function freezeBodyScroll() {
+  document.documentElement.style.overflow = 'hidden';
+  document.body.style.overflow = 'hidden';
+}
+
+function unfreezeBodyScroll() {
+  const tp = document.getElementById('termsPopup');
+  const qm = document.getElementById('qadriModal');
+  const tpActive = tp && tp.classList.contains('active') && tp.style.display !== 'none';
+  const qmActive = qm && qm.classList.contains('active') && qm.style.display !== 'none';
+  if (!tpActive && !qmActive) {
+    document.documentElement.style.overflow = '';
+    document.body.style.overflow = '';
+  }
+}
+
 function showTermsModal() {
   if (localStorage.getItem(TC_STORAGE_KEY) === 'true') {
-    document.body.style.overflow = '';
+    unfreezeBodyScroll();
     return;
   }
   const popup = document.getElementById('termsPopup');
@@ -2875,7 +2995,7 @@ function showTermsModal() {
   void popup.offsetWidth;
   popup.classList.add('active');
   popup.style.opacity = '1';
-  document.body.style.overflow = 'hidden';
+  freezeBodyScroll();
 }
 
 function acceptTerms() {
@@ -2887,10 +3007,10 @@ function acceptTerms() {
     setTimeout(() => {
       popup.style.display = 'none';
       popup.style.visibility = 'hidden';
-      document.body.style.overflow = '';
+      unfreezeBodyScroll();
     }, 450);
   } else {
-    document.body.style.overflow = '';
+    unfreezeBodyScroll();
   }
 }
 
@@ -2901,7 +3021,7 @@ function tcDecline() {
     tv.style.display = 'none';
     dv.style.display = 'block';
   }
-  document.body.style.overflow = 'hidden';
+  freezeBodyScroll();
 }
 
 function tcReviewTerms() {
@@ -2915,14 +3035,53 @@ function tcReviewTerms() {
   const ab = document.getElementById('acceptBtn');
   if (cb) cb.checked = false;
   if (ab) ab.disabled = true;
-  document.body.style.overflow = 'hidden';
+  freezeBodyScroll();
 }
 
-// Wire up terms checkbox & backdrop guarding
+/* ── QADRI HALL MODAL CONTROLLER ── */
+function openQadriModal() {
+  const modal = document.getElementById('qadriModal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+  modal.style.visibility = 'visible';
+  void modal.offsetWidth;
+  modal.classList.add('active');
+  modal.style.opacity = '1';
+  freezeBodyScroll();
+}
+
+function closeQadriModal() {
+  const modal = document.getElementById('qadriModal');
+  if (!modal) return;
+  modal.classList.remove('active');
+  modal.style.opacity = '0';
+  setTimeout(() => {
+    modal.style.display = 'none';
+    modal.style.visibility = 'hidden';
+    unfreezeBodyScroll();
+  }, 350);
+}
+
+function selectHakimiHall() {
+  const hakimiCard = document.getElementById('venueCardHakimi');
+  if (hakimiCard) {
+    hakimiCard.style.borderColor = 'var(--wheat)';
+    hakimiCard.style.boxShadow = '0 0 24px rgba(201,169,110,0.35)';
+    setTimeout(() => {
+      hakimiCard.style.boxShadow = '0 4px 16px rgba(201,169,110,0.12)';
+    }, 600);
+  }
+  const picker = document.querySelector('.slot-category');
+  if (picker) {
+    picker.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+// Wire up terms checkbox, guard backdrop & scroll freeze
 (function initTermsGuards() {
   function setup() {
     if (localStorage.getItem(TC_STORAGE_KEY) !== 'true') {
-      document.body.style.overflow = 'hidden';
+      freezeBodyScroll();
     }
 
     const cb = document.getElementById('termsAgree');
@@ -2935,6 +3094,17 @@ function tcReviewTerms() {
 
     const popup = document.getElementById('termsPopup');
     if (popup) {
+      popup.addEventListener('wheel', (e) => {
+        if (!e.target.closest('.terms-content')) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+      popup.addEventListener('touchmove', (e) => {
+        if (!e.target.closest('.terms-content')) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+
       popup.addEventListener('click', (e) => {
         if (e.target === popup || e.target.classList.contains('terms-overlay')) {
           e.stopPropagation();
@@ -2946,8 +3116,28 @@ function tcReviewTerms() {
       });
     }
 
+    const qm = document.getElementById('qadriModal');
+    if (qm) {
+      qm.addEventListener('wheel', (e) => {
+        if (!e.target.closest('.qadri-modal-content')) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+      qm.addEventListener('touchmove', (e) => {
+        if (!e.target.closest('.qadri-modal-content')) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+    }
+
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
+        const q = document.getElementById('qadriModal');
+        if (q && q.classList.contains('active')) {
+          e.preventDefault();
+          closeQadriModal();
+          return;
+        }
         const p = document.getElementById('termsPopup');
         if (p && p.classList.contains('active') && localStorage.getItem(TC_STORAGE_KEY) !== 'true') {
           e.preventDefault();
@@ -4085,6 +4275,9 @@ document.querySelectorAll('.faq-q').forEach(btn => btn.addEventListener('click',
   visibility:hidden;
   opacity:0;
 
+  overscroll-behavior:contain;
+  touch-action:none;
+
   transition: visibility .45s ease, opacity .45s ease;
 }
 
@@ -4100,9 +4293,10 @@ document.querySelectorAll('.faq-q').forEach(btn => btn.addEventListener('click',
   inset:0;
 
   background:
-    rgba(0,0,0,.72);
+    rgba(0,0,0,.78);
 
-  backdrop-filter:blur(10px);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
 
   transition: opacity .45s ease;
 }
@@ -4117,6 +4311,10 @@ document.querySelectorAll('.faq-q').forEach(btn => btn.addEventListener('click',
   max-height:86vh;
 
   overflow-y:auto;
+  overflow-x:hidden;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  touch-action:pan-y;
 
   padding:34px;
 
@@ -4145,6 +4343,107 @@ document.querySelectorAll('.faq-q').forEach(btn => btn.addEventListener('click',
   opacity:0;
 
   transition:.45s cubic-bezier(.2,.8,.2,1);
+}
+
+/* VENUE SELECTOR CARDS */
+.venue-selector-card{
+  cursor:pointer !important;
+  transition:all .22s ease !important;
+  -webkit-tap-highlight-color:transparent;
+}
+.venue-selector-card:hover{
+  transform:translateY(-2px);
+  border-color:var(--wheat) !important;
+  background:rgba(201,169,110,0.18) !important;
+  box-shadow:0 8px 24px rgba(0,0,0,0.35), 0 0 16px rgba(201,169,110,0.2) !important;
+}
+.venue-selector-card:active{
+  transform:translateY(0);
+}
+.venue-selector-card:focus-visible{
+  outline:2px solid var(--wheat);
+  outline-offset:2px;
+}
+
+/* QADRI MODAL POPUP */
+.qadri-modal-popup{
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:999999998;
+  visibility:hidden;
+  opacity:0;
+  overscroll-behavior:contain;
+  touch-action:none;
+  transition:visibility .35s ease, opacity .35s ease;
+}
+.qadri-modal-popup.active{
+  visibility:visible;
+  opacity:1;
+}
+.qadri-modal-overlay{
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,0.78);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  transition:opacity .35s ease;
+}
+.qadri-modal-content{
+  position:relative;
+  width:92%;
+  max-width:580px;
+  max-height:88vh;
+  overflow-y:auto;
+  overflow-x:hidden;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  touch-action:pan-y;
+  padding:32px 28px;
+  border-radius:24px;
+  background:linear-gradient(145deg, #1f160a 0%, #120d07 100%);
+  border:1px solid rgba(201,169,110,0.35);
+  box-shadow:0 25px 70px rgba(0,0,0,0.7), 0 0 0 1px rgba(201,169,110,0.1) inset;
+  z-index:2;
+  transform:translateY(24px) scale(0.96);
+  opacity:0;
+  transition:transform .35s cubic-bezier(0.16, 1, 0.3, 1), opacity .35s ease;
+}
+.qadri-modal-popup.active .qadri-modal-content{
+  transform:translateY(0) scale(1);
+  opacity:1;
+}
+.qadri-close-btn{
+  position:absolute;
+  top:18px;
+  right:18px;
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(201,169,110,0.25);
+  color:var(--wheat);
+  font-size:1.4rem;
+  line-height:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  transition:all .2s ease;
+}
+.qadri-close-btn:hover{
+  background:rgba(201,169,110,0.25);
+  color:#fff;
+  transform:rotate(90deg);
+}
+@media(max-width:600px){
+  .qadri-modal-content{
+    padding:24px 18px;
+    border-radius:18px;
+    width:94%;
+  }
 }
 
 /* OPEN EFFECT */
@@ -4394,6 +4693,9 @@ document.querySelectorAll('.faq-q').forEach(btn => btn.addEventListener('click',
     max-height:calc(88dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
     padding:22px 16px;
     border-radius:20px;
+    overflow-y:auto;
+    overflow-x:hidden;
+    overscroll-behavior:contain;
   }
   .terms-content h2{
     font-size:clamp(1.4rem, 5vw, 1.8rem);
