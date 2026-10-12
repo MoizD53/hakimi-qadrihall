@@ -387,8 +387,8 @@ app.post('/api/bookings', bookingLimiter, async (req, res) => {
     }
 
     // ── Input validation ──
-    if (!name || !phone || !date || !timeSlot || !occasion || price == null || !guests) {
-      return res.status(400).json({ error: 'Missing required fields: name, phone, date, timeSlot, occasion, price, guests' });
+    if (!name || !phone || !date || !timeSlot || !occasion || price == null) {
+      return res.status(400).json({ error: 'Missing required fields: name, phone, date, timeSlot, occasion, price' });
     }
     if (typeof name !== 'string' || name.trim().length < 2 || name.trim().length > 100) {
       return res.status(400).json({ error: 'Name must be between 2 and 100 characters' });
@@ -396,9 +396,12 @@ app.post('/api/bookings', bookingLimiter, async (req, res) => {
     if (!/^[0-9]{10}$/.test(String(phone).replace(/[\s\-\+]/g, '').slice(-10))) {
       return res.status(400).json({ error: 'Phone number must be a valid 10-digit Indian mobile number' });
     }
-    const guestCount = parseInt(guests, 10);
-    if (isNaN(guestCount) || guestCount < 1 || guestCount > 500) {
-      return res.status(400).json({ error: 'Guest count must be between 1 and 500' });
+    let guestCount = 0;
+    if (guests != null && guests !== '') {
+      guestCount = parseInt(guests, 10);
+      if (isNaN(guestCount) || guestCount < 1 || guestCount > 500) {
+        return res.status(400).json({ error: 'Guest count must be between 1 and 500' });
+      }
     }
     const bookingDate = new Date(date);
     if (isNaN(bookingDate.getTime()) || bookingDate < new Date(Date.now() - 86400000)) {

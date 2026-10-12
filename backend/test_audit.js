@@ -310,6 +310,42 @@ it('public navigation in index.html does not contain visible admin links', () =>
   assert.strictEqual(/Admin Panel/i.test(indexHtml), false);
 });
 
+// ── TEST GROUP 7: BOOKING GUESTS FIELD OPTIONAL VALIDATION ──
+console.log('\n👥 Group 7: Booking Guests Field Validation');
+function validateGuestCount(guests) {
+  let guestCount = 0;
+  if (guests != null && guests !== '') {
+    guestCount = parseInt(guests, 10);
+    if (isNaN(guestCount) || guestCount < 1 || guestCount > 500) {
+      return { valid: false, error: 'Guest count must be between 1 and 500' };
+    }
+  }
+  return { valid: true, guestCount };
+}
+
+it('omitting guests or passing empty string/null safely defaults to 0 and passes', () => {
+  [undefined, null, '', '   '].forEach(val => {
+    const res = validateGuestCount(typeof val === 'string' ? val.trim() : val);
+    assert.strictEqual(res.valid, true);
+    assert.strictEqual(res.guestCount, 0);
+  });
+});
+
+it('valid guest count between 1 and 500 is accepted', () => {
+  [1, 35, 150, 500, '40'].forEach(val => {
+    const res = validateGuestCount(val);
+    assert.strictEqual(res.valid, true);
+    assert.strictEqual(res.guestCount, parseInt(val, 10));
+  });
+});
+
+it('invalid guest count (< 1, > 500, or invalid string) is rejected', () => {
+  [0, -5, 501, 1000, 'abc'].forEach(val => {
+    const res = validateGuestCount(val);
+    assert.strictEqual(res.valid, false);
+  });
+});
+
 console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 console.log(`RESULTS: ${passed} / ${total} tests passed (${Math.round((passed/total)*100)}%)`);
 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');

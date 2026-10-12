@@ -1541,11 +1541,13 @@
       <td><span style="color:var(--wheat);font-weight:500">${hallStr}</span></td>
       <td>${slotStr}</td>
       <td>${pkgStr}</td>
+      <td>${(guests && guests > 0) ? guests : '—'}</td>
       <td>
         <strong>₹${parseFloat(b.total_amount||b.price||0).toLocaleString('en-IN')}</strong>
         <div style="font-size:.65rem;color:rgba(245,240,232,.5);margin-top:2px;">Adv 40%: ₹${Math.round(total * 0.4).toLocaleString('en-IN')}</div>
         <div style="font-size:.65rem;color:#fcd34d;margin-top:1px;">Bal 60%: ₹${(total - Math.round(total * 0.4)).toLocaleString('en-IN')} (due -2d)</div>
       </td>
+      <td><span class="badge badge-${sCls}">${b.status||'pending'}</span></td>
       <td style="max-width:180px;white-space:normal;font-size:.7rem">${b.notes||'—'} ${conflictBadge}</td>
       <td><div style="display:flex;gap:.35rem;flex-wrap:wrap">${actionBtns}</div></td>
     </tr>`;

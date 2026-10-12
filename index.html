@@ -3479,11 +3479,11 @@
             </select>
           </div>
 
-          <!-- 3. Approximate Guests / Thals -->
+          <!-- 3. Approximate Guests / Thals (Optional) -->
           <div class="wizard-field">
-            <label class="wizard-label" for="bGuests">3. Approximate Guests or Thals *</label>
-            <div class="wizard-hint">Hall capacity is 35 to 40 thals (approx. 280 to 320 seated guests):</div>
-            <input type="number" id="bGuests" class="wizard-input" placeholder="Enter approximate number of guests or thals" inputmode="numeric" min="10" max="500" required>
+            <label class="wizard-label" for="bGuests">3. Approximate Guests or Thals (Optional)</label>
+            <div class="wizard-hint">Hall capacity is 35 to 40 thals (approx. 280 to 320 seated guests). Leave blank if not decided:</div>
+            <input type="number" id="bGuests" class="wizard-input" placeholder="Enter approximate number of guests or thals (optional)" inputmode="numeric" min="1" max="500">
           </div>
 
           <div class="wizard-actions">
@@ -4457,9 +4457,9 @@ function validateAndGo(fromStep, toStep) {
         showWizAlert('Please tell us what you are celebrating (e.g. Wedding, Majlis, Birthday).');
         return;
       }
-      const guests = document.getElementById('bGuests')?.value;
-      if (!guests || parseInt(guests) <= 0) {
-        showWizAlert('Please enter the approximate number of guests or thals.');
+      const guests = document.getElementById('bGuests')?.value.trim();
+      if (guests && (parseInt(guests) <= 0 || isNaN(parseInt(guests)))) {
+        showWizAlert('Please enter a valid number of guests or thals (or leave blank).');
         return;
       }
     }
@@ -4712,7 +4712,7 @@ function populateReviewSummary() {
   const hall = document.getElementById('selHall')?.value || 'Evan-e-Hakimi';
   const dateStr = document.getElementById('bDate')?.value || '';
   const occasion = document.getElementById('bOccasion')?.value || 'Not specified';
-  const guests = document.getElementById('bGuests')?.value || '35';
+  const guests = document.getElementById('bGuests')?.value.trim() || '';
   const slot = document.getElementById('selSlot')?.value || 'morning';
   const pkg = (slot === 'majlis') ? 'without_jaman' : 'with_jaman';
   const customTiming = document.getElementById('majlisCustomTiming')?.value.trim() || '4:00 PM – 7:00 PM';
@@ -4757,7 +4757,7 @@ function populateReviewSummary() {
   if (revOccasion) revOccasion.textContent = occasion;
 
   const revGuests = document.getElementById('revGuests');
-  if (revGuests) revGuests.textContent = `${guests} Guests / Thals`;
+  if (revGuests) revGuests.textContent = guests ? `${guests} Guests / Thals` : 'Not specified';
 
   const revSlot = document.getElementById('revSlot');
   if (revSlot) revSlot.textContent = slotLabels[slot] || slot;
@@ -5054,7 +5054,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const email    = document.getElementById('bEmail').value.trim();
     const date     = document.getElementById('bDate').value;
     const occasion = document.getElementById('bOccasion').value;
-    const guests   = document.getElementById('bGuests').value;
+    const guests   = document.getElementById('bGuests').value.trim();
     const notes    = document.getElementById('bNotes').value.trim();
     const hall     = document.getElementById('selHall')?.value || 'Evan-e-Hakimi';
     const slot     = document.getElementById('selSlot')?.value || 'morning';
@@ -5078,14 +5078,19 @@ window.addEventListener('DOMContentLoaded', () => {
     console.log("  customTiming:", customTiming);
     console.log("  price:", price);
     console.log("  occasion:", occasion);
-    console.log("  guests:", guests);
+    console.log("  guests:", guests || '(optional - omitted)');
     console.log("  notes:", notes);
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
     // Validation
-    if (!name || !phone || !date || !occasion || !guests) {
+    if (!name || !phone || !date || !occasion) {
       console.log("❌ VALIDATION FAILED: Missing required fields");
       showMsg('warn', '<div class="msg-title"><span class="msg-icon">⚠️</span>Please fill all required fields marked *</div>');
+      return;
+    }
+    const guestNum = guests ? parseInt(guests, 10) : null;
+    if (guestNum !== null && (isNaN(guestNum) || guestNum < 1 || guestNum > 500)) {
+      showMsg('warn', '<div class="msg-title"><span class="msg-icon">⚠️</span>Please enter a valid guest count (1 to 500) or leave it blank.</div>');
       return;
     }
     if (!date) {
@@ -5119,7 +5124,7 @@ window.addEventListener('DOMContentLoaded', () => {
       timeSlot: slot,
       occasion,
       price,
-      guests: parseInt(guests),
+      guests: guestNum,
       customTiming: customTiming || undefined,
       specialRequirements: notes
     };
@@ -5160,7 +5165,8 @@ window.addEventListener('DOMContentLoaded', () => {
         hideMsg();
 
         const balance = price - advance;
-        const waText = encodeURIComponent(`Hello Management, I have submitted a booking enquiry for Evan-e-Hakimi (2nd Floor).\n\nDetails:\n• Name: ${name}\n• Phone: ${phone}\n• Date: ${date} (${formattedDate})\n• Slot: ${slotLabel}\n• Catering: ${pkgLabel}${customTiming ? `\n• Custom Majlis Timing: ${customTiming}` : ''}\n• Total Price: ₹${price.toLocaleString('en-IN')}\n• Advance (40%): ₹${advance.toLocaleString('en-IN')}\n• Remaining Balance (60%): ₹${balance.toLocaleString('en-IN')} (due at least 2 days before event date)\n• Occasion: ${occasion}\n• Approx Guests: ${guests}`);
+        const guestsText = (guestNum && guestNum > 0) ? `${guestNum} Guests / Thals` : 'Not specified';
+        const waText = encodeURIComponent(`Hello Management, I have submitted a booking enquiry for Evan-e-Hakimi (2nd Floor).\n\nDetails:\n• Name: ${name}\n• Phone: ${phone}\n• Date: ${date} (${formattedDate})\n• Slot: ${slotLabel}\n• Catering: ${pkgLabel}${customTiming ? `\n• Custom Majlis Timing: ${customTiming}` : ''}\n• Total Price: ₹${price.toLocaleString('en-IN')}\n• Advance (40%): ₹${advance.toLocaleString('en-IN')}\n• Remaining Balance (60%): ₹${balance.toLocaleString('en-IN')} (due at least 2 days before event date)\n• Occasion: ${occasion}\n• Approx Guests: ${guestsText}`);
         const waUrl = `https://wa.me/919033647648?text=${waText}`;
 
         // Show premium systematic popup message
@@ -5175,6 +5181,7 @@ window.addEventListener('DOMContentLoaded', () => {
               <div><strong>Date:</strong> ${date} (${formattedDate})</div>
               <div><strong>Slot & Timing:</strong> ${slotLabel}</div>
               <div><strong>Catering:</strong> ${pkgLabel}</div>
+              <div><strong>Approx. Guests:</strong> ${guestsText}</div>
               <div><strong>Estimated Total:</strong> ₹${price.toLocaleString('en-IN')}</div>
               <div style="color:#86efac;"><strong>40% Advance:</strong> ₹${advance.toLocaleString('en-IN')} (upon manager approval)</div>
               <div style="color:#fcd34d;"><strong>Remaining 60% Balance:</strong> ₹${balance.toLocaleString('en-IN')} (due 2 days before event)</div>
