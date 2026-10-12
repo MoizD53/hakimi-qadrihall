@@ -770,6 +770,137 @@
       font-weight: 600;
     }
 
+    /* Compact Wizard Calendar Dropdown */
+    #wizCalContainer {
+      max-width: 350px !important;
+      margin: 10px auto 0 !important;
+      background: linear-gradient(160deg, #18130a 0%, #100b05 100%) !important;
+      border: 1.5px solid rgba(201, 169, 110, 0.35) !important;
+      border-radius: 14px !important;
+      padding: 1.1rem 1.1rem 0.9rem !important;
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.75) !important;
+      box-sizing: border-box !important;
+    }
+    #wizCalContainer .cal-header {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      margin-bottom: 0.85rem !important;
+      padding: 0 2px !important;
+    }
+    #wizCalContainer #calPrev,
+    #wizCalContainer #calNext {
+      min-height: 32px !important;
+      padding: 0.35rem 0.75rem !important;
+      font-size: 0.82rem !important;
+      border-radius: 7px !important;
+      color: var(--wheat) !important;
+      background: rgba(255, 255, 255, 0.05) !important;
+      border: 1px solid rgba(201, 169, 110, 0.28) !important;
+      cursor: pointer !important;
+      transition: all 0.2s ease !important;
+    }
+    #wizCalContainer #calPrev:hover,
+    #wizCalContainer #calNext:hover {
+      background: rgba(201, 169, 110, 0.15) !important;
+      border-color: var(--wheat) !important;
+    }
+    #wizCalContainer #calMonthLabel {
+      font-family: 'Cinzel', serif !important;
+      font-size: 1.02rem !important;
+      font-weight: 700 !important;
+      color: var(--wheat) !important;
+      letter-spacing: 1px !important;
+    }
+    #wizCalContainer .cal-weekdays {
+      display: grid !important;
+      grid-template-columns: repeat(7, 1fr) !important;
+      gap: 4px !important;
+      text-align: center !important;
+      font-weight: 700 !important;
+      color: var(--wheat) !important;
+      opacity: 0.85 !important;
+      font-size: 0.82rem !important;
+      margin-bottom: 0.5rem !important;
+      padding-bottom: 0.4rem !important;
+      border-bottom: 1px solid rgba(201, 169, 110, 0.18) !important;
+    }
+    #wizCalContainer #calDays {
+      display: grid !important;
+      grid-template-columns: repeat(7, 1fr) !important;
+      gap: 4px !important;
+    }
+    #wizCalContainer .cal-day {
+      width: 100% !important;
+      height: 38px !important;
+      min-height: 38px !important;
+      max-height: 38px !important;
+      aspect-ratio: auto !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      border-radius: 7px !important;
+      font-size: 0.92rem !important;
+      font-weight: 500 !important;
+      cursor: pointer !important;
+      border: 1px solid transparent !important;
+      box-sizing: border-box !important;
+      transition: all 0.15s ease !important;
+      position: relative !important;
+      background: transparent !important;
+    }
+    #wizCalContainer .cal-day.selectable {
+      color: rgba(245, 240, 232, 0.9) !important;
+    }
+    #wizCalContainer .cal-day.selectable:hover {
+      background: rgba(201, 169, 110, 0.18) !important;
+      color: #fff !important;
+      border-color: rgba(201, 169, 110, 0.4) !important;
+    }
+    #wizCalContainer .cal-day.selected {
+      background: var(--wheat) !important;
+      color: #120d06 !important;
+      font-weight: 700 !important;
+      border-color: transparent !important;
+      box-shadow: 0 2px 10px rgba(201, 169, 110, 0.45) !important;
+    }
+    #wizCalContainer .cal-day.today {
+      border: 1.5px solid var(--wheat) !important;
+      color: var(--wheat) !important;
+      font-weight: 700 !important;
+    }
+    #wizCalContainer .cal-day.today::after {
+      content: '';
+      position: absolute;
+      bottom: 3px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: var(--wheat);
+    }
+    #wizCalContainer .cal-day.past {
+      color: rgba(245, 240, 232, 0.18) !important;
+      cursor: not-allowed !important;
+      background: transparent !important;
+    }
+    #wizCalContainer .cal-day.empty {
+      cursor: default !important;
+      background: transparent !important;
+    }
+    @media (max-width: 400px) {
+      #wizCalContainer {
+        max-width: 100% !important;
+        padding: 0.9rem 0.7rem !important;
+      }
+      #wizCalContainer .cal-day {
+        height: 35px !important;
+        min-height: 35px !important;
+        font-size: 0.85rem !important;
+      }
+    }
+
     /* Price Summary Box */
     .simple-price-box {
       background: rgba(201, 169, 110, 0.09);
@@ -3274,7 +3405,7 @@
           <div class="wizard-field">
             <label class="wizard-label" for="bGuests">3. Approximate Guests or Thals *</label>
             <div class="wizard-hint">Hall capacity is 35 to 40 thals (approx. 280 to 320 seated guests):</div>
-            <input type="number" id="bGuests" class="wizard-input" placeholder="e.g. 35 thals / 280 guests" inputmode="numeric" min="10" max="500" value="35" required>
+            <input type="number" id="bGuests" class="wizard-input" placeholder="Enter approximate number of guests or thals" inputmode="numeric" min="10" max="500" required>
           </div>
 
           <div class="wizard-actions">
@@ -3323,7 +3454,7 @@
             <div class="wcc-left">
               <div class="wcc-radio"></div>
               <div>
-                <div class="wcc-title"><i class="fas fa-crown" style="color:#f59e0b;margin-right:6px;"></i> Full Day Package</div>
+                <div class="wcc-title"><i class="fas fa-crown" style="color:#f59e0b;margin-right:6px;"></i> Full Day Slot</div>
                 <div class="wcc-sub">10:00 AM &ndash; 10:00 PM &bull; 12 Hours Comprehensive Access</div>
               </div>
             </div>
@@ -3404,7 +3535,7 @@
 
           <div class="wizard-field">
             <label class="wizard-label" for="bName">Your Full Name *</label>
-            <input type="text" id="bName" class="wizard-input" placeholder="e.g. Shabbir Bhai" autocomplete="name" required>
+            <input type="text" id="bName" class="wizard-input" placeholder="Enter your full name" autocomplete="name" required>
           </div>
 
           <div class="wizard-field">
@@ -3413,12 +3544,12 @@
               <i class="fab fa-whatsapp" style="color:#25d366;margin-right:4px;"></i>
               Please provide an active 10-digit number. All confirmations are sent via WhatsApp.
             </div>
-            <input type="tel" id="bPhone" class="wizard-input" placeholder="10-digit mobile number (e.g. 9033647648)" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" autocomplete="tel" required>
+            <input type="tel" id="bPhone" class="wizard-input" placeholder="Enter 10-digit mobile number" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" autocomplete="tel" required>
           </div>
 
           <div class="wizard-field">
             <label class="wizard-label" for="bEmail">Email Address (Optional)</label>
-            <input type="email" id="bEmail" class="wizard-input" placeholder="e.g. name@gmail.com" autocomplete="email">
+            <input type="email" id="bEmail" class="wizard-input" placeholder="Enter email address" autocomplete="email">
           </div>
 
           <div class="wizard-field">
@@ -3600,11 +3731,10 @@
         </a>
       </div>
 
-      <!-- Manager 2 -->
+      <!-- Contact 2 -->
       <div class="foot-contact-card">
         <div class="fcc-top">
           <div class="fcc-name">Zainab Jadliwala</div>
-          <span class="fcc-badge">Manager</span>
         </div>
         <a href="tel:+919824129952" class="fcc-phone" title="Call Zainab Jadliwala">
           <i class="fas fa-phone-alt"></i> +91 98241 29952
@@ -4197,7 +4327,7 @@ function validateAndGo(fromStep, toStep) {
       }
       const phone = document.getElementById('bPhone')?.value.trim();
       if (!phone || !/^[0-9]{10}$/.test(phone)) {
-        showWizAlert('Please enter a valid 10-digit WhatsApp mobile number (e.g. 9033647648).');
+        showWizAlert('Please enter a valid 10-digit WhatsApp mobile number.');
         return;
       }
     }
@@ -4451,7 +4581,7 @@ function populateReviewSummary() {
   const pkgLabels = {
     'without_jaman': 'Without Jaman (Hall Only)',
     'with_jaman': 'With Jaman (Dining & Thals)',
-    'full_day': 'Full Day Comprehensive Package'
+    'full_day': 'Full Day Slot (10:00 AM – 10:00 PM)'
   };
 
   const price = getSlotPackagePrice(slot, pkg, dateStr);
@@ -4805,7 +4935,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     const slotLabel = slot === 'morning' ? 'Morning (10:30 AM – 2:30 PM)' : slot === 'evening' ? 'Evening (6:30 PM – 10:30 PM)' : 'Full Day (10:00 AM – 10:00 PM)';
-    const pkgLabel = pkg === 'with_jaman' ? 'With Jaman' : pkg === 'full_day' ? 'Full Day Package' : 'Without Jaman';
+    const pkgLabel = pkg === 'with_jaman' ? 'With Jaman' : pkg === 'full_day' ? 'Full Day Slot' : 'Without Jaman';
     const formattedDate = new Date(date).toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
     // Prepare payload
