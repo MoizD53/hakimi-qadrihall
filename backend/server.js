@@ -2,6 +2,7 @@ require('dotenv').config();
 
 const express   = require('express');
 const path      = require('path');
+const fs        = require('fs');
 const cors      = require('cors');
 const helmet    = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -112,14 +113,35 @@ app.use(['/backend', '/local.db', '/package.json', '/package-lock.json', '/verce
   res.status(404).send('Not Found');
 });
 
-// 4. Public static assets (assets/, js/, robots.txt, sitemap.xml)
+// 4. Public static assets & explicit asset routes (ensures Vercel Serverless Function serves images reliably)
+app.get('/assets/:filename', (req, res, next) => {
+  const filename = path.basename(req.params.filename);
+  const filePath = path.join(rootDir, 'assets', filename);
+  if (fs.existsSync(filePath)) {
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    return res.sendFile(filePath);
+  }
+  next();
+});
+
+app.get('/js/:filename', (req, res, next) => {
+  const filename = path.basename(req.params.filename);
+  const filePath = path.join(rootDir, 'js', filename);
+  if (fs.existsSync(filePath)) {
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    return res.sendFile(filePath);
+  }
+  next();
+});
+
+app.get('/favicon.ico', (req, res) => res.redirect(301, '/assets/favicon.svg'));
+app.get('/favicon.svg', (req, res) => res.sendFile(path.join(rootDir, 'assets', 'favicon.svg')));
+app.get('/robots.txt', (req, res) => res.sendFile(path.join(rootDir, 'robots.txt')));
+app.get('/sitemap.xml', (req, res) => res.sendFile(path.join(rootDir, 'sitemap.xml')));
+
+app.use('/assets', express.static(path.join(rootDir, 'assets'), { maxAge: '1y', immutable: true }));
+app.use('/js', express.static(path.join(rootDir, 'js'), { maxAge: '1d' }));
 app.use(express.static(rootDir));
-const publicDir = path.join(rootDir, 'public');
-app.use(express.static(publicDir));
-app.use('/assets', express.static(path.join(rootDir, 'assets')));
-app.use('/assets', express.static(path.join(publicDir, 'assets')));
-app.use('/js', express.static(path.join(rootDir, 'js')));
-app.use('/js', express.static(path.join(publicDir, 'js')));
 
 // 5. Health & Service info routes
 app.get('/health', (req, res) => res.status(200).json({

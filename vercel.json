@@ -37,6 +37,14 @@
       "destination": "/api/index.js"
     },
     {
+      "source": "/assets/(.*)",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/js/(.*)",
+      "destination": "/api/index.js"
+    },
+    {
       "source": "/admin",
       "destination": "/admin.html"
     },

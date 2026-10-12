@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://iamhim90.github.io/MJ-HOUSE/sitemap.xml
