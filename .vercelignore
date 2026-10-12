@@ -1,0 +1,10 @@
+# Vercel deployment ignore list
+# Note: backend/ is intentionally NOT ignored here so that api/index.js can require backend/server.js
+local.db
+*.log
+*.sqlite*
+test_*.js
+remove_lines.js
+INTEGRATION_SUMMARY.md
+project_status_prd.md
+scratch/

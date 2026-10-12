@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MJ Culture — Admin Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Evan-e-Hakimi & Qadri Hall — Banquet Management Panel</title>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -319,6 +319,9 @@
         padding-top: 1rem;
         margin-top: -1rem;
       }
+      .lf input, input, select, textarea { font-size:16px !important; }
+      .sidebar-toggle-btn { min-width:44px; min-height:44px; }
+      .nav-item { min-height:44px; }
     }
 
     /* Inline pay edit */
@@ -417,9 +420,9 @@
 <div id="loginScreen">
   <div class="login-box">
     <div class="login-brand">
-      <h1>MJ Culture</h1>
-      <p>Admin Control Panel</p>
-      <span class="login-badge"><i class="fas fa-shield-alt" style="margin-right:.3rem"></i>Secure Admin Access</span>
+      <h1 style="font-size:clamp(1.1rem, 3.5vw, 1.4rem); letter-spacing:2px;">Evan-e-Hakimi &amp; Qadri Hall</h1>
+      <p>Banquet Halls Management</p>
+      <span class="login-badge"><i class="fas fa-shield-alt" style="margin-right:.3rem"></i>Secure Manager Access</span>
     </div>
     <div class="lf">
       <label>Admin Username</label>
@@ -442,8 +445,8 @@
   <!-- SIDEBAR -->
   <nav class="sidebar" id="sidebar">
     <div class="sidebar-brand">
-      <h2>MJ Culture</h2>
-      <span>Admin Panel</span>
+      <h2>Evan-e-Hakimi</h2>
+      <span>Banquet Management</span>
     </div>
     <div class="sidebar-nav">
       <div class="nav-section-title">Overview</div>
@@ -472,7 +475,7 @@
     <!-- Layout Header -->
     <div class="layout-header">
       <button class="sidebar-toggle-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
-      <span style="font-family:'Cinzel',serif;font-size:.85rem;letter-spacing:2px;color:var(--wheat);font-weight:500;cursor:pointer;" onclick="showPage('dashboard')">MJ Admin</span>
+      <span style="font-family:'Cinzel',serif;font-size:.85rem;letter-spacing:2px;color:var(--wheat);font-weight:500;cursor:pointer;" onclick="showPage('dashboard')">Evan-e-Hakimi Admin</span>
     </div>
 
     <!-- DASHBOARD -->
@@ -481,6 +484,27 @@
         <div><div class="topbar-title">Dashboard</div><div class="topbar-sub" id="dashDate"></div></div>
         <button class="btn-primary" onclick="loadDashboard()"><i class="fas fa-sync-alt"></i> Refresh</button>
       </div>
+
+      <!-- HALL STATUS OVERVIEW -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;margin-bottom:1.8rem;">
+        <div style="background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.3);border-radius:10px;padding:1.1rem 1.3rem;display:flex;align-items:center;gap:1.1rem;">
+          <div style="width:44px;height:44px;border-radius:8px;background:rgba(34,197,94,0.15);display:flex;align-items:center;justify-content:center;color:#86efac;font-size:1.25rem;"><i class="fas fa-door-open"></i></div>
+          <div>
+            <div style="font-size:0.62rem;text-transform:uppercase;letter-spacing:1.5px;color:#86efac;font-weight:600;">Hall 1 • 2nd Floor</div>
+            <div style="font-family:'Cinzel',serif;font-size:1.15rem;color:var(--cream);font-weight:600;margin:0.1rem 0;">Evan-e-Hakimi</div>
+            <div style="font-size:0.75rem;color:rgba(245,240,232,0.7);"><span class="badge badge-confirmed" style="font-size:0.55rem;padding:0.15rem 0.5rem;margin-right:0.4rem;">Active</span> Enquiries Open • Approx. 35–40 Thals (~8 guests/thal)</div>
+          </div>
+        </div>
+        <div style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.3);border-radius:10px;padding:1.1rem 1.3rem;display:flex;align-items:center;gap:1.1rem;">
+          <div style="width:44px;height:44px;border-radius:8px;background:rgba(239,68,68,0.15);display:flex;align-items:center;justify-content:center;color:#fca5a5;font-size:1.25rem;"><i class="fas fa-ban"></i></div>
+          <div>
+            <div style="font-size:0.62rem;text-transform:uppercase;letter-spacing:1.5px;color:#fca5a5;font-weight:600;">Hall 2 • 3rd Floor</div>
+            <div style="font-family:'Cinzel',serif;font-size:1.15rem;color:var(--cream);font-weight:600;margin:0.1rem 0;">Qadri Hall</div>
+            <div style="font-size:0.75rem;color:#fca5a5;"><span class="badge badge-rejected" style="font-size:0.55rem;padding:0.15rem 0.5rem;margin-right:0.4rem;">Unavailable</span> Currently Unavailable for Booking</div>
+          </div>
+        </div>
+      </div>
+
       <div class="stats-grid" id="dashStats">
         <div class="stat-card"><div class="stat-card-label">Total Bookings</div><div class="stat-card-num" id="ds-total">—</div><i class="fas fa-calendar stat-card-icon"></i></div>
         <div class="stat-card"><div class="stat-card-label">Pending</div><div class="stat-card-num" id="ds-pending">—</div><i class="fas fa-clock stat-card-icon"></i></div>
@@ -562,6 +586,17 @@
       <div class="topbar">
         <div><div class="topbar-title">Booking Requests</div><div class="topbar-sub">Manage all bookings — approve, reject, or hold</div></div>
       </div>
+
+      <!-- Hall Status Notice for Manager -->
+      <div style="background:rgba(201,169,110,0.06);border:1px solid rgba(201,169,110,0.25);border-radius:8px;padding:0.75rem 1.2rem;margin-bottom:1.2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.8rem;">
+        <div style="font-size:0.78rem;color:var(--cream);">
+          <strong style="color:var(--wheat);">🏛️ Active Venue:</strong> Evan-e-Hakimi (2nd Floor) • Approx. 35–40 Thals (~8 guests/thal)
+        </div>
+        <div style="font-size:0.75rem;color:#fca5a5;background:rgba(239,68,68,0.1);padding:0.25rem 0.6rem;border-radius:4px;border:1px solid rgba(239,68,68,0.25);">
+          <i class="fas fa-info-circle"></i> Qadri Hall (3rd Floor) is currently unavailable
+        </div>
+      </div>
+
       <div class="filter-bar">
         <input class="search-input" id="bookingSearch" placeholder="Search by name or phone…" oninput="filterBookings()">
         <input type="date" class="search-input" id="bookingDateFilter" onchange="filterBookings()" placeholder="Filter by date">
@@ -575,14 +610,14 @@
         </select>
         <select class="filter-select" id="bookingSlotFilter" onchange="filterBookings()">
           <option value="">All Slots</option>
-          <option value="noon">Noon</option>
-          <option value="evening">Evening</option>
-          <option value="fullday">Full Day</option>
+          <option value="morning">Morning (10:30 AM – 2:30 PM)</option>
+          <option value="evening">Evening (6:30 PM – 10:30 PM)</option>
+          <option value="fullday">Full Day (10:00 AM – 10:00 PM)</option>
         </select>
       </div>
       <div class="card">
         <div class="card-header"><span class="card-title"><i class="fas fa-calendar-check"></i> All Bookings</span><span id="bookingCount" style="font-size:.7rem;color:rgba(245,240,232,.3)"></span></div>
-        <div class="tbl-wrap"><table><thead><tr><th>ID</th><th>Name</th><th>Phone</th><th>Email</th><th>Date</th><th>Occasion</th><th>Guests</th><th>Slot</th><th>Amount</th><th>Status</th><th>Notes</th><th>Actions</th></tr></thead>
+        <div class="tbl-wrap"><table><thead><tr><th>ID</th><th>Customer</th><th>Phone</th><th>Date</th><th>Hall &amp; Floor</th><th>Slot &amp; Timing</th><th>Package</th><th>Guests</th><th>Amount</th><th>Status</th><th>Notes &amp; Conflict</th><th>Actions</th></tr></thead>
         <tbody id="bookingsTableBody"><tr><td colspan="12" class="loading"><i class="fas fa-spinner spinner"></i>Loading bookings...</td></tr></tbody></table></div>
       </div>
     </div>
@@ -603,7 +638,7 @@
                 <th>Event Date</th>
                 <th>Total Price</th>
                 <th>Advance Paid</th>
-                <th>Remaining</th>
+                <th>Remaining (60% due -2d)</th>
                 <th>Payment Status</th>
                 <th>Actions</th>
               </tr>
@@ -650,7 +685,7 @@
     <!-- ACCOUNTS -->
     <div class="page" id="page-accounts">
       <div class="topbar">
-        <div><div class="topbar-title">Farmhouse Accounts</div><div class="topbar-sub">Combined financial overview</div></div>
+        <div><div class="topbar-title">Banquet Accounts</div><div class="topbar-sub">Combined financial overview</div></div>
         <select class="filter-select" id="accountMonth" onchange="loadAccounts()" style="padding:.55rem .9rem">
           <option value="">All Time</option>
         </select>
@@ -786,8 +821,6 @@
 <script>
   const BACKEND_URL = API_BASE_URL; // Uses central config
   /* ── ADMIN AUTH ── */
-  const ADMIN_CREDENTIALS = { username: 'admin', password: 'mjculture2026' }; // Change this!
-
   function toggleAdminPassword() {
     const input = document.getElementById('adminPass');
     const icon = document.getElementById('passToggleIcon');
@@ -806,17 +839,24 @@
     const btn = document.getElementById('loginBtn2');
     const err = document.getElementById('loginErr');
 
+    if (!u || !p) {
+      err.textContent = 'Please enter both username and password.';
+      err.style.display = 'block';
+      return;
+    }
+
     btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner spinner"></i> Signing in…';
     err.style.display = 'none';
 
-    // Always attempt backend login first so we get the JWT token needed for APIs
+    // Strictly authenticate via backend to acquire secure JWT token
     fetch(BACKEND_URL + '/api/admin/login', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
       body: JSON.stringify({username: u, password: p})
     }).then(r => r.json()).then(data => {
-      if (data.token || data.success) {
+      if (data.token) {
         sessionStorage.setItem('mjc_admin', '1');
-        if (data.token) sessionStorage.setItem('mjc_admin_token', data.token);
+        sessionStorage.setItem('mjc_admin_token', data.token);
         document.getElementById('loginScreen').style.display = 'none';
         document.getElementById('app').style.display = 'flex';
         loadDashboard();
@@ -825,17 +865,9 @@
         err.style.display = 'block';
       }
     }).catch((e) => {
-      console.warn("Backend auth failed or unreachable, checking local credentials bypass:", e);
-      // Fallback to local bypass ONLY if server is unreachable/offline and credentials match local ADMIN_CREDENTIALS
-      if (u === ADMIN_CREDENTIALS.username && p === ADMIN_CREDENTIALS.password) {
-        sessionStorage.setItem('mjc_admin', '1');
-        document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('app').style.display = 'flex';
-        loadDashboard();
-      } else {
-        err.textContent = 'Connection error. Check credentials or try local login.';
-        err.style.display = 'block';
-      }
+      console.error("Backend auth failed or unreachable:", e);
+      err.textContent = 'Unable to connect to authentication server. Please check connection and try again.';
+      err.style.display = 'block';
     }).finally(() => {
       btn.disabled = false; btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Enter Admin Panel';
     });
@@ -1043,15 +1075,19 @@
   }
 
   const SLOT_MAP = {
-    'fullday': 'Full Day Exclusive',
-    'hday-morning': 'Half Day - Morning',
-    'hday-evening': 'Half Day - Evening',
-    'daris-morning': 'Daris - Morning',
-    'daris-evening': 'Daris - Evening',
-    'birthday-morning': 'Birthday - Morning',
-    'birthday-evening': 'Birthday - Evening',
-    'noon': 'Noon',
-    'evening': 'Evening'
+    'morning': 'Morning (10:30 AM – 2:30 PM)',
+    'evening': 'Evening (6:30 PM – 10:30 PM)',
+    'fullday': 'Full Day (10:00 AM – 10:00 PM)',
+    'hday-morning': 'Morning (10:30 AM – 2:30 PM)',
+    'hday-evening': 'Evening (6:30 PM – 10:30 PM)',
+    'noon': 'Morning (10:30 AM – 2:30 PM)'
+  };
+
+  const PACKAGE_MAP = {
+    'without_jaman': 'Without Jaman (₹11,000)',
+    'with_jaman': 'With Jaman (₹15,000)',
+    'full_day': 'Full Day Package (₹30,000)',
+    'standard': 'Full Day Package (₹30,000)'
   };
 
   async function loadCalendar(silent = false) {
@@ -1394,7 +1430,7 @@
     }
     let area = document.getElementById('calPrintArea');
     if (!area) { area = document.createElement('div'); area.id = 'calPrintArea'; document.body.appendChild(area); }
-    area.innerHTML = '<h2 style="font-family:serif;margin-bottom:14px;font-size:18px;border-bottom:2px solid #ccc;padding-bottom:6px;">MJ Culture — Booking Calendar: ' + title + '</h2>'
+    area.innerHTML = '<h2 style="font-family:serif;margin-bottom:14px;font-size:18px;border-bottom:2px solid #ccc;padding-bottom:6px;">Evan-e-Hakimi — Booking Calendar: ' + title + '</h2>'
       + '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;">' + cells + '</div>';
     window.print();
   }
@@ -1411,18 +1447,9 @@
 
   function bookingRow(b, compact) {
     const date = new Date(b.check_in || b.date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
-    const slotMap = {
-      'fullday': 'Full Day Exclusive',
-      'hday-morning': 'Half Day - Morning',
-      'hday-evening': 'Half Day - Evening',
-      'daris-morning': 'Daris - Morning',
-      'daris-evening': 'Daris - Evening',
-      'birthday-morning': 'Birthday - Morning',
-      'birthday-evening': 'Birthday - Evening',
-      'noon': 'Noon',
-      'evening': 'Evening'
-    };
-    const slotStr = slotMap[b.slot] || b.slot || 'Full Day';
+    const slotStr = SLOT_MAP[b.slot] || b.slot || 'Full Day (10:00 AM – 10:00 PM)';
+    const pkgStr = PACKAGE_MAP[b.package] || (b.slot === 'fullday' ? 'Full Day' : (b.package === 'with_jaman' ? 'With Jaman' : 'Without Jaman'));
+    const hallStr = b.hall && b.hall.toLowerCase().includes('qadri') ? 'Qadri Hall (3rd Fl)' : 'Evan-e-Hakimi (2nd Fl)';
     const sCls = b.status==='confirmed'?'confirmed':b.status==='rejected'?'rejected':b.status==='waiting'?'waiting':b.status==='advance_requested'?'advance_requested':b.status==='advance_verified'?'advance_verified':'pending';
     const id = b.id || b._id || b.bookingId || '';
     const sid = String(id).length > 8 ? '…' + String(id).slice(-6) : id;
@@ -1430,14 +1457,22 @@
     const escName = (b.customer_name || b.name || '').replace(/'/g, "\\'");
     const escOccasion = (b.occasion || '').replace(/'/g, "\\'");
     const escDate = String(date).replace(/'/g, "\\'");
+    const escSlot = String(slotStr).replace(/'/g, "\\'");
+    const escPkg = String(pkgStr).replace(/'/g, "\\'");
     const phone = b.phone || '';
     const guests = b.guests || '';
 
     const total = parseFloat(b.total_amount || b.price || 0);
+    const advPaid = parseFloat(b.advancePaid || b.advance_paid || 0);
+
+    const conflictBadge = b.hasConflict 
+      ? `<div style="margin-top:4px;padding:3px 6px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;border-radius:4px;font-size:0.65rem;font-weight:600;"><i class="fas fa-exclamation-triangle"></i> Conflict with #${b.conflictDetails?.id || ''} (${b.conflictDetails?.name || 'Confirmed'})</div>` 
+      : '';
+
     let actionBtns = '';
     if (b.status === 'pending') {
       actionBtns = `
-        <button class="btn-action approve" onclick="triggerAdvanceRequest('${id}', '${phone}', '${escName}', '${escDate}', '${escOccasion}', ${total})">
+        <button class="btn-action approve" onclick="triggerAdvanceRequest('${id}', '${phone}', '${escName}', '${escDate}', '${escOccasion}', ${total}, '${escSlot}', '${escPkg}')">
           <i class="fas fa-money-bill-wave"></i> Request 40% Advance
         </button>
         <button class="btn-action reject" onclick="triggerRejectBooking('${id}', '${phone}', '${escName}', '${escDate}')">
@@ -1455,7 +1490,7 @@
       `;
     } else if (b.status === 'advance_verified') {
       actionBtns = `
-        <button class="btn-action approve" onclick="triggerConfirmBooking('${id}', '${phone}', '${escName}', '${escDate}', '${escOccasion}', '${guests}')">
+        <button class="btn-action approve" onclick="triggerConfirmBooking('${id}', '${phone}', '${escName}', '${escDate}', '${escOccasion}', '${guests}', '${escSlot}', '${escPkg}', ${total}, ${advPaid})">
           <i class="fas fa-check-double"></i> Confirm Booking
         </button>
         <button class="btn-action reject" onclick="triggerRejectBooking('${id}', '${phone}', '${escName}', '${escDate}')">
@@ -1489,38 +1524,52 @@
 
     return `<tr>
       <td style="font-size:.65rem;color:rgba(245,240,232,.3)">${sid}</td>
-      <td>${b.customer_name||b.name||'—'}</td>
+      <td><strong>${b.customer_name||b.name||'—'}</strong></td>
       <td>${b.phone||'—'}</td>
-      <td>${b.email||'—'}</td>
       <td>${date}</td>
-      <td>${b.occasion||'—'}</td>
-      <td>${b.guests||'—'}</td>
+      <td><span style="color:var(--wheat);font-weight:500">${hallStr}</span></td>
       <td>${slotStr}</td>
-      <td>₹${parseFloat(b.total_amount||b.price||0).toLocaleString('en-IN')}</td>
-      <td><span class="badge badge-${sCls}">${b.status||'pending'}</span></td>
-      <td style="max-width:150px;white-space:normal;font-size:.7rem">${b.notes||'—'}</td>
+      <td>${pkgStr}</td>
+      <td>
+        <strong>₹${parseFloat(b.total_amount||b.price||0).toLocaleString('en-IN')}</strong>
+        <div style="font-size:.65rem;color:rgba(245,240,232,.5);margin-top:2px;">Adv 40%: ₹${Math.round(total * 0.4).toLocaleString('en-IN')}</div>
+        <div style="font-size:.65rem;color:#fcd34d;margin-top:1px;">Bal 60%: ₹${(total - Math.round(total * 0.4)).toLocaleString('en-IN')} (due -2d)</div>
+      </td>
+      <td style="max-width:180px;white-space:normal;font-size:.7rem">${b.notes||'—'} ${conflictBadge}</td>
       <td><div style="display:flex;gap:.35rem;flex-wrap:wrap">${actionBtns}</div></td>
     </tr>`;
   }
 
 
-  function triggerAdvanceRequest(id, phone, name, date, occasion, totalAmount) {
+  function triggerAdvanceRequest(id, phone, name, date, occasion, totalAmount, slotStr, pkgStr) {
     const cleanPhone = phone.replace(/[^0-9]/g, '');
-    const advanceVal = totalAmount ? Math.round(parseFloat(totalAmount) * 0.4) : null;
+    const totalVal = parseFloat(totalAmount || 0);
+    const advanceVal = totalVal ? Math.round(totalVal * 0.4) : null;
+    const balanceVal = totalVal && advanceVal ? totalVal - advanceVal : null;
     const advanceStr = advanceVal ? '₹' + advanceVal.toLocaleString('en-IN') : '40% advance';
+    const balanceStr = balanceVal ? '₹' + balanceVal.toLocaleString('en-IN') : '60% balance';
 
     const lines = [
-      'Assalamu Alaikum ' + name + '! \u2728',
+      'Assalamu Alaikum ' + name + '! ✨',
       '',
-      'Your booking for *' + date + '* is available! \uD83D\uDCC5',
+      'Your booking enquiry for *Evan-e-Hakimi (2nd Floor)* on *' + date + '* is available! 📅',
       '',
-      'To confirm, please pay *' + advanceStr + '* (40% advance) via UPI:',
+      '🏛️ *Hall:* Evan-e-Hakimi (2nd Floor)',
+      '⏰ *Slot:* ' + (slotStr || 'Selected Slot'),
+      '🍽️ *Package:* ' + (pkgStr || 'Selected Package'),
+      '💰 *Total Price:* ₹' + totalVal.toLocaleString('en-IN'),
+      '🔹 *40% Advance Deposit:* ' + advanceStr,
+      '🔹 *Remaining 60% Balance:* ' + balanceStr + ' (due at least 2 days before event date)',
       '',
-      '\uD83D\uDCB3 *UPI ID:* 9099847718-3@ybl',
+      '📋 *Payment Terms:* A 40% non-refundable advance is required after booking approval by management. The remaining 60% must be paid at least 2 days before the event date.',
+      '👔 *Dress Code:* Wearing Libas-ul-Anwar is compulsory for all guests attending the function.',
       '',
-      'Please send the payment screenshot here for verification. \u2705',
+      'To confirm your booking, please transfer the 40% advance deposit (*' + advanceStr + '*) via UPI:',
+      '💳 *UPI ID:* 9099847718-3@ybl',
       '',
-      '- *MJ Culture* \uD83C\uDFE1'
+      'Please send the payment screenshot here for verification. Once verified, your booking will be confirmed. ✅',
+      '',
+      '- *Evan-e-Hakimi Management* 🏛️'
     ];
     const msg = lines.join('\n');
     window.open('https://wa.me/91' + cleanPhone + '?text=' + encodeURIComponent(msg), '_blank');
@@ -1532,38 +1581,62 @@
     const lines = [
       'Assalamu Alaikum ' + name + ',',
       '',
-      'We\'re sorry, your requested date *' + date + '* is not available. \uD83D\uDE14',
+      'Thank you for your enquiry for *Evan-e-Hakimi (2nd Floor)* on *' + date + '*.',
+      'Regrettably, this requested date/slot is currently unavailable. 😔',
       '',
-      'Please check another date on our website. We\'d love to host you! \uD83D\uDCC6\u2728',
+      'Please check another date on our website or reply to this message. We would be happy to host you! 📅✨',
       '',
-      '- *MJ Culture* \uD83C\uDFE1'
+      '- *Evan-e-Hakimi Management* 🏛️'
     ];
     const msg = lines.join('\n');
     window.open('https://wa.me/91' + cleanPhone + '?text=' + encodeURIComponent(msg), '_blank');
     updateBookingStatus(id, 'rejected');
   }
 
-  function triggerConfirmBooking(id, phone, name, date, occasion, guests) {
-    const cleanPhone = phone.replace(/[^0-9]/g, '');
-    const lines = [
-      'Assalamu Alaikum ' + name + '! \uD83C\uDF89',
-      '',
-      'Your booking is *CONFIRMED*! \u2705',
-      '',
-      '\uD83D\uDCC5 *Date:* ' + date,
-    ];
-    if (occasion) lines.push('\uD83C\uDF1F *Occasion:* ' + occasion);
-    if (guests) lines.push('\uD83D\uDC65 *Guests:* ' + guests);
-    lines.push('');
-    lines.push('*Payment Details:*');
-    lines.push('\uD83D\uDD39 Security Deposit: *Rs.10,000* (refundable)');
-    lines.push('\uD83D\uDD39 Remaining *60%* to be paid in cash');
-    lines.push('\uD83D\uDD39 Both to be paid *2-3 days before* the event');
-    lines.push('');
-    lines.push('Thank you for choosing MJ Culture! \uD83C\uDFE1\u2728');
-    const msg = lines.join('\n');
-    window.open('https://wa.me/91' + cleanPhone + '?text=' + encodeURIComponent(msg), '_blank');
-    updateBookingStatus(id, 'confirmed');
+  async function triggerConfirmBooking(id, phone, name, date, occasion, guests, slotStr, pkgStr, totalAmount, advancePaid) {
+    if (!id) return;
+    const cleanPhone = phone ? phone.replace(/[^0-9]/g, '') : '';
+    const total = parseFloat(totalAmount) || 0;
+    const adv = parseFloat(advancePaid) || Math.round(total * 0.4);
+    const rem = total - adv;
+
+    try {
+      const res = await api('/api/bookings/' + id + '/status', 'PATCH', { status: 'confirmed' });
+      if (res.error) throw new Error(res.error);
+      toast('Booking confirmed successfully!');
+      loadBookings();
+      loadDashboard();
+
+      // Only trigger WhatsApp confirmation after server-side confirmation succeeds
+      if (cleanPhone) {
+        const lines = [
+          'Assalamu Alaikum ' + name + '! 🎉',
+          '',
+          'Your booking at *Evan-e-Hakimi (2nd Floor)* is *CONFIRMED*! ✅',
+          '',
+          '📅 *Date:* ' + date,
+          '🏛️ *Hall:* Evan-e-Hakimi (2nd Floor)',
+          '⏰ *Slot:* ' + (slotStr || 'Selected Slot'),
+          '🍽️ *Package:* ' + (pkgStr || 'Selected Package'),
+        ];
+        if (occasion) lines.push('🌟 *Occasion:* ' + occasion);
+        if (guests) lines.push('👥 *Guests:* ' + guests + ' (Approx. 35–40 Thals capacity)');
+        lines.push('');
+        lines.push('*Payment Summary:*');
+        lines.push('🔹 Advance Verified (40%): *₹' + adv.toLocaleString('en-IN') + '*');
+        lines.push('🔹 Remaining Balance (60%): *₹' + rem.toLocaleString('en-IN') + '* (must be paid at least 2 days before the event date)');
+        lines.push('');
+        lines.push('👔 *Dress Code:* Wearing Libas-ul-Anwar is compulsory for all guests attending the function.');
+        lines.push('');
+        lines.push('Thank you for choosing Evan-e-Hakimi! ✨');
+        lines.push('- *Evan-e-Hakimi Management* 🏛️');
+        const msg = lines.join('\n');
+        window.open('https://wa.me/91' + cleanPhone + '?text=' + encodeURIComponent(msg), '_blank');
+      }
+    } catch(e) {
+      toast('Cannot confirm booking: ' + e.message, 'err');
+      alert('Cannot confirm booking: ' + e.message);
+    }
   }
 
   async function updateBookingStatus(id, status) {
@@ -1641,7 +1714,7 @@
           <td>${date}</td>
           <td style="color:var(--wheat)">₹${total.toLocaleString('en-IN')}</td>
           <td style="color:#86efac">₹${adv.toLocaleString('en-IN')}</td>
-          <td style="color:#fcd34d">₹${rem.toLocaleString('en-IN')}</td>
+          <td style="color:#fcd34d">₹${rem.toLocaleString('en-IN')}<div style="font-size:.6rem;color:rgba(245,240,232,.4);margin-top:1px;">due -2d</div></td>
           <td><span class="badge badge-${psCls}">${ps}</span></td>
           <td><div style="display:flex;gap:.35rem;flex-wrap:wrap">
             <button class="btn-action" onclick="openPaymentModal('${id}',${adv},'${b.paymentStatus||'not_paid'}')"><i class="fas fa-edit"></i> Edit</button>
@@ -2115,7 +2188,7 @@
           slot,b.occasion||'',b.guests||'',b.status||'',
           total,adv,cashCollected,b.paymentStatus||'not_paid',b.notes||b.specialRequirements||''];
       });
-      csvDownload(`mj-bookings-${Date.now()}.csv`, rows, headers);
+      csvDownload(`hall-bookings-${Date.now()}.csv`, rows, headers);
       toast('Booking report downloaded!');
     } catch(e) { toast('Export failed: ' + e.message, 'err'); }
   }
@@ -2142,7 +2215,7 @@
         ['=== STAFF SALARIES ==='], sHeaders, ...sRows,
         [''], ['=== EXPENSES ==='], eHeaders, ...eRows
       ];
-      csvDownload(`mj-accounts-${Date.now()}.csv`, allRows.map(r => Array.isArray(r)?r:[r]), []);
+      csvDownload(`hall-accounts-${Date.now()}.csv`, allRows.map(r => Array.isArray(r)?r:[r]), []);
       toast('Accounts report downloaded!');
     } catch(e) { toast('Export failed: ' + e.message, 'err'); }
   }
@@ -2159,38 +2232,36 @@
 
     if (status === 'confirmed') {
       lines = [
-        'Assalamu Alaikum ' + name + '! \uD83C\uDF89',
+        'Assalamu Alaikum ' + name + '! 🎉',
         '',
-        'Your booking is *CONFIRMED*! \u2705',
+        'Your booking at *Evan-e-Hakimi (2nd Floor)* is *CONFIRMED*! ✅',
         '',
-        '\uD83D\uDCC5 *Date:* ' + bd,
+        '📅 *Date:* ' + bd,
+        '🏛️ *Hall:* Evan-e-Hakimi (2nd Floor)',
         '',
-        '*Payment Details:*',
-        '\uD83D\uDD39 Security Deposit: *Rs.10,000* (refundable)',
-        '\uD83D\uDD39 Remaining *60%* in cash',
-        '\uD83D\uDD39 Both due *2-3 days before* event',
-        '',
-        'Thank you! - *MJ Culture* \uD83C\uDFE1\u2728'
+        'Thank you for booking with us! ✨',
+        '- *Evan-e-Hakimi Management* 🏛️'
       ];
     } else if (status === 'rejected') {
       lines = [
         'Assalamu Alaikum ' + name + ',',
         '',
-        'Sorry, *' + bd + '* is not available. \uD83D\uDE14',
+        'Thank you for your enquiry for *Evan-e-Hakimi (2nd Floor)* on *' + bd + '*.',
+        'Regrettably, this date/slot is unavailable. 😔',
         '',
-        'Please try another date! \uD83D\uDCC6\u2728',
+        'Please check another date on our website! 📅✨',
         '',
-        '- *MJ Culture* \uD83C\uDFE1'
+        '- *Evan-e-Hakimi Management* 🏛️'
       ];
     } else {
       lines = [
-        'Assalamu Alaikum ' + name + '! \u2728',
+        'Assalamu Alaikum ' + name + '! ✨',
         '',
-        'Your booking for *' + bd + '* is under review. \uD83D\uDCCB',
+        'Your booking enquiry for *Evan-e-Hakimi (2nd Floor)* on *' + bd + '* has been received. 📋',
         '',
-        'We\'ll get back to you within 24 hours. \u23F3',
+        'We will review availability and get back to you shortly. ⏳',
         '',
-        '- *MJ Culture* \uD83C\uDFE1'
+        '- *Evan-e-Hakimi Management* 🏛️'
       ];
     }
 

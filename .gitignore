@@ -3,5 +3,7 @@ dist/
 .env
 .env.local
 *.log
+*.db
+*.sqlite*
 .DS_Store
 Thumbs.db

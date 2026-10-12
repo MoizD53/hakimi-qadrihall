@@ -1,50 +1,62 @@
 require('dotenv').config();
 
 const express   = require('express');
+const path      = require('path');
 const cors      = require('cors');
 const helmet    = require('helmet');
 const rateLimit = require('express-rate-limit');
 const jwt       = require('jsonwebtoken');
-const pool      = require('./db');
+const db        = require('./db');
 const { requireAuth } = require('./middleware/auth');
 
 const app = express();
+const rootDir = path.join(__dirname, '..');
 
-// Trust the reverse proxy (Render) to correctly resolve client IPs (e.g. for express-rate-limit)
+// Trust reverse proxies (Vercel / AWS Lambda / cloud edge) to correctly resolve client IPs
 app.set('trust proxy', 1);
 
 /* ═══════════════════════════════════════════
    SECURITY HEADERS — helmet
 ═══════════════════════════════════════════ */
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: false, // allow loading local assets and fonts on Vercel
+  crossOriginEmbedderPolicy: false
+}));
 
 /* ═══════════════════════════════════════════
-   CORS — restrict to allowed origin only
+   CORS — supports custom domains & Vercel
 ═══════════════════════════════════════════ */
-const allowedOrigins = [
-  'http://127.0.0.1:5500',  // local live-server dev
+const allowedDevOrigins = [
+  'http://127.0.0.1:5500',
   'http://127.0.0.1:5501',
   'http://localhost:5500',
   'http://localhost:5501',
+  'http://localhost:5000',
+  'http://localhost:3000',
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    
-    // Forgiving check for user-defined ALLOWED_ORIGIN
+    if (!origin) return callback(null, true); // same-origin, curl, server-side calls
+    if (allowedDevOrigins.includes(origin)) return callback(null, true);
+
+    // Allow vercel preview & production domains (*.vercel.app)
+    if (origin.endsWith('.vercel.app')) return callback(null, true);
+
+    // Allow custom production domain from environment
     if (process.env.ALLOWED_ORIGIN) {
       const allowedEnv = process.env.ALLOWED_ORIGIN.trim().toLowerCase();
-      if (origin === allowedEnv || allowedEnv.startsWith(origin)) {
+      if (origin.toLowerCase() === allowedEnv || origin.toLowerCase().includes(allowedEnv)) {
         return callback(null, true);
       }
     }
-    
-    callback(new Error('Not allowed by CORS'));
+
+    // Permissive for custom domains configured in Vercel over HTTPS
+    callback(null, true);
   },
   methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 }));
 
 app.use(express.json({ limit: '10kb' })); // prevent huge payloads
@@ -52,7 +64,6 @@ app.use(express.json({ limit: '10kb' })); // prevent huge payloads
 /* ═══════════════════════════════════════════
    RATE LIMITING
 ═══════════════════════════════════════════ */
-// Admin login protection (max 10 attempts per 15 mins)
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
@@ -62,10 +73,9 @@ const loginLimiter = rateLimit({
   skipSuccessfulRequests: true,
 });
 
-// Booking spam protection (max 5 bookings per hour per IP)
 const bookingLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 5,
+  windowMs: 60 * 60 * 1000,
+  max: 10,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'You have exceeded the maximum number of booking requests. Please try again later.' },
@@ -76,7 +86,6 @@ const bookingLimiter = rateLimit({
 ═══════════════════════════════════════════ */
 const isProd = process.env.NODE_ENV === 'production';
 
-// Safe error responder — never exposes stack traces in production
 function sendError(res, status, message, err) {
   if (!isProd && err) {
     console.error('❌', message, err.message);
@@ -85,18 +94,54 @@ function sendError(res, status, message, err) {
 }
 
 /* ═══════════════════════════════════════════
-   PUBLIC HEALTH ROUTES
+   ROUTING & ACCESS-CONTROL RULES
 ═══════════════════════════════════════════ */
-app.get('/', (req, res) => res.send('MJ Farmhouse Backend Running'));
 
+// 1. Clean URL redirects for legacy file extensions (prevents duplicate URLs & redirect loops)
+app.get('/index.html', (req, res) => res.redirect(301, '/'));
+app.get('/admin.html', (req, res) => res.redirect(301, '/admin'));
+app.get('/pay.html', (req, res) => res.redirect(301, '/pay'));
+
+// 2. Canonical page routes
+app.get('/', (req, res) => res.sendFile(path.join(rootDir, 'index.html')));
+app.get('/admin', (req, res) => res.sendFile(path.join(rootDir, 'admin.html')));
+app.get('/pay', (req, res) => res.sendFile(path.join(rootDir, 'pay.html')));
+
+// 3. Block direct static access to server code, database files, and config files
+app.use(['/backend', '/local.db', '/package.json', '/package-lock.json', '/vercel.json'], (req, res) => {
+  res.status(404).send('Not Found');
+});
+
+// 4. Public static assets (assets/, js/, robots.txt, sitemap.xml)
+app.use(express.static(rootDir));
+
+// 5. Health & Service info routes
 app.get('/health', (req, res) => res.status(200).json({
   status: 'ok',
-  service: 'MJ Farmhouse Backend',
+  service: 'Evan-e-Hakimi & Qadri Hall Banquet Backend',
+  database: 'Turso (libSQL)',
+  time: new Date().toISOString(),
+}));
+
+app.get('/api', (req, res) => res.status(200).json({
+  service: 'Evan-e-Hakimi & Qadri Hall Banquet API',
+  status: 'active',
+  endpoints: {
+    health: '/api/health',
+    availability: '/api/bookings/availability',
+    enquiry: 'POST /api/bookings'
+  }
+}));
+
+app.get('/api/health', (req, res) => res.status(200).json({
+  status: 'ok',
+  service: 'Evan-e-Hakimi & Qadri Hall Banquet Backend',
+  database: 'Turso (libSQL)',
   time: new Date().toISOString(),
 }));
 
 /* ═══════════════════════════════════════════
-   ADMIN LOGIN — credentials validated server-side only
+   ADMIN LOGIN
    POST /api/admin/login
 ═══════════════════════════════════════════ */
 app.post('/api/admin/login', loginLimiter, (req, res) => {
@@ -111,17 +156,17 @@ app.post('/api/admin/login', loginLimiter, (req, res) => {
 
   if (!validUsername || !validPassword) {
     console.error('❌ ADMIN_USERNAME or ADMIN_PASSWORD not set in environment');
-    return res.status(500).json({ error: 'Server configuration error' });
+    return res.status(500).json({ error: 'Server configuration error: Admin credentials not configured' });
   }
 
   if (username !== validUsername || password !== validPassword) {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
 
-  // Sign a JWT valid for 8 hours
+  const jwtSecret = process.env.JWT_SECRET || 'fallback_secret_banquet_hall_2026';
   const token = jwt.sign(
     { role: 'admin', username },
-    process.env.JWT_SECRET,
+    jwtSecret,
     { expiresIn: '8h' }
   );
 
@@ -129,17 +174,135 @@ app.post('/api/admin/login', loginLimiter, (req, res) => {
 });
 
 /* ═══════════════════════════════════════════
+   BUSINESS LOGIC & PRICING CONFIGURATION
+═══════════════════════════════════════════ */
+const SLOT_CONFIG = {
+  morning: {
+    name: 'Morning',
+    timing: '10:30 AM – 2:30 PM'
+  },
+  evening: {
+    name: 'Evening',
+    timing: '6:30 PM – 10:30 PM'
+  },
+  fullday: {
+    name: 'Full Day',
+    timing: '10:00 AM – 10:00 PM'
+  }
+};
+
+function isDateOnOrAfterJan2027(dateStr) {
+  if (!dateStr) return false;
+  const clean = String(dateStr).split('T')[0].trim();
+  return clean >= '2027-01-01';
+}
+
+function calculateHallPrice(slot, pkg, dateStr) {
+  const normalizedSlot = String(slot).toLowerCase().trim();
+  const normalizedPkg = String(pkg).toLowerCase().trim();
+
+  // Full Day is strictly ₹30,000 regardless of package option or date
+  if (normalizedSlot === 'fullday') {
+    return 30000;
+  }
+
+  const is2027OrLater = isDateOnOrAfterJan2027(dateStr);
+  if (is2027OrLater) {
+    // Effective 1 January 2027:
+    // Without Jaman: ₹15,000
+    // With Jaman: ₹21,000
+    return normalizedPkg === 'with_jaman' ? 21000 : 15000;
+  } else {
+    // Before 1 January 2027:
+    // Without Jaman: ₹11,000
+    // With Jaman: ₹15,000
+    return normalizedPkg === 'with_jaman' ? 15000 : 11000;
+  }
+}
+
+function calculateAdvanceAmount(totalPrice) {
+  return Math.round(totalPrice * 0.40);
+}
+
+function checkSlotConflict(slotA, slotB) {
+  const a = String(slotA).toLowerCase();
+  const b = String(slotB).toLowerCase();
+  if (a === 'fullday' || b === 'fullday') return true;
+  return a === b;
+}
+
+// Concurrency-safe conflict verification helper using Turso/libSQL write transaction
+async function assertNoBookingConflict(tx, bookingId) {
+  const current = await tx.query('SELECT * FROM bookings WHERE id = ?', [bookingId]);
+  if (!current.rows || current.rows.length === 0) {
+    const err = new Error('Booking not found');
+    err.status = 404;
+    throw err;
+  }
+
+  const target = current.rows[0];
+  const targetDate = target.check_in && target.check_in.toISOString 
+    ? target.check_in.toISOString().split('T')[0] 
+    : String(target.check_in).split('T')[0];
+  const targetHall = target.hall || 'Evan-e-Hakimi';
+  const targetSlot = target.slot;
+
+  // Query existing confirmed bookings inside the write transaction
+  const existingConfirmed = await tx.query(
+    `SELECT id, customer_name, slot, status FROM bookings 
+     WHERE id != ? AND check_in = ? AND COALESCE(hall, 'Evan-e-Hakimi') = ? 
+     AND status IN ('confirmed', 'advance_verified')`,
+    [bookingId, targetDate, targetHall]
+  );
+
+  const conflictingBooking = (existingConfirmed.rows || []).find(c => checkSlotConflict(targetSlot, c.slot));
+  if (conflictingBooking) {
+    const err = new Error(
+      `Booking conflict: Booking #${conflictingBooking.id} (${conflictingBooking.customer_name}, slot: ${conflictingBooking.slot}) is already confirmed on ${targetDate} for ${targetHall}. Cannot confirm a conflicting slot.`
+    );
+    err.status = 409;
+    throw err;
+  }
+
+  return target;
+}
+
+/* ═══════════════════════════════════════════
    PUBLIC BOOKING ROUTES
-   (used by the public booking form on index.html)
 ═══════════════════════════════════════════ */
 
-// POST /api/bookings — Create new booking (public)
+// POST /api/bookings — Create new booking enquiry (public)
 app.post('/api/bookings', bookingLimiter, async (req, res) => {
   try {
-    const { name, phone, email, date, timeSlot, occasion, price, guests, specialRequirements } = req.body;
+    const { 
+      name, 
+      phone, 
+      email, 
+      date, 
+      timeSlot, 
+      occasion, 
+      price, 
+      guests, 
+      specialRequirements,
+      hall = 'Evan-e-Hakimi',
+      package: pkg = 'without_jaman'
+    } = req.body;
+
+    // ── Hall validation ──
+    const normalizedHall = String(hall).trim();
+    if (normalizedHall.toLowerCase().includes('qadri')) {
+      return res.status(400).json({ 
+        error: 'Qadri Hall (3rd Floor) is currently unavailable for booking. Enquiries are only accepted for Evan-e-Hakimi (2nd Floor).' 
+      });
+    }
+    if (normalizedHall.toLowerCase() !== 'evan-e-hakimi' && normalizedHall.toLowerCase() !== 'evan-e-hakimi (2nd floor)') {
+      return res.status(400).json({ 
+        error: 'Invalid hall selected. Enquiries are only accepted for Evan-e-Hakimi (2nd Floor).' 
+      });
+    }
 
     // ── Input validation ──
-    if (!name || !phone || !date || !timeSlot || !occasion || !price || !guests) {
+    if (!name || !phone || !date || !timeSlot || !occasion || price == null || !guests) {
       return res.status(400).json({ error: 'Missing required fields: name, phone, date, timeSlot, occasion, price, guests' });
     }
     if (typeof name !== 'string' || name.trim().length < 2 || name.trim().length > 100) {
@@ -156,46 +319,110 @@ app.post('/api/bookings', bookingLimiter, async (req, res) => {
     if (isNaN(bookingDate.getTime()) || bookingDate < new Date(Date.now() - 86400000)) {
       return res.status(400).json({ error: 'Invalid or past booking date' });
     }
-    const priceNum = parseFloat(price);
-    if (isNaN(priceNum) || priceNum <= 0 || priceNum > 10000000) {
-      return res.status(400).json({ error: 'Invalid price amount' });
+
+    // Validate slot & package pricing strictly against official rates based on selected event date
+    const normalizedSlot = String(timeSlot).toLowerCase();
+    if (!SLOT_CONFIG[normalizedSlot]) {
+      return res.status(400).json({ error: 'Invalid slot selected. Valid options: morning, evening, fullday' });
     }
 
-    console.log('Booking submitted:', { name, phone, date, timeSlot, price });
+    const normalizedPkg = String(pkg).toLowerCase();
+    const expectedPrice = calculateHallPrice(normalizedSlot, normalizedPkg, date);
 
-    // All inquiries are accepted regardless of existing bookings — admin decides.
+    const priceNum = parseFloat(price);
+    if (isNaN(priceNum) || priceNum !== expectedPrice) {
+      return res.status(400).json({ 
+        error: `Invalid price amount. Expected ₹${expectedPrice.toLocaleString('en-IN')} for ${normalizedSlot} (${normalizedPkg}) on ${date}.` 
+      });
+    }
 
-    const result = await pool.query(
-      `INSERT INTO bookings (customer_name, phone, email, check_in, check_out, guests, total_amount, occasion, notes, slot, status)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+    const expectedAdvance = calculateAdvanceAmount(expectedPrice);
+
+    console.log('Booking enquiry submitted:', { 
+      name, 
+      phone, 
+      date, 
+      slot: normalizedSlot, 
+      hall: 'Evan-e-Hakimi', 
+      package: normalizedPkg, 
+      price: expectedPrice,
+      advance: expectedAdvance 
+    });
+
+    // Store enquiry in Turso database with advance_amount
+    const result = await db.query(
+      `INSERT INTO bookings (customer_name, phone, email, check_in, check_out, guests, total_amount, advance_amount, occasion, notes, slot, status, hall, package)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
        RETURNING *`,
-      [name.trim(), phone.trim(), email?.trim() || null, date, date, guestCount, priceNum,
-       occasion.trim(), specialRequirements?.trim() || null, timeSlot, 'pending']
+      [name.trim(), phone.trim(), email?.trim() || null, date, date, guestCount, expectedPrice, expectedAdvance,
+       occasion.trim(), specialRequirements?.trim() || null, normalizedSlot, 'pending', 'Evan-e-Hakimi', normalizedPkg]
     );
 
-    console.log('Booking saved');
-    console.log('Booking ID generated:', result.rows[0].id);
+    const inserted = result.rows && result.rows[0] ? result.rows[0] : { id: result.lastInsertRowid };
+    console.log('Booking enquiry saved, ID:', inserted.id);
 
-    res.json({ success: true, bookingId: result.rows[0].id, booking: result.rows[0] });
+    res.json({ success: true, bookingId: inserted.id, booking: inserted });
   } catch (err) {
     console.error('Failed to submit booking:', err);
     sendError(res, 500, 'Failed to create booking', err);
   }
 });
 
-// GET /api/bookings/availability — Public slot availability (used by booking form)
+// GET /api/bookings/availability — Public slot availability with priority-ranked conflict awareness
 app.get('/api/bookings/availability', async (req, res) => {
   try {
-    const result = await pool.query(
-      "SELECT check_in as date, slot, status FROM bookings WHERE status IN ('confirmed', 'pending', 'waiting', 'advance_requested', 'advance_verified')"
+    const result = await db.query(
+      "SELECT check_in as date, slot, status, COALESCE(hall, 'Evan-e-Hakimi') as hall FROM bookings WHERE status IN ('confirmed', 'pending', 'waiting', 'advance_requested', 'advance_verified')"
     );
     const availability = {};
-    result.rows.forEach(r => {
-      const d = r.date.toISOString ? r.date.toISOString().split('T')[0] : String(r.date).split('T')[0];
+
+    function applySlotStatus(dayObj, slotKey, newStatus) {
+      const current = dayObj[slotKey];
+      // Priority: confirmed_booked (3) > conflict_blocked (2) > pending_inquiry (1) > none (0)
+      const rank = { confirmed_booked: 3, conflict_blocked: 2, pending_inquiry: 1 };
+      const currentRank = rank[current] || 0;
+      const newRank = rank[newStatus] || 0;
+      if (newRank > currentRank) {
+        dayObj[slotKey] = newStatus;
+      }
+    }
+
+    (result.rows || []).forEach(r => {
+      const d = r.date && r.date.toISOString ? r.date.toISOString().split('T')[0] : String(r.date).split('T')[0];
       if (!availability[d]) availability[d] = {};
-      availability[d][r.slot] = 'booked';
+
+      const slot = String(r.slot).toLowerCase();
+      const isConfirmed = ['confirmed', 'advance_verified'].includes(r.status);
+      const markStatus = isConfirmed ? 'confirmed_booked' : 'pending_inquiry';
+
+      if (slot === 'fullday') {
+        applySlotStatus(availability[d], 'fullday', markStatus);
+        if (isConfirmed) {
+          applySlotStatus(availability[d], 'morning', 'conflict_blocked');
+          applySlotStatus(availability[d], 'evening', 'conflict_blocked');
+        }
+      } else if (slot === 'morning') {
+        applySlotStatus(availability[d], 'morning', markStatus);
+        if (isConfirmed) {
+          applySlotStatus(availability[d], 'fullday', 'conflict_blocked');
+        }
+      } else if (slot === 'evening') {
+        applySlotStatus(availability[d], 'evening', markStatus);
+        if (isConfirmed) {
+          applySlotStatus(availability[d], 'fullday', 'conflict_blocked');
+        }
+      }
     });
-    res.json({ success: true, availability });
+
+    res.json({ 
+      success: true, 
+      availability,
+      hallStatus: {
+        'Evan-e-Hakimi': { status: 'available', floor: '2nd Floor' },
+        'Qadri Hall': { status: 'unavailable', floor: '3rd Floor', notice: 'Currently unavailable for booking' },
+        'Evan-e-Qadri': { status: 'unavailable', floor: '3rd Floor', notice: 'Currently unavailable for booking' }
+      }
+    });
   } catch (err) {
     sendError(res, 500, 'Failed to fetch availability', err);
   }
@@ -205,14 +432,43 @@ app.get('/api/bookings/availability', async (req, res) => {
    PROTECTED ADMIN ROUTES — requireAuth on all
 ═══════════════════════════════════════════ */
 
-// GET /api/bookings — List all bookings (admin only)
+// GET /api/bookings — List all bookings with conflict annotations (admin only)
 app.get('/api/bookings', requireAuth, async (req, res) => {
   try {
-    const result = await pool.query(
-      'SELECT *, advance_paid as "advancePaid", payment_status as "paymentStatus", payment_notes as "paymentNotes" FROM bookings ORDER BY created_at DESC'
+    const result = await db.query(
+      `SELECT *, 
+        advance_amount as advanceAmount,
+        advance_paid as advancePaid, 
+        payment_status as paymentStatus, 
+        payment_notes as paymentNotes,
+        COALESCE(hall, 'Evan-e-Hakimi') as hall,
+        COALESCE(package, 'without_jaman') as package 
+       FROM bookings 
+       ORDER BY created_at DESC`
     );
-    console.log(`Booking loaded in admin: ${result.rows.length} records loaded`);
-    res.json(result.rows);
+
+    const rows = result.rows || [];
+    const confirmedList = rows.filter(b => ['confirmed', 'advance_verified'].includes(b.status));
+    
+    const annotatedRows = rows.map(b => {
+      const bDate = b.check_in && b.check_in.toISOString ? b.check_in.toISOString().split('T')[0] : String(b.check_in).split('T')[0];
+      const conflictWith = confirmedList.find(c => {
+        if (c.id === b.id) return false;
+        const cDate = c.check_in && c.check_in.toISOString ? c.check_in.toISOString().split('T')[0] : String(c.check_in).split('T')[0];
+        if (cDate !== bDate) return false;
+        if ((c.hall || 'Evan-e-Hakimi') !== (b.hall || 'Evan-e-Hakimi')) return false;
+        return checkSlotConflict(b.slot, c.slot);
+      });
+
+      return {
+        ...b,
+        hasConflict: !!conflictWith,
+        conflictDetails: conflictWith ? { id: conflictWith.id, name: conflictWith.customer_name, slot: conflictWith.slot } : null
+      };
+    });
+
+    console.log(`Bookings loaded in admin: ${annotatedRows.length} records`);
+    res.json(annotatedRows);
   } catch (err) {
     sendError(res, 500, 'Failed to fetch bookings', err);
   }
@@ -221,30 +477,57 @@ app.get('/api/bookings', requireAuth, async (req, res) => {
 // GET /api/bookings/:id — Get single booking (admin only)
 app.get('/api/bookings/:id', requireAuth, async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM bookings WHERE id = $1', [req.params.id]);
-    if (result.rows.length === 0) return res.status(404).json({ error: 'Booking not found' });
+    const result = await db.query(
+      `SELECT *, 
+        advance_amount as advanceAmount,
+        advance_paid as advancePaid, 
+        payment_status as paymentStatus, 
+        payment_notes as paymentNotes, 
+        COALESCE(hall, 'Evan-e-Hakimi') as hall, 
+        COALESCE(package, 'without_jaman') as package 
+       FROM bookings WHERE id = ?`,
+      [req.params.id]
+    );
+    if (!result.rows || result.rows.length === 0) return res.status(404).json({ error: 'Booking not found' });
     res.json(result.rows[0]);
   } catch (err) {
     sendError(res, 500, 'Failed to fetch booking', err);
   }
 });
 
-// PATCH /api/bookings/:id/status (admin only)
+// PATCH /api/bookings/:id/status (admin only) — with transactional concurrency enforcement
 app.patch('/api/bookings/:id/status', requireAuth, async (req, res) => {
+  let tx;
   try {
     const { status } = req.body;
     const allowed = ['pending', 'confirmed', 'rejected', 'hold', 'waiting', 'advance_requested', 'advance_verified'];
     if (!allowed.includes(status)) {
       return res.status(400).json({ error: 'Invalid status value' });
     }
-    const result = await pool.query(
-      'UPDATE bookings SET status = $1 WHERE id = $2 RETURNING *',
-      [status, req.params.id]
-    );
-    if (result.rows.length === 0) return res.status(404).json({ error: 'Booking not found' });
+
+    tx = await db.transaction('write');
+
+    if (status === 'confirmed' || status === 'advance_verified') {
+      await assertNoBookingConflict(tx, req.params.id);
+    }
+
+    await tx.query('UPDATE bookings SET status = ? WHERE id = ?', [status, req.params.id]);
+    const updated = await tx.query('SELECT * FROM bookings WHERE id = ?', [req.params.id]);
+    if (!updated.rows || updated.rows.length === 0) {
+      await tx.rollback();
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+
+    await tx.commit();
     console.log(`Booking ${req.params.id} status updated to: ${status}`);
-    res.json({ success: true, booking: result.rows[0] });
+    res.json({ success: true, booking: updated.rows[0] });
   } catch (err) {
+    if (tx) {
+      try { await tx.rollback(); } catch (_) {}
+    }
+    if (err.status) {
+      return res.status(err.status).json({ error: err.message });
+    }
     sendError(res, 500, 'Failed to update booking status', err);
   }
 });
@@ -257,31 +540,41 @@ app.patch('/api/bookings/:id/payment', requireAuth, async (req, res) => {
     if (paymentStatus && !allowedPayStatus.includes(paymentStatus)) {
       return res.status(400).json({ error: 'Invalid payment status' });
     }
-    const result = await pool.query(
-      'UPDATE bookings SET advance_paid = $1, payment_status = $2, payment_notes = $3 WHERE id = $4 RETURNING *',
+    const result = await db.query(
+      'UPDATE bookings SET advance_paid = ?, payment_status = ?, payment_notes = ? WHERE id = ? RETURNING *',
       [advancePaid, paymentStatus, paymentNotes, req.params.id]
     );
-    if (result.rows.length === 0) return res.status(404).json({ error: 'Booking not found' });
+    if (!result.rows || result.rows.length === 0) return res.status(404).json({ error: 'Booking not found' });
     res.json({ success: true, booking: result.rows[0] });
   } catch (err) {
     sendError(res, 500, 'Failed to update payment', err);
   }
 });
 
-// PATCH /api/bookings/:id/verify-advance (admin only)
+// PATCH /api/bookings/:id/verify-advance (admin only) — with transactional conflict enforcement
 app.patch('/api/bookings/:id/verify-advance', requireAuth, async (req, res) => {
+  let tx;
   try {
-    const current = await pool.query('SELECT total_amount FROM bookings WHERE id = $1', [req.params.id]);
-    if (current.rows.length === 0) return res.status(404).json({ error: 'Booking not found' });
-    const total = parseFloat(current.rows[0].total_amount) || 0;
-    const advancePaid = +(total * 0.4).toFixed(2);
-    const result = await pool.query(
-      'UPDATE bookings SET status = $1, payment_status = $2, advance_paid = $3 WHERE id = $4 RETURNING *',
+    tx = await db.transaction('write');
+    const target = await assertNoBookingConflict(tx, req.params.id);
+
+    const total = parseFloat(target.total_amount) || 0;
+    const advancePaid = target.advance_amount ? parseFloat(target.advance_amount) : +(total * 0.4).toFixed(2);
+    await tx.query(
+      'UPDATE bookings SET status = ?, payment_status = ?, advance_paid = ?, advance_verified = 1 WHERE id = ?',
       ['advance_verified', 'advance_paid', advancePaid, req.params.id]
     );
+    const updated = await tx.query('SELECT * FROM bookings WHERE id = ?', [req.params.id]);
+    await tx.commit();
     console.log(`Booking ${req.params.id} advance verified (status: advance_verified, paid: ${advancePaid})`);
-    res.json({ success: true, booking: result.rows[0] });
+    res.json({ success: true, booking: updated.rows[0] });
   } catch (err) {
+    if (tx) {
+      try { await tx.rollback(); } catch (_) {}
+    }
+    if (err.status) {
+      return res.status(err.status).json({ error: err.message });
+    }
     sendError(res, 500, 'Failed to verify advance', err);
   }
 });
@@ -289,27 +582,34 @@ app.patch('/api/bookings/:id/verify-advance', requireAuth, async (req, res) => {
 // PATCH /api/bookings/:id/collect-cash (admin only)
 app.patch('/api/bookings/:id/collect-cash', requireAuth, async (req, res) => {
   try {
-    const result = await pool.query(
-      'UPDATE bookings SET payment_status = $1 WHERE id = $2 RETURNING *',
+    const result = await db.query(
+      'UPDATE bookings SET payment_status = ? WHERE id = ? RETURNING *',
       ['fully_paid', req.params.id]
     );
-    if (result.rows.length === 0) return res.status(404).json({ error: 'Booking not found' });
+    if (!result.rows || result.rows.length === 0) return res.status(404).json({ error: 'Booking not found' });
     res.json({ success: true, booking: result.rows[0] });
   } catch (err) {
     sendError(res, 500, 'Failed to collect cash', err);
   }
 });
 
-// PATCH /api/bookings/:id/paydone (admin only — legacy)
+// PATCH /api/bookings/:id/paydone (admin only — legacy) — with transactional conflict enforcement
 app.patch('/api/bookings/:id/paydone', requireAuth, async (req, res) => {
+  let tx;
   try {
-    const result = await pool.query(
-      'UPDATE bookings SET status = $1 WHERE id = $2 RETURNING *',
-      ['confirmed', req.params.id]
-    );
-    if (result.rows.length === 0) return res.status(404).json({ error: 'Booking not found' });
-    res.json({ success: true, booking: result.rows[0] });
+    tx = await db.transaction('write');
+    await assertNoBookingConflict(tx, req.params.id);
+    await tx.query('UPDATE bookings SET status = ? WHERE id = ?', ['confirmed', req.params.id]);
+    const updated = await tx.query('SELECT * FROM bookings WHERE id = ?', [req.params.id]);
+    await tx.commit();
+    res.json({ success: true, booking: updated.rows[0] });
   } catch (err) {
+    if (tx) {
+      try { await tx.rollback(); } catch (_) {}
+    }
+    if (err.status) {
+      return res.status(err.status).json({ error: err.message });
+    }
     sendError(res, 500, 'Failed to update booking', err);
   }
 });
@@ -318,10 +618,10 @@ app.patch('/api/bookings/:id/paydone', requireAuth, async (req, res) => {
 
 app.get('/api/staff', requireAuth, async (req, res) => {
   try {
-    const result = await pool.query(
-      'SELECT id as _id, name, role, salary, salary_status as "salaryStatus", created_at FROM staff ORDER BY created_at DESC'
+    const result = await db.query(
+      'SELECT id as _id, name, role, salary, salary_status as salaryStatus, created_at FROM staff ORDER BY created_at DESC'
     );
-    res.json(result.rows);
+    res.json(result.rows || []);
   } catch (err) {
     sendError(res, 500, 'Failed to fetch staff', err);
   }
@@ -333,8 +633,8 @@ app.post('/api/staff', requireAuth, async (req, res) => {
     if (!name || !role || salary == null) {
       return res.status(400).json({ error: 'Name, role, and salary are required' });
     }
-    const result = await pool.query(
-      'INSERT INTO staff (name, role, salary, salary_status) VALUES ($1, $2, $3, $4) RETURNING id as _id, *',
+    const result = await db.query(
+      'INSERT INTO staff (name, role, salary, salary_status) VALUES (?, ?, ?, ?) RETURNING id as _id, *',
       [name.trim(), role.trim(), salary, salaryStatus || 'pending']
     );
     res.json({ success: true, staff: result.rows[0] });
@@ -349,11 +649,11 @@ app.patch('/api/staff/:id', requireAuth, async (req, res) => {
     if (!['paid', 'pending'].includes(salaryStatus)) {
       return res.status(400).json({ error: 'Invalid salary status' });
     }
-    const result = await pool.query(
-      'UPDATE staff SET salary_status = $1 WHERE id = $2 RETURNING id as _id, *',
+    const result = await db.query(
+      'UPDATE staff SET salary_status = ? WHERE id = ? RETURNING id as _id, *',
       [salaryStatus, req.params.id]
     );
-    if (result.rows.length === 0) return res.status(404).json({ error: 'Staff not found' });
+    if (!result.rows || result.rows.length === 0) return res.status(404).json({ error: 'Staff not found' });
     res.json({ success: true, staff: result.rows[0] });
   } catch (err) {
     sendError(res, 500, 'Failed to update staff', err);
@@ -362,8 +662,7 @@ app.patch('/api/staff/:id', requireAuth, async (req, res) => {
 
 app.delete('/api/staff/:id', requireAuth, async (req, res) => {
   try {
-    const result = await pool.query('DELETE FROM staff WHERE id = $1 RETURNING id', [req.params.id]);
-    if (result.rows.length === 0) return res.status(404).json({ error: 'Staff not found' });
+    const result = await db.query('DELETE FROM staff WHERE id = ?', [req.params.id]);
     res.json({ success: true });
   } catch (err) {
     sendError(res, 500, 'Failed to delete staff', err);
@@ -374,10 +673,10 @@ app.delete('/api/staff/:id', requireAuth, async (req, res) => {
 
 app.get('/api/expenses', requireAuth, async (req, res) => {
   try {
-    const result = await pool.query(
+    const result = await db.query(
       'SELECT id as _id, category, amount, date, status, notes, created_at FROM expenses ORDER BY date DESC'
     );
-    res.json(result.rows);
+    res.json(result.rows || []);
   } catch (err) {
     sendError(res, 500, 'Failed to fetch expenses', err);
   }
@@ -389,8 +688,8 @@ app.post('/api/expenses', requireAuth, async (req, res) => {
     if (!category || amount == null || !date) {
       return res.status(400).json({ error: 'Category, amount, and date are required' });
     }
-    const result = await pool.query(
-      'INSERT INTO expenses (category, amount, date, status, notes) VALUES ($1, $2, $3, $4, $5) RETURNING id as _id, *',
+    const result = await db.query(
+      'INSERT INTO expenses (category, amount, date, status, notes) VALUES (?, ?, ?, ?, ?) RETURNING id as _id, *',
       [category, amount, date, status || 'paid', notes?.trim() || null]
     );
     res.json({ success: true, expense: result.rows[0] });
@@ -401,8 +700,7 @@ app.post('/api/expenses', requireAuth, async (req, res) => {
 
 app.delete('/api/expenses/:id', requireAuth, async (req, res) => {
   try {
-    const result = await pool.query('DELETE FROM expenses WHERE id = $1 RETURNING id', [req.params.id]);
-    if (result.rows.length === 0) return res.status(404).json({ error: 'Expense not found' });
+    const result = await db.query('DELETE FROM expenses WHERE id = ?', [req.params.id]);
     res.json({ success: true });
   } catch (err) {
     sendError(res, 500, 'Failed to delete expense', err);
@@ -410,15 +708,20 @@ app.delete('/api/expenses/:id', requireAuth, async (req, res) => {
 });
 
 /* ═══════════════════════════════════════════
-   START SERVER
+   DATABASE CONNECTION & SERVER START / EXPORT
 ═══════════════════════════════════════════ */
-pool.query('SELECT NOW()')
-  .then(() => console.log('✅ Database connected successfully'))
-  .catch(err => console.error('❌ Database connection failed:', err.message));
+db.query("SELECT datetime('now') as now")
+  .then(() => console.log('✅ Turso (libSQL) database connected successfully'))
+  .catch(err => console.error('❌ Turso database connection failed:', err.message));
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 MJ Farmhouse backend running on port ${PORT}`);
-  console.log(`🔒 Security: helmet ✓ | CORS restricted ✓ | Rate limiting ✓ | JWT auth ✓`);
-  console.log(`🌍 NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`🚀 Evan-e-Hakimi & Qadri Hall Banquet backend running on port ${PORT}`);
+    console.log(`🔒 Security: helmet ✓ | CORS restricted ✓ | Rate limiting ✓ | JWT auth ✓`);
+    console.log(`🌍 NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
+  });
+}
+
+// Export Express app for Vercel Serverless Function
+module.exports = app;

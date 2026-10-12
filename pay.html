@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pay via UPI | MJ Culture Farmhouse</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Pay via UPI | Evan-e-Hakimi &amp; Qadri Hall Banquet</title>
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,12 +26,13 @@
       background:var(--ink);
       color:var(--cream);
       min-height:100vh;
+      min-height:100dvh;
       display:flex;
       align-items:center;
       justify-content:center;
       overflow-x:hidden;
       position:relative;
-      padding:1.5rem;
+      padding:1.5rem max(1rem, env(safe-area-inset-right)) calc(1.5rem + env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
     }
     
     /* Noise Background overlay */
@@ -260,8 +261,8 @@
   <div class="glow glow-2"></div>
   
   <div class="pay-card">
-    <div class="logo">MJ Culture</div>
-    <div class="subtitle">Farmhouse Booking</div>
+    <div class="logo">Evan-e-Hakimi &amp; Qadri Hall</div>
+    <div class="subtitle">Banquet Halls Booking</div>
     
     <div class="spinner-wrap" id="loader">
       <div class="spinner"></div>
@@ -272,8 +273,17 @@
     <p class="status-desc" id="payDesc">Please wait while we redirect you to your installed UPI payment apps...</p>
     
     <div class="amount-display" id="amtBox" style="display:none;">
-      <div class="amount-label">Amount to Pay</div>
+      <div class="amount-label">40% Advance Deposit</div>
       <div class="amount-val" id="amtVal">₹0</div>
+      <div style="font-size:0.75rem;color:rgba(245,240,232,0.65);margin-top:0.4rem;">
+        Remaining 60% balance must be paid at least 2 days before the event date.
+      </div>
+    </div>
+
+    <div style="background:rgba(201,169,110,0.07);border:1px solid rgba(201,169,110,0.18);border-radius:8px;padding:0.75rem 1rem;margin-bottom:1.2rem;text-align:left;font-size:0.75rem;line-height:1.5;color:rgba(245,240,232,0.85);">
+      <div style="font-weight:600;color:var(--wheat);margin-bottom:3px;"><i class="fas fa-info-circle" style="margin-right:4px;"></i> Important Booking Terms</div>
+      <div>• <strong>Payment Terms:</strong> A 40% non-refundable advance is required after booking approval. The remaining 60% must be paid at least 2 days before the event date.</div>
+      <div style="margin-top:4px;">• <strong>Dress Code:</strong> Wearing Libas-ul-Anwar is compulsory for all guests attending the function.</div>
     </div>
     
     <a href="#" class="btn-pay" id="payBtn">
@@ -290,7 +300,7 @@
     <div class="qr-container">
       <div class="qr-title">Or scan QR to pay</div>
       <div class="qr-img">
-        <img src="assets/paymentQR_v2.png" alt="MJ Culture UPI QR Code">
+        <img src="assets/paymentQR_v2.png" alt="Evan-e-Hakimi UPI QR Code">
       </div>
     </div>
     
@@ -319,7 +329,7 @@
     }
     
     // Construct UPI link
-    let upiUrl = 'upi://pay?pa=9099847718-3@ybl&pn=MJ%20Culture&cu=INR&tn=MJ%20Culture%20Farmhouse%20Booking';
+    let upiUrl = 'upi://pay?pa=9099847718-3@ybl&pn=Evan-e-Hakimi%20Management&cu=INR&tn=Evan-e-Hakimi%20Hall%20Booking';
     if (amount && !isNaN(amount)) {
       upiUrl += '&am=' + amount;
     }

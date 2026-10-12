@@ -1,9 +1,9 @@
-# MJ Farmhouse - Project Status & PRD
+# Evan-e-Hakimi & Evan-e-Qadri Banquet Halls - Project Status & PRD
 
 ## 📌 Project Overview
-**MJ Farmhouse** is a comprehensive booking and management system designed to handle customer reservations, secure payments, and streamline backend administration. 
+**Evan-e-Hakimi & Evan-e-Qadri Banquet Halls** is a booking and management system designed to handle hall enquiries, slot reservations, advance payment tracking, and management administration.
 
-The system provides a seamless booking experience for guests and a powerful, data-rich dashboard for administrators to track and manage operations.
+The system provides a responsive, gated reservation portal for community members and a secure administrative dashboard for hall managers.
 
 ---
 
@@ -11,58 +11,35 @@ The system provides a seamless booking experience for guests and a powerful, dat
 
 | Component | Technology | Description |
 | :--- | :--- | :--- |
-| **Frontend (Customer)** | Vanilla HTML, CSS, JS | Highly responsive, visually striking SPA with dynamic design (`index.html`) |
-| **Frontend (Admin)** | Vanilla HTML, CSS, JS | Secure control panel with real-time data sync (`admin.html`) |
-| **Backend API** | Node.js, Express | RESTful API managing business logic (`server.js`) |
-| **Database** | PostgreSQL | Relational database via the `pg` package (`db.js`) |
-| **Server Runner** | Nodemon | Hot-reloading development server |
+| **Frontend (Customer)** | Vanilla HTML, CSS, JS | Responsive single page booking app (`index.html`) with 12 mandatory T&Cs |
+| **Frontend (Admin)** | Vanilla HTML, CSS, JS | Secure control panel with real-time sync (`admin.html`) |
+| **Backend API** | Node.js, Express (Vercel Serverless) | RESTful API managing slots, conflicts, validation, and JWT auth (`backend/server.js`) |
+| **Database** | Turso (libSQL) | Serverless SQLite distributed database via `@libsql/client` (`backend/db.js`) |
+| **Hosting Platform** | Vercel | Monorepo-style deployment for both static web pages and `/api` serverless routes |
 
 ---
 
-## ✅ Current Project Status: **STABLE & FUNCTIONAL**
+## ✅ Current System Rules & Protections
 
-The core pipeline from the customer making a booking to the database saving it, and the admin reviewing/approving it, is **100% complete and operational**.
+1. **Hall Whitelist & Availability**:
+   - **Evan-e-Hakimi (2nd Floor)**: Fully open for enquiries.
+   - **Evan-e-Qadri (3rd Floor)**: Strictly unavailable; rejected by both frontend validation and backend API (`400 Bad Request`).
 
-### 1. Customer Booking App (`index.html`)
-- **UI/UX:** Premium aesthetic with rich typography, smooth fade/reveal animations, and responsive grid layouts.
-- **Form Submission:** Captures guest count, date, slot (noon/evening/fullday), occasion, price, and special notes.
-- **Payment Section:** Displays a structured QR Payment section (2-column layout fixed) detailing a 40% advance requirement.
-- **API Integration:** Successfully posts booking payloads to `POST /api/bookings`.
+2. **Pricing Structure**:
+   - **Morning Slot (10:30 AM – 2:30 PM)**: ₹11,000 (Without Jaman) / ₹15,000 (With Jaman)
+   - **Evening Slot (6:30 PM – 10:30 PM)**: ₹11,000 (Without Jaman) / ₹15,000 (With Jaman)
+   - **Full Day Slot (10:00 AM – 10:00 PM)**: ₹30,000
 
-### 2. Admin Dashboard (`admin.html`)
-- **Authentication:** Local session storage checking and backend auth UI.
-- **Live Bookings Table:** Fetches real-time data from `GET /api/bookings`.
-- **Data Rendering:** Dynamically parses 12 columns including ID, Customer Name, Phone, Email, Date, Occasion, Guests, Slot, Amount, Status, and Notes.
-- **Status Management:** Admins can click `Approve`, `Reject`, or `Hold`. This securely triggers the `PATCH /api/bookings/:id/status` API.
-- **Live Sync:** Dashboard polls the backend every 30 seconds to automatically refresh new bookings and metrics without requiring a manual page reload.
-- **Error Handling:** Robust UI feedback (loading spinners, empty states, and toast notifications) integrated seamlessly.
+3. **Advance Payment**:
+   - Exactly 40% non-refundable advance required upon manager approval.
+   - Validated server-side on creation and payment verification.
 
-### 3. Backend & Database (`backend/server.js`, `db.js`)
-- **Database Schema (`bookings` table):**
-  - `id`, `customer_name`, `phone`, `email`, `check_in`, `check_out`, `guests`, `total_amount`, `occasion`, `notes`, `slot`, `status`
-- **Active Endpoints:**
-  - `POST /api/bookings`: Inserts new customer reservations.
-  - `GET /api/bookings`: Retrieves all bookings ordered by creation date.
-  - `GET /api/bookings/:id`: Fetches a single booking.
-  - `PATCH /api/bookings/:id/status`: Safely updates the status (`confirmed`, `rejected`, `waiting`) in PostgreSQL.
-  - `PATCH /api/bookings/:id/paydone`: Endpoint reserved for future explicit payment confirmations.
+4. **Slot Concurrency & Conflict Prevention**:
+   - Full Day conflicts with Morning and Evening.
+   - Morning and Evening can coexist on the same date.
+   - All booking status updates and payment verifications run inside Turso libSQL exclusive write transactions (`db.transaction('write')`).
 
----
-
-## 🚀 Next Steps & Future Roadmap
-
-While the core functionality works perfectly, the following features are stubbed in the UI and can be built out next:
-
-> [!TIP]
-> **Phase 2 Implementation Opportunities**
-
-1. **Staff Management Module:**
-   - Connect the Staff UI tab in `admin.html` to a new `staff` PostgreSQL table.
-   - Implement `GET /api/staff` and `POST /api/staff`.
-2. **Expenses & Bills Tracker:**
-   - Connect the Expenses tab to an `expenses` database table.
-   - Compute real-time "Net Profit" by subtracting expenses from booking revenue.
-3. **Payments Module Upgrade:**
-   - Expand `PATCH /api/bookings/:id/paydone` to track partial payments and advance amounts securely.
-4. **CSV Exports:**
-   - Wire up the UI "Export" buttons to generate downloadable CSV reports directly from PostgreSQL data.
+5. **Terms & Conditions Gating**:
+   - Version: `hall_tc_version_v3`.
+   - 12 comprehensive hall rules (capacity 35–40 thals, Aamil Saheb approval required, advance policy, noise, cleanliness, etc.).
+   - Explicit "Agree & Continue" gate blocks user interaction until accepted.

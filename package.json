@@ -1,5 +1,20 @@
 {
+  "name": "evan-e-hakimi-booking",
+  "version": "1.0.0",
+  "description": "Evan-e-Hakimi & Evan-e-Qadri Banquet Halls Booking Website & Management System",
+  "main": "api/index.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "migrate": "node backend/migration.js",
+    "test": "node backend/test_audit.js"
+  },
   "dependencies": {
-    "jsdom": "^29.1.1"
+    "@libsql/client": "^0.18.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.5.2",
+    "helmet": "^8.2.0",
+    "jsonwebtoken": "^9.0.3"
   }
 }
