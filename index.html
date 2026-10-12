@@ -115,15 +115,15 @@
       height:64px;
     }
     .nav-brand { display:flex; align-items:center; gap:.8rem; text-decoration:none; }
-    .nav-logo { width:44px; height:44px; background:#fff; border-radius:10px; overflow:hidden; display:flex; align-items:center; justify-content:center; flex-shrink:0; border:1px solid rgba(201,169,110,.4); box-shadow:0 2px 10px rgba(0,0,0,0.3); }
-    .nav-logo img { width:100%; height:100%; object-fit:cover; display:block; }
+    .nav-logo { width:46px; height:46px; background:#0b0805; border-radius:50%; overflow:hidden; display:flex; align-items:center; justify-content:center; flex-shrink:0; border:1.5px solid rgba(201,169,110,.6); box-shadow:0 2px 14px rgba(0,0,0,0.6), 0 0 12px rgba(201,169,110,0.25); transition:transform .3s cubic-bezier(.34,1.56,.64,1), border-color .3s ease, box-shadow .3s ease; }
+    .nav-logo img { width:100%; height:100%; object-fit:cover; display:block; border-radius:50%; }
     .nav-brand-text { display:flex; flex-direction:column; justify-content:center; line-height:1.2; }
     .nav-brand-names { display:flex; align-items:center; gap:6px; flex-wrap:nowrap; }
     .nav-brand-hall { font-family:'Cinzel',serif; font-size:.86rem; letter-spacing:1.5px; color:var(--cream); text-transform:uppercase; font-weight:600; white-space:nowrap; }
     .nav-brand-amp { font-family:'Cinzel',serif; font-size:.8rem; color:var(--wheat); font-weight:400; }
     .nav-brand-sub { font-size:.58rem; letter-spacing:2px; color:rgba(201,169,110,0.85); text-transform:uppercase; margin-top:2px; font-weight:500; }
     .nav-name { font-family:'Cinzel',serif; font-size:.95rem; letter-spacing:2px; color:var(--cream); text-transform:uppercase; }
-    nav.scrolled .nav-logo { background:#fff; border-color:var(--wheat); }
+    nav.scrolled .nav-logo { background:#0b0805; border-color:var(--wheat); box-shadow:0 0 18px rgba(201,169,110,0.38); }
     .hero-logo { width:120px; margin:0 auto 1.8rem; display:flex; justify-content:center; }
     .hero-logo img { width:100%; max-width:120px; height:auto; display:block; }
     .nav-links { display:flex; gap:2rem; list-style:none; }
@@ -1209,25 +1209,31 @@
       text-decoration: none;
     }
     .foot-logo-badge {
-      width: 52px;
-      height: 52px;
-      border-radius: 12px;
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
       overflow: hidden;
-      border: 1.5px solid rgba(201,169,110,0.45);
-      background: #fff;
+      border: 1.5px solid rgba(201,169,110,0.6);
+      background: #0b0805;
       flex-shrink: 0;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-      padding: 2px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.6), 0 0 16px rgba(201,169,110,0.25);
+      padding: 0;
       display: flex;
       align-items: center;
       justify-content: center;
+      transition: transform .3s cubic-bezier(.34,1.56,.64,1), border-color .3s ease, box-shadow .3s ease;
     }
     .foot-logo-badge img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
-      border-radius: 8px;
+      border-radius: 50%;
+    }
+    .foot-brand-link:hover .foot-logo-badge {
+      transform: scale(1.08) rotate(4deg);
+      border-color: var(--wheat);
+      box-shadow: 0 0 22px rgba(201,169,110,0.45);
     }
     .foot-brand h2 {
       font-family: 'Cinzel', serif;
@@ -1855,11 +1861,12 @@
  
     /* 3D nav logo hover */
     .nav-logo {
-      transition:transform .4s cubic-bezier(.34,1.56,.64,1), box-shadow .3s ease;
+      transition:transform .4s cubic-bezier(.34,1.56,.64,1), box-shadow .3s ease, border-color .3s ease;
     }
     .nav-brand:hover .nav-logo {
-      transform:perspective(200px) rotateY(-12deg) rotateX(6deg) scale(1.05);
-      box-shadow:6px 6px 20px rgba(0,0,0,.3);
+      transform:perspective(200px) rotateY(-8deg) rotateX(5deg) scale(1.08);
+      border-color:var(--wheat);
+      box-shadow:0 0 20px rgba(201,169,110,.45);
     }
  
     /* ── CALENDAR SYSTEM ── */
@@ -3101,17 +3108,8 @@
       <p class="facility-desc">Clean and hygienic washrooms available for all guests.</p>
     </div>
 
-    <!-- 3. Drinking Water Availability -->
+    <!-- 3. Pantry Services -->
     <div class="facility-card reveal" style="transition-delay:.1s">
-      <div class="facility-icon-wrap">
-        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"/><path d="M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"/></svg>
-      </div>
-      <h3 class="facility-title">Drinking Water</h3>
-      <p class="facility-desc">Clean, filtered drinking water available throughout your event.</p>
-    </div>
-
-    <!-- 4. Pantry Services -->
-    <div class="facility-card reveal" style="transition-delay:.15s">
       <div class="facility-icon-wrap">
         <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2v6a3 3 0 0 1-3 3 3 3 0 0 1-3-3V2"/><path d="M15 2v18a2 2 0 0 1-2 2h0a2 2 0 0 1-2-2V2"/><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/></svg>
       </div>
@@ -3119,8 +3117,8 @@
       <p class="facility-desc">Clean and organized pantry area for food prep and smooth catering service.</p>
     </div>
 
-    <!-- 5. Lift Facility -->
-    <div class="facility-card reveal" style="transition-delay:.2s">
+    <!-- 4. Lift Facility -->
+    <div class="facility-card reveal" style="transition-delay:.15s">
       <div class="facility-icon-wrap">
         <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="20" x="3" y="2" rx="2"/><path d="m9 10 3-3 3 3"/><path d="m9 14 3 3 3-3"/></svg>
       </div>
@@ -3128,8 +3126,8 @@
       <p class="facility-desc">Easy elevator access to the 2nd and 3rd floors for all guests.</p>
     </div>
 
-    <!-- 6. Premium Interior -->
-    <div class="facility-card reveal" style="transition-delay:.25s">
+    <!-- 5. Premium Interior -->
+    <div class="facility-card reveal" style="transition-delay:.2s">
       <div class="facility-icon-wrap">
         <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
       </div>
