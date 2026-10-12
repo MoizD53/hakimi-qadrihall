@@ -3,7 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Evan-e-Hakimi & Qadri Hall — Banquet Management Panel</title>
+  <title>Admin Dashboard &amp; Booking Management | Evan-e-Hakimi &amp; Qadri Hall</title>
+  <meta name="description" content="Secure administrative dashboard for Evan-e-Hakimi &amp; Qadri Hall banquet bookings, calendar, staff, and financial management.">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="alternate icon" href="assets/hakimi-construction-logo.jpg">
+  <link rel="apple-touch-icon" href="assets/hakimi-construction-logo.jpg">
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -420,13 +425,15 @@
 <div id="loginScreen">
   <div class="login-box">
     <div class="login-brand">
-      <h1 style="font-size:clamp(1.1rem, 3.5vw, 1.4rem); letter-spacing:2px;">Evan-e-Hakimi &amp; Qadri Hall</h1>
+      <a href="/" style="text-decoration:none;color:inherit;" title="Return to Evan-e-Hakimi &amp; Qadri Hall Homepage">
+        <h1 style="font-size:clamp(1.1rem, 3.5vw, 1.4rem); letter-spacing:2px;">Evan-e-Hakimi &amp; Qadri Hall</h1>
+      </a>
       <p>Banquet Halls Management</p>
       <span class="login-badge"><i class="fas fa-shield-alt" style="margin-right:.3rem"></i>Secure Manager Access</span>
     </div>
     <div class="lf">
       <label>Admin Username</label>
-      <input type="text" id="adminUser" placeholder="admin" autocomplete="username">
+      <input type="text" id="adminUser" placeholder="Enter username" autocomplete="username">
     </div>
     <div class="lf">
       <label>Password</label>
@@ -464,6 +471,7 @@
     </div>
     <div class="sidebar-footer">
       <button onclick="adminLogout()"><i class="fas fa-sign-out-alt"></i> Sign Out</button>
+      <a href="/" target="_blank" style="text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:0.7rem;font-size:0.68rem;color:rgba(245,240,232,0.4);transition:color .2s;"><i class="fas fa-external-link-alt" style="font-size:0.6rem"></i> View Website</a>
     </div>
   </nav>
 

@@ -708,6 +708,17 @@ app.delete('/api/expenses/:id', requireAuth, async (req, res) => {
 });
 
 /* ═══════════════════════════════════════════
+   404 NOT FOUND HANDLER
+═══════════════════════════════════════════ */
+app.use((req, res) => {
+  if (req.accepts('html')) {
+    res.status(404).sendFile(path.join(rootDir, '404.html'));
+  } else {
+    res.status(404).json({ error: 'Not Found' });
+  }
+});
+
+/* ═══════════════════════════════════════════
    DATABASE CONNECTION & SERVER START / EXPORT
 ═══════════════════════════════════════════ */
 db.query("SELECT datetime('now') as now")

@@ -3,13 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Evan-e-Hakimi &amp; Qadri Hall | Banquet Halls &amp; Event Venue in Dahod</title>
+  <title>Evan-e-Hakimi &amp; Qadri Hall | Premier Banquet Halls in Dahod, Gujarat</title>
   <meta name="description" content="Evan-e-Hakimi (2nd Floor) and Qadri Hall (3rd Floor) are premier banquet halls in Dahod, Gujarat for weddings, majlis, nikah, jaman, and special community celebrations.">
   <meta name="keywords" content="Evan-e-Hakimi Dahod, Qadri Hall Dahod, Banquet Hall Dahod, Wedding Hall Dahod, Nikah Hall Dahod, Bohra Banquet Dahod, Jaman Hall Dahod">
   <meta name="author" content="Evan-e-Hakimi &amp; Qadri Hall Management">
   <meta name="robots" content="index, follow">
 
-  <link rel="icon" href="assets/hakimi-construction-logo.jpg">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="alternate icon" href="assets/hakimi-construction-logo.jpg">
+  <link rel="apple-touch-icon" href="assets/hakimi-construction-logo.jpg">
 
   <!-- Open Graph -->
   <meta property="og:title" content="Evan-e-Hakimi &amp; Qadri Hall | Banquet Halls Dahod">
@@ -1979,21 +1981,25 @@
     </div>
   </a>
   <ul class="nav-links">
+    <li><a href="#home">Home</a></li>
     <li><a href="#halls">Halls</a></li>
     <li><a href="#amenities">Amenities</a></li>
     <li><a href="#pricing">Pricing &amp; Slots</a></li>
     <li><a href="#gallery">Gallery</a></li>
     <li><a href="#booking">Book Enquiry</a></li>
+    <li><a href="#contact">Contact</a></li>
     <li><a href="#faq">FAQ</a></li>
   </ul>
-  <button class="ham" id="ham" aria-label="Menu"><i class="fas fa-bars"></i></button>
+  <button class="ham" id="ham" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="mobNav"><i class="fas fa-bars"></i></button>
 </nav>
-<div class="mob-nav" id="mobNav">
+<div class="mob-nav" id="mobNav" role="navigation" aria-label="Mobile Navigation">
+  <a href="#home" onclick="closeMob()">Home</a>
   <a href="#halls" onclick="closeMob()">Our Halls</a>
   <a href="#amenities" onclick="closeMob()">Amenities</a>
   <a href="#pricing" onclick="closeMob()">Pricing &amp; Slots</a>
   <a href="#gallery" onclick="closeMob()">Gallery</a>
   <a href="#booking" onclick="closeMob()">Book Enquiry</a>
+  <a href="#contact" onclick="closeMob()">Contact &amp; Location</a>
   <a href="#faq" onclick="closeMob()">FAQ</a>
 </div>
  
@@ -2626,7 +2632,7 @@
               <div class="frow">
                 <div class="ff">
                   <label for="bEmail">Email Address (Optional)</label>
-                  <input type="email" id="bEmail" placeholder="your@email.com" autocomplete="email">
+                  <input type="email" id="bEmail" placeholder="e.g. name@gmail.com" autocomplete="email">
                 </div>
                 <div class="ff">
                   <label>Event Date *</label>
@@ -2749,7 +2755,7 @@
 <footer id="contact">
   <div class="foot-inner">
     <div class="foot-brand">
-      <div style="display:flex;align-items:center;gap:14px;margin-bottom:1.2rem;">
+      <a href="#home" style="display:flex;align-items:center;gap:14px;margin-bottom:1.2rem;text-decoration:none;">
         <div style="width:52px;height:52px;border-radius:10px;overflow:hidden;border:1px solid rgba(201,169,110,0.4);background:#fff;flex-shrink:0;box-shadow:0 4px 14px rgba(0,0,0,0.3);">
           <img src="assets/hakimi-construction-logo.jpg" alt="Hakimi Construction Logo" style="width:100%;height:100%;object-fit:cover;display:block;">
         </div>
@@ -2757,11 +2763,11 @@
           <h2 style="font-family:'Cormorant Garamond',serif;font-size:1.65rem;margin:0;line-height:1.2;color:var(--cream);">Evan-e-Hakimi &amp; Qadri Hall</h2>
           <span class="tag" style="display:block;margin-top:2px;">Banquet Halls &bull; Dahod</span>
         </div>
-      </div>
+      </a>
       <p>Prestigious banquet halls located on the 2nd and 3rd floors in Dahod, Gujarat &mdash; developed by <strong>Hakimi Construction</strong> for life's most cherished weddings, majlis, nikah, and jaman celebrations.</p>
       <div class="socials">
-        <a href="https://wa.me/919033647648" class="soc" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
-        <a href="tel:9033647648" class="soc" aria-label="Phone"><i class="fas fa-phone"></i></a>
+        <a href="https://wa.me/919033647648" class="soc" aria-label="WhatsApp" target="_blank"><i class="fab fa-whatsapp"></i></a>
+        <a href="tel:+919033647648" class="soc" aria-label="Phone"><i class="fas fa-phone"></i></a>
         <a href="mailto:manaf_khan143@yahoo.co.in" class="soc" aria-label="Email"><i class="fas fa-envelope"></i></a>
       </div>
     </div>
@@ -2773,7 +2779,7 @@
         <li><a href="#amenities"><i class="fas fa-chevron-right"></i>Amenities</a></li>
         <li><a href="#pricing"><i class="fas fa-chevron-right"></i>Pricing &amp; Slots</a></li>
         <li><a href="#gallery"><i class="fas fa-chevron-right"></i>Gallery</a></li>
-        <li><a href="#booking"><i class="fas fa-chevron-right"></i>Book Evan-e-Hakimi</a></li>
+        <li><a href="#booking"><i class="fas fa-chevron-right"></i>Book Enquiry</a></li>
         <li><a href="#faq"><i class="fas fa-chevron-right"></i>FAQ</a></li>
       </ul>
     </div>
@@ -2781,8 +2787,9 @@
       <h4>Contact &amp; Location</h4>
       <p><i class="fas fa-map-marker-alt"></i>Ukardi Road, Dahod, Gujarat 389151</p>
       <p><i class="fas fa-building"></i>2nd Floor (Evan-e-Hakimi) &bull; 3rd Floor (Qadri Hall)</p>
-      <p><i class="fas fa-user"></i><strong>Aliasgar Challa:</strong> <a href="tel:9033647648">+91 90336 47648</a></p>
-      <p><i class="fas fa-user"></i><strong>Zainab Jadliwala:</strong> <a href="tel:9824129952">+91 98241 29952</a></p>
+      <p><i class="fas fa-user"></i><strong>Aliasgar Challa:</strong> <a href="tel:+919033647648">+91 90336 47648</a></p>
+      <p><i class="fas fa-user"></i><strong>Zainab Jadliwala:</strong> <a href="tel:+919824129952">+91 98241 29952</a></p>
+      <p><i class="fas fa-envelope"></i><strong>Email:</strong> <a href="mailto:manaf_khan143@yahoo.co.in">manaf_khan143@yahoo.co.in</a></p>
       <div style="margin-top:1.2rem; padding-top:1rem; border-top:1px solid rgba(201,169,110,0.1)">
         <p style="display:block; font-size:.8rem; color:var(--wheat); margin-bottom:.3rem; text-transform:uppercase; letter-spacing:1px">
           <i class="fas fa-clock" style="margin-right:.4rem; color:rgba(201,169,110,0.6)"></i><strong>Manager Hours</strong>
@@ -2795,8 +2802,8 @@
     </div>
   </div>
   <div class="foot-bottom">
-    <p>&copy; 2026 Evan-e-Hakimi &amp; Qadri Hall Banquet Halls. All Rights Reserved.</p>
-    <p>Dahod, Gujarat</p>
+    <p>&copy; <span id="currentYear">2026</span> Evan-e-Hakimi &amp; Qadri Hall Banquet Halls. All Rights Reserved.</p>
+    <p>Constructed by <strong>Hakimi Construction</strong> &bull; Dahod, Gujarat</p>
   </div>
 </footer>
  
@@ -3792,13 +3799,14 @@ document.querySelectorAll('.slot').forEach(slot => {
           overlay.firstElementChild.style.transform = 'translateY(0)';
         });
       } else {
-        console.log("⚠️ BOOKING FAILED:", response.status, fetcha.message);
-        let errorDetail = 'Please try again.';
+        console.log("⚠️ BOOKING FAILED:", response.status, fetcha.error || fetcha.message);
+        let errorTitle = fetcha.error || fetcha.message || 'Booking could not be completed';
+        let errorDetail = 'Please check the details above and try again.';
         if (response.status >= 500) {
-          errorDetail = 'Server error. Please try again in a moment.';
+          errorDetail = 'Server is currently busy. Please try again in a few moments or contact our manager directly on WhatsApp.';
         }
         showMsg('error',
-          `<div class="msg-title"><span class="msg-icon">⚠️</span>${fetcha.message || 'Booking could not be completed'}</div>` +
+          `<div class="msg-title"><span class="msg-icon">⚠️</span>${errorTitle}</div>` +
           `<div class="msg-detail">${errorDetail}</div>`
         );
       }
@@ -3807,7 +3815,7 @@ document.querySelectorAll('.slot').forEach(slot => {
       console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
       showMsg('error',
         `<div class="msg-title"><span class="msg-icon">❌</span>Connection Error</div>` +
-        `<div class="msg-detail">${err.message}<br>Please check your internet connection and try again.</div>`
+        `<div class="msg-detail">${err.message || 'Could not connect to the booking server.'}<br>Please check your internet connection and try again.</div>`
       );
     } finally {
       submitBtn.disabled = false;
@@ -3819,14 +3827,50 @@ document.querySelectorAll('.slot').forEach(slot => {
 /* ── STATUS POLLING ── */
 // Polling functionality is removed under the inquiry-based WhatsApp confirmation flow.
  
-/* ── MOBILE NAV ── */
-const ham=document.getElementById('ham'), mobNav=document.getElementById('mobNav');
-ham.addEventListener('click',()=>{
-  const open=mobNav.classList.toggle('open');
-  ham.innerHTML=open?'<i class="fas fa-times"></i>':'<i class="fas fa-bars"></i>';
-  document.body.style.overflow=open?'hidden':'';
+/* ── MOBILE NAV & ACCESSIBILITY ── */
+const ham = document.getElementById('ham');
+const mobNav = document.getElementById('mobNav');
+
+function openMob() {
+  mobNav.classList.add('open');
+  ham.innerHTML = '<i class="fas fa-times"></i>';
+  ham.setAttribute('aria-expanded', 'true');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeMob() {
+  mobNav.classList.remove('open');
+  ham.innerHTML = '<i class="fas fa-bars"></i>';
+  ham.setAttribute('aria-expanded', 'false');
+  document.body.style.overflow = '';
+}
+
+ham.addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (mobNav.classList.contains('open')) {
+    closeMob();
+  } else {
+    openMob();
+  }
 });
-function closeMob(){mobNav.classList.remove('open');ham.innerHTML='<i class="fas fa-bars"></i>';document.body.style.overflow='';}
+
+// Close mobile menu when clicking anywhere outside
+document.addEventListener('click', (e) => {
+  if (mobNav.classList.contains('open') && !mobNav.contains(e.target) && !ham.contains(e.target)) {
+    closeMob();
+  }
+});
+
+// Close mobile menu on Escape key press
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && mobNav.classList.contains('open')) {
+    closeMob();
+  }
+});
+
+// Dynamic current year for footer copyright
+const yrEl = document.getElementById('currentYear');
+if (yrEl) yrEl.textContent = new Date().getFullYear();
  
 /* ── SMOOTH SCROLL ── */
 document.querySelectorAll('a[href^="#"]').forEach(a => a.addEventListener('click', e => {

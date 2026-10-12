@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Pay via UPI | Evan-e-Hakimi &amp; Qadri Hall Banquet</title>
+  <meta name="description" content="Secure UPI advance deposit payment for Evan-e-Hakimi &amp; Qadri Hall banquet reservations in Dahod, Gujarat.">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="alternate icon" href="assets/hakimi-construction-logo.jpg">
+  <link rel="apple-touch-icon" href="assets/hakimi-construction-logo.jpg">
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -261,7 +265,7 @@
   <div class="glow glow-2"></div>
   
   <div class="pay-card">
-    <div class="logo">Evan-e-Hakimi &amp; Qadri Hall</div>
+    <a href="/" class="logo" style="text-decoration:none;display:inline-block;" title="Return to Evan-e-Hakimi &amp; Qadri Hall Homepage">Evan-e-Hakimi &amp; Qadri Hall</a>
     <div class="subtitle">Banquet Halls Booking</div>
     
     <div class="spinner-wrap" id="loader">
@@ -286,16 +290,17 @@
       <div style="margin-top:4px;">• <strong>Dress Code:</strong> Wearing Libas-ul-Anwar is compulsory for all guests attending the function.</div>
     </div>
     
-    <a href="#" class="btn-pay" id="payBtn">
+    <a href="upi://pay?pa=9099847718-3@ybl&pn=Evan-e-Hakimi%20Management&cu=INR&tn=Evan-e-Hakimi%20Hall%20Booking" class="btn-pay" id="payBtn">
       <i class="fas fa-wallet"></i> Pay via UPI
     </a>
     
     <div class="upi-id-box">
       <span class="upi-id-text">9099847718-3@ybl</span>
-      <button class="btn-copy" id="copyBtn" title="Copy UPI ID">
+      <button class="btn-copy" id="copyBtn" title="Copy UPI ID" aria-label="Copy UPI ID">
         <i class="far fa-copy"></i>
       </button>
     </div>
+    <div id="copySuccessMsg" style="display:none;color:#86efac;font-size:0.75rem;margin-top:0.4rem;text-align:center;"><i class="fas fa-check-circle"></i> UPI ID copied to clipboard!</div>
     
     <div class="qr-container">
       <div class="qr-title">Or scan QR to pay</div>
@@ -307,6 +312,12 @@
     <div class="footer-note">
       Secure transaction &bull; Keep this page open until payment is completed.<br>
       Please take a screenshot of the payment receipt.
+      <div style="margin-top:0.9rem;">
+        <a href="/" style="color:var(--wheat);font-size:0.78rem;text-decoration:none;display:inline-flex;align-items:center;gap:0.4rem;">
+          <i class="fas fa-arrow-left"></i> Return to Banquet Website
+        </a>
+      </div>
+      <div style="font-size:0.65rem;color:rgba(245,240,232,0.3);margin-top:0.6rem;">&copy; <span id="payYear">2026</span> Evan-e-Hakimi &amp; Qadri Hall. All Rights Reserved.</div>
     </div>
   </div>
 
@@ -354,21 +365,28 @@
     // Run redirect attempt
     setTimeout(tryRedirect, 500);
     
-    // Copy UPI ID function
+    // Copy UPI ID function with clear visual feedback
     const copyBtn = document.getElementById('copyBtn');
+    const copyMsg = document.getElementById('copySuccessMsg');
     copyBtn.addEventListener('click', function() {
       navigator.clipboard.writeText('9099847718-3@ybl').then(function() {
         const icon = copyBtn.querySelector('i');
         icon.className = 'fas fa-check';
-        icon.style.color = '#3a5436';
+        icon.style.color = '#86efac';
+        if (copyMsg) copyMsg.style.display = 'block';
         setTimeout(function() {
           icon.className = 'far fa-copy';
           icon.style.color = '';
-        }, 2000);
+          if (copyMsg) copyMsg.style.display = 'none';
+        }, 2500);
       }).catch(function(err) {
         console.error('Could not copy text: ', err);
       });
     });
+
+    // Populate copyright year
+    const payYr = document.getElementById('payYear');
+    if (payYr) payYr.textContent = new Date().getFullYear();
   </script>
 </body>
 </html>

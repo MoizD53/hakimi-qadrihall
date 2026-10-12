@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>404 — Page Not Found | Evan-e-Hakimi &amp; Qadri Hall Dahod</title>
+  <meta name="description" content="The page you are looking for is unavailable. Return to the Evan-e-Hakimi & Qadri Hall banquet website in Dahod, Gujarat.">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="alternate icon" href="assets/hakimi-construction-logo.jpg">
+  <link rel="apple-touch-icon" href="assets/hakimi-construction-logo.jpg">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cormorant+Garamond:wght@300;400;600&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --ink: #0e0b08;
+      --soil: #2a1e12;
+      --wheat: #c9a96e;
+      --gold: #e2b96a;
+      --gold-light: #f0d49a;
+      --cream: #f5f0e8;
+      --glass: rgba(253, 250, 244, 0.04);
+      --glass-border: rgba(201, 169, 110, 0.18);
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--ink);
+      color: var(--cream);
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem max(1.2rem, env(safe-area-inset-right)) calc(1.5rem + env(safe-area-inset-bottom)) max(1.2rem, env(safe-area-inset-left));
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Ambient background glows */
+    .glow {
+      position: absolute;
+      width: 320px;
+      height: 320px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(201, 169, 110, 0.08) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: -1;
+    }
+    .glow-1 { top: -10%; left: -10%; }
+    .glow-2 { bottom: -10%; right: -10%; }
+
+    .err-card {
+      background: var(--glass);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 3rem 2.2rem;
+      max-width: 520px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.45);
+    }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: 'Cinzel', serif;
+      font-size: 0.72rem;
+      letter-spacing: 3px;
+      color: var(--wheat);
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+
+    .err-code {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(4.5rem, 15vw, 7rem);
+      font-weight: 300;
+      color: var(--gold);
+      line-height: 0.95;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 4px 30px rgba(201, 169, 110, 0.2);
+    }
+
+    .err-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.4rem, 4vw, 2rem);
+      font-weight: 300;
+      color: var(--cream);
+      margin-bottom: 1rem;
+    }
+
+    .err-desc {
+      font-size: 0.92rem;
+      color: rgba(245, 240, 232, 0.65);
+      line-height: 1.6;
+      margin-bottom: 2.2rem;
+    }
+
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    @media (min-width: 440px) {
+      .btn-group {
+        flex-direction: row;
+        justify-content: center;
+      }
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      background: var(--wheat);
+      color: var(--soil);
+      padding: 0.9rem 1.6rem;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: all 0.25s ease;
+      min-height: 44px;
+    }
+    .btn-primary:hover {
+      background: var(--gold);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(201, 169, 110, 0.35);
+    }
+
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      background: transparent;
+      color: var(--cream);
+      border: 1px solid rgba(201, 169, 110, 0.3);
+      padding: 0.9rem 1.6rem;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: all 0.25s ease;
+      min-height: 44px;
+    }
+    .btn-ghost:hover {
+      border-color: var(--wheat);
+      color: var(--wheat);
+      background: rgba(201, 169, 110, 0.05);
+    }
+
+    .quick-links {
+      margin-top: 2.2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(201, 169, 110, 0.12);
+      display: flex;
+      justify-content: center;
+      gap: 1.4rem;
+      flex-wrap: wrap;
+    }
+    .quick-links a {
+      font-size: 0.75rem;
+      color: rgba(245, 240, 232, 0.5);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .quick-links a:hover {
+      color: var(--wheat);
+    }
+  </style>
+</head>
+<body>
+  <div class="glow glow-1"></div>
+  <div class="glow glow-2"></div>
+
+  <main class="err-card">
+    <div class="brand-badge">
+      <i class="fas fa-landmark"></i> Evan-e-Hakimi &amp; Qadri Hall
+    </div>
+
+    <div class="err-code">404</div>
+    <h1 class="err-title">Page Not Found</h1>
+    <p class="err-desc">
+      Regrettably, the page or resource you requested could not be found. Please check the address or return to our banquet halls website.
+    </p>
+
+    <div class="btn-group">
+      <a href="/" class="btn-primary">
+        <i class="fas fa-home"></i> Back to Home
+      </a>
+      <a href="/#booking" class="btn-ghost">
+        <i class="fas fa-calendar-check"></i> Book Enquiry
+      </a>
+    </div>
+
+    <nav class="quick-links" aria-label="Helpful links">
+      <a href="/#halls">Our Halls</a>
+      <a href="/#pricing">Pricing &amp; Slots</a>
+      <a href="/#gallery">Gallery</a>
+      <a href="/#contact">Contact Us</a>
+    </nav>
+  </main>
+</body>
+</html>
