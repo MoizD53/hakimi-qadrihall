@@ -3903,15 +3903,13 @@ window.addEventListener('load', () => {
     l.classList.add('done');
     setTimeout(() => {
       l.style.display = 'none';
-      // Show Terms & Conditions modal after loader hides (only if not agreed)
-      showTermsModal(false);
-    }, 600);
+      // Always show Terms & Conditions modal on every page open and refresh
+      showTermsModal();
+    }, 500);
   }, loaderDelay);
 });
  
 /* ── TERMS & CONDITIONS CONTROLLER ── */
-const TC_STORAGE_KEY = 'hall_tc_version_v4';
-
 function freezeBodyScroll() {
   document.documentElement.style.overflow = 'hidden';
   document.body.style.overflow = 'hidden';
@@ -3929,18 +3927,10 @@ function unfreezeBodyScroll() {
 }
 
 function openTermsModal() {
-  showTermsModal(true);
+  showTermsModal();
 }
 
-function showTermsModal(force = true) {
-  const isAgreed = localStorage.getItem(TC_STORAGE_KEY) === 'true';
-
-  // If called automatically on initial page load and already agreed, do not interrupt
-  if (force === false && isAgreed) {
-    unfreezeBodyScroll();
-    return;
-  }
-
+function showTermsModal() {
   const popup = document.getElementById('termsPopup');
   if (!popup) return;
 
@@ -3955,26 +3945,17 @@ function showTermsModal(force = true) {
   const closeBtn = document.getElementById('tcCloseBtn');
   const badgeText = document.getElementById('tcBadgeText');
 
-  if (isAgreed) {
-    // Returning user viewing terms: show clean close button and hide mandatory agreement checkbox
-    if (checkWrap) checkWrap.style.display = 'none';
-    if (btnsWrap) btnsWrap.style.display = 'none';
-    if (viewCloseWrap) viewCloseWrap.style.display = 'block';
-    if (closeBtn) closeBtn.style.display = 'flex';
-    if (badgeText) badgeText.textContent = 'Venue Policies';
-  } else {
-    // First time visitor: mandatory agreement required
-    if (checkWrap) checkWrap.style.display = 'flex';
-    if (btnsWrap) btnsWrap.style.display = 'flex';
-    if (viewCloseWrap) viewCloseWrap.style.display = 'none';
-    if (closeBtn) closeBtn.style.display = 'none';
-    if (badgeText) badgeText.textContent = 'Mandatory Acknowledgment';
+  // Always display terms acknowledgment controls + close button
+  if (checkWrap) checkWrap.style.display = 'flex';
+  if (btnsWrap) btnsWrap.style.display = 'flex';
+  if (viewCloseWrap) viewCloseWrap.style.display = 'none';
+  if (closeBtn) closeBtn.style.display = 'flex';
+  if (badgeText) badgeText.textContent = 'Mandatory Acknowledgment';
 
-    const cb = document.getElementById('termsAgree');
-    const ab = document.getElementById('acceptBtn');
-    if (cb) cb.checked = false;
-    if (ab) ab.disabled = true;
-  }
+  const cb = document.getElementById('termsAgree');
+  const ab = document.getElementById('acceptBtn');
+  if (cb) cb.checked = false;
+  if (ab) ab.disabled = true;
 
   popup.style.display = 'flex';
   popup.style.visibility = 'visible';
@@ -4001,13 +3982,15 @@ function closeTermsModal() {
 }
 
 function closeTermsModalIfAgreed() {
-  if (localStorage.getItem(TC_STORAGE_KEY) === 'true') {
-    closeTermsModal();
-  }
+  closeTermsModal();
 }
 
 function acceptTerms() {
-  localStorage.setItem(TC_STORAGE_KEY, 'true');
+  const cb = document.getElementById('termsAgree');
+  const wizCb = document.getElementById('termsAgreeWiz');
+  if (wizCb && cb && cb.checked) {
+    wizCb.checked = true;
+  }
   closeTermsModal();
 }
 
@@ -4075,10 +4058,6 @@ function selectHakimiHall() {
 // Wire up terms checkbox, guard backdrop & scroll freeze
 (function initTermsGuards() {
   function setup() {
-    if (localStorage.getItem(TC_STORAGE_KEY) !== 'true') {
-      freezeBodyScroll();
-    }
-
     const cb = document.getElementById('termsAgree');
     const ab = document.getElementById('acceptBtn');
     if (cb && ab) {
@@ -4104,11 +4083,7 @@ function selectHakimiHall() {
         if (e.target === popup || e.target.classList.contains('terms-overlay')) {
           e.stopPropagation();
           e.preventDefault();
-          if (localStorage.getItem(TC_STORAGE_KEY) !== 'true') {
-            tcDecline();
-          } else {
-            closeTermsModal();
-          }
+          closeTermsModal();
         }
       });
     }
@@ -4136,20 +4111,18 @@ function selectHakimiHall() {
           return;
         }
         const p = document.getElementById('termsPopup');
-        if (p && p.classList.contains('active') && localStorage.getItem(TC_STORAGE_KEY) !== 'true') {
+        if (p && p.classList.contains('active')) {
           e.preventDefault();
-          tcDecline();
+          closeTermsModal();
         }
       }
     });
 
-    // Fallback safety: ensure terms modal is presented if loader finished or was bypassed
+    // Fallback safety: ensure terms modal is presented on every page open/refresh
     setTimeout(() => {
-      if (localStorage.getItem(TC_STORAGE_KEY) !== 'true') {
-        const p = document.getElementById('termsPopup');
-        if (p && (!p.classList.contains('active') || p.style.display === 'none')) {
-          showTermsModal();
-        }
+      const p = document.getElementById('termsPopup');
+      if (p && (!p.classList.contains('active') || p.style.display === 'none')) {
+        showTermsModal();
       }
     }, 2400);
   }
@@ -5024,7 +4997,6 @@ window.addEventListener('DOMContentLoaded', () => {
       showMsg('warn', '<div class="msg-title"><span class="msg-icon">⚠️</span>Please check the box agreeing to the Terms &amp; Conditions before submitting.</div>');
       return;
     }
-    localStorage.setItem(TC_STORAGE_KEY, 'true');
 
     const name     = document.getElementById('bName').value.trim();
     const phone    = document.getElementById('bPhone').value.trim();
