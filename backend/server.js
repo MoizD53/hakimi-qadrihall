@@ -252,15 +252,23 @@ app.post('/api/admin/login', loginLimiter, (req, res) => {
 const SLOT_CONFIG = {
   morning: {
     name: 'Morning',
-    timing: '10:30 AM – 2:30 PM'
+    timing: '10:30 AM – 2:30 PM',
+    includes_jaman: true
   },
   evening: {
     name: 'Evening',
-    timing: '6:30 PM – 10:30 PM'
+    timing: '6:30 PM – 10:30 PM',
+    includes_jaman: true
   },
   fullday: {
     name: 'Full Day',
-    timing: '10:00 AM – 10:00 PM'
+    timing: '10:00 AM – 10:00 PM',
+    includes_jaman: true
+  },
+  majlis: {
+    name: 'Only Majlis',
+    timing: 'Custom Timings',
+    includes_jaman: false
   }
 };
 
@@ -271,26 +279,30 @@ function isDateOnOrAfterJan2027(dateStr) {
 }
 
 function calculateHallPrice(slot, pkg, dateStr) {
+  // Support both (slot, dateStr) and (slot, pkg, dateStr)
+  if (dateStr === undefined && typeof pkg === 'string' && (pkg.includes('-') || pkg.includes('/'))) {
+    dateStr = pkg;
+    pkg = undefined;
+  }
   const normalizedSlot = String(slot).toLowerCase().trim();
-  const normalizedPkg = String(pkg).toLowerCase().trim();
+  const is2027OrLater = isDateOnOrAfterJan2027(dateStr);
 
-  // Full Day is strictly ₹30,000 regardless of package option or date
+  // Full Day is strictly ₹30,000 (includes jaman)
   if (normalizedSlot === 'fullday') {
     return 30000;
   }
 
-  const is2027OrLater = isDateOnOrAfterJan2027(dateStr);
-  if (is2027OrLater) {
-    // Effective 1 January 2027:
-    // Without Jaman: ₹15,000
-    // With Jaman: ₹21,000
-    return normalizedPkg === 'with_jaman' ? 21000 : 15000;
-  } else {
-    // Before 1 January 2027:
-    // Without Jaman: ₹11,000
-    // With Jaman: ₹15,000
-    return normalizedPkg === 'with_jaman' ? 15000 : 11000;
+  // Only Majlis (without jaman, custom timings): 2026: ₹11,000 | 2027: ₹12,000
+  if (normalizedSlot === 'majlis') {
+    return is2027OrLater ? 12000 : 11000;
   }
+
+  // Morning and Evening slots (includes jaman): 2026: ₹15,000 | 2027: ₹20,000
+  if (normalizedSlot === 'morning' || normalizedSlot === 'evening') {
+    return is2027OrLater ? 20000 : 15000;
+  }
+
+  return is2027OrLater ? 20000 : 15000;
 }
 
 function calculateAdvanceAmount(totalPrice) {
@@ -396,20 +408,25 @@ app.post('/api/bookings', bookingLimiter, async (req, res) => {
     // Validate slot & package pricing strictly against official rates based on selected event date
     const normalizedSlot = String(timeSlot).toLowerCase();
     if (!SLOT_CONFIG[normalizedSlot]) {
-      return res.status(400).json({ error: 'Invalid slot selected. Valid options: morning, evening, fullday' });
+      return res.status(400).json({ error: 'Invalid slot selected. Valid options: morning, evening, fullday, majlis' });
     }
 
-    const normalizedPkg = String(pkg).toLowerCase();
+    const normalizedPkg = pkg ? String(pkg).toLowerCase() : (normalizedSlot === 'majlis' ? 'without_jaman' : 'with_jaman');
     const expectedPrice = calculateHallPrice(normalizedSlot, normalizedPkg, date);
 
     const priceNum = parseFloat(price);
     if (isNaN(priceNum) || priceNum !== expectedPrice) {
       return res.status(400).json({ 
-        error: `Invalid price amount. Expected ₹${expectedPrice.toLocaleString('en-IN')} for ${normalizedSlot} (${normalizedPkg}) on ${date}.` 
+        error: `Invalid price amount. Expected ₹${expectedPrice.toLocaleString('en-IN')} for ${normalizedSlot} on ${date}.` 
       });
     }
 
     const expectedAdvance = calculateAdvanceAmount(expectedPrice);
+
+    let notesCombined = specialRequirements?.trim() || null;
+    if (req.body.customTiming && normalizedSlot === 'majlis') {
+      notesCombined = `[Custom Majlis Timing: ${req.body.customTiming}] ${notesCombined || ''}`.trim();
+    }
 
     console.log('Booking enquiry submitted:', { 
       name, 
@@ -419,7 +436,8 @@ app.post('/api/bookings', bookingLimiter, async (req, res) => {
       hall: 'Evan-e-Hakimi', 
       package: normalizedPkg, 
       price: expectedPrice,
-      advance: expectedAdvance 
+      advance: expectedAdvance,
+      customTiming: req.body.customTiming || null
     });
 
     // Store enquiry in Turso database with advance_amount
@@ -428,7 +446,7 @@ app.post('/api/bookings', bookingLimiter, async (req, res) => {
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
        RETURNING *`,
       [name.trim(), phone.trim(), email?.trim() || null, date, date, guestCount, expectedPrice, expectedAdvance,
-       occasion.trim(), specialRequirements?.trim() || null, normalizedSlot, 'pending', 'Evan-e-Hakimi', normalizedPkg]
+       occasion.trim(), notesCombined, normalizedSlot, 'pending', 'Evan-e-Hakimi', normalizedPkg]
     );
 
     const inserted = result.rows && result.rows[0] ? result.rows[0] : { id: result.lastInsertRowid };

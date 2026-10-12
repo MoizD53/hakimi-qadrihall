@@ -374,7 +374,7 @@
     .cal-status-pill.booked{background:rgba(239,68,68,.2);color:#fca5a5;}.cal-status-pill.hold{background:rgba(251,191,36,.15);color:#fcd34d;}.cal-status-pill.pending{background:rgba(251,191,36,.1);color:#fbbf24;}.cal-status-pill.confirmed{background:rgba(74,222,128,.12);color:#86efac;}.cal-status-pill.advance_requested{background:rgba(147,197,253,.15);color:#93c5fd;}.cal-status-pill.advance_verified{background:rgba(74,222,128,.15);color:#86efac;}
     /* Slot tags */
     .cal-slot-tag{font-size:.48rem;letter-spacing:.3px;padding:.1rem .3rem;border-radius:2px;display:inline-block;margin:.06rem .03rem 0;font-weight:600;text-transform:uppercase;}
-    .cal-slot-tag.fullday{background:rgba(201,169,110,.15);color:var(--wheat);}.cal-slot-tag.noon{background:rgba(251,191,36,.12);color:#fcd34d;}.cal-slot-tag.evening{background:rgba(96,165,250,.12);color:#93c5fd;}.cal-slot-tag.other{background:rgba(255,255,255,.06);color:rgba(245,240,232,.45);}
+    .cal-slot-tag.fullday{background:rgba(201,169,110,.15);color:var(--wheat);}.cal-slot-tag.noon{background:rgba(251,191,36,.12);color:#fcd34d;}.cal-slot-tag.evening{background:rgba(96,165,250,.12);color:#93c5fd;}.cal-slot-tag.majlis{background:rgba(192,132,252,.12);color:#c084fc;}.cal-slot-tag.other{background:rgba(255,255,255,.06);color:rgba(245,240,232,.45);}
     .cal-revenue{font-size:.52rem;color:rgba(74,222,128,.7);margin-top:.15rem;display:block;}
     .cal-multi-badge{font-size:.48rem;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.2);color:#fca5a5;border-radius:3px;padding:.1rem .35rem;display:inline-block;margin-bottom:.1rem;}
     /* Month Stats */
@@ -621,6 +621,7 @@
           <option value="morning">Morning (10:30 AM – 2:30 PM)</option>
           <option value="evening">Evening (6:30 PM – 10:30 PM)</option>
           <option value="fullday">Full Day (10:00 AM – 10:00 PM)</option>
+          <option value="majlis">Only Majlis (Custom Timings)</option>
         </select>
       </div>
       <div class="card">
@@ -1086,16 +1087,17 @@
     'morning': 'Morning (10:30 AM – 2:30 PM)',
     'evening': 'Evening (6:30 PM – 10:30 PM)',
     'fullday': 'Full Day (10:00 AM – 10:00 PM)',
+    'majlis':  'Only Majlis (Custom Timings)',
     'hday-morning': 'Morning (10:30 AM – 2:30 PM)',
     'hday-evening': 'Evening (6:30 PM – 10:30 PM)',
     'noon': 'Morning (10:30 AM – 2:30 PM)'
   };
 
   const PACKAGE_MAP = {
-    'without_jaman': 'Without Jaman (₹11,000)',
-    'with_jaman': 'With Jaman (₹15,000)',
-    'full_day': 'Full Day Package (₹30,000)',
-    'standard': 'Full Day Package (₹30,000)'
+    'without_jaman': 'Without Jaman (Hall Only)',
+    'with_jaman':    'With Jaman (Dining & Thals Included)',
+    'full_day':      'Full Day (With Jaman)',
+    'standard':      'Full Day (With Jaman)'
   };
 
   async function loadCalendar(silent = false) {
@@ -1231,8 +1233,9 @@
           const isFull = slot === 'fullday' || slot.includes('full');
           const isNoon = slot === 'noon' || slot.includes('morning');
           const isEve = slot === 'evening';
-          const cls = isFull ? 'fullday' : isNoon ? 'noon' : isEve ? 'evening' : 'other';
-          const lbl = isFull ? 'Full' : isNoon ? 'Noon' : isEve ? 'Eve' : slot.slice(0, 4);
+          const isMajlis = slot === 'majlis';
+          const cls = isFull ? 'fullday' : isNoon ? 'noon' : isEve ? 'evening' : isMajlis ? 'majlis' : 'other';
+          const lbl = isFull ? 'Full' : isNoon ? 'Noon' : isEve ? 'Eve' : isMajlis ? 'Majlis' : slot.slice(0, 4);
           return '<span class="cal-slot-tag ' + cls + '">' + lbl + '</span>';
         };
         bookings.slice(0, 2).forEach(b => { html += slotTag(b.slot); });

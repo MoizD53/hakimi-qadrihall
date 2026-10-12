@@ -1048,6 +1048,24 @@
       font-weight: 700;
       font-size: 1.05rem;
     }
+    .timing-chip {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(201, 169, 110, 0.28);
+      color: var(--cream);
+      padding: 0.42rem 0.95rem;
+      border-radius: 20px;
+      font-size: 0.84rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+    .timing-chip:hover {
+      background: rgba(201, 169, 110, 0.2);
+      border-color: var(--wheat);
+      color: var(--wheat);
+      transform: translateY(-1px);
+    }
 
     /* Summary Review Card (Step 5) */
     .wizard-review-box {
@@ -3089,9 +3107,10 @@
           </div>
 
           <ul style="list-style:none;margin-bottom:1.8rem;display:flex;flex-direction:column;gap:0.6rem;font-size:0.82rem;color:rgba(245,240,232,0.65);">
-            <li><i class="fas fa-check" style="color:var(--wheat);margin-right:8px;"></i> <strong>Morning Slot:</strong> 10:30 AM &ndash; 2:30 PM (₹11,000 / ₹15,000)</li>
-            <li><i class="fas fa-check" style="color:var(--wheat);margin-right:8px;"></i> <strong>Evening Slot:</strong> 6:30 PM &ndash; 10:30 PM (₹11,000 / ₹15,000)</li>
-            <li><i class="fas fa-check" style="color:var(--wheat);margin-right:8px;"></i> <strong>Full Day Option:</strong> 10:00 AM &ndash; 10:00 PM (₹30,000)</li>
+            <li><i class="fas fa-check" style="color:var(--wheat);margin-right:8px;"></i> <strong>Morning Slot (With Jaman):</strong> 10:30 AM &ndash; 2:30 PM (₹15,000 / ₹20,000)</li>
+            <li><i class="fas fa-check" style="color:var(--wheat);margin-right:8px;"></i> <strong>Evening Slot (With Jaman):</strong> 6:30 PM &ndash; 10:30 PM (₹15,000 / ₹20,000)</li>
+            <li><i class="fas fa-check" style="color:var(--wheat);margin-right:8px;"></i> <strong>Full Day Option (With Jaman):</strong> 10:00 AM &ndash; 10:00 PM (₹30,000)</li>
+            <li><i class="fas fa-check" style="color:var(--wheat);margin-right:8px;"></i> <strong>Only Majlis (Without Jaman):</strong> Custom Timings (₹11,000 / ₹12,000)</li>
           </ul>
         </div>
 
@@ -3228,29 +3247,38 @@
           <tr style="border-bottom:1px solid rgba(201,169,110,0.08);transition:background 0.2s;">
             <td style="padding:1.3rem 1.5rem;font-weight:500;color:var(--cream);">
               <strong style="display:block;font-size:1rem;color:var(--cream);">Morning Slot</strong>
-              <span style="font-size:0.75rem;color:rgba(201,169,110,0.7);">10:30 AM &ndash; 2:30 PM (Without / With Jaman)</span>
+              <span style="font-size:0.75rem;color:rgba(201,169,110,0.7);">10:30 AM &ndash; 2:30 PM &bull; Includes Jaman (Thals / Dining)</span>
             </td>
             <td style="padding:1.3rem 1.5rem;color:rgba(245,240,232,0.8);"><i class="far fa-clock" style="color:var(--wheat);margin-right:6px;"></i>4 Hours</td>
-            <td style="padding:1.3rem 1.5rem;text-align:right;font-family:'Cormorant Garamond',serif;font-size:1.25rem;color:var(--cream);">₹11,000 / ₹15,000</td>
-            <td style="padding:1.3rem 1.5rem;text-align:right;font-family:'Cormorant Garamond',serif;font-size:1.25rem;color:var(--wheat);font-weight:600;">₹15,000 / ₹21,000</td>
+            <td style="padding:1.3rem 1.5rem;text-align:right;font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--cream);">₹15,000</td>
+            <td style="padding:1.3rem 1.5rem;text-align:right;font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--wheat);font-weight:600;">₹20,000</td>
           </tr>
           <tr style="border-bottom:1px solid rgba(201,169,110,0.08);transition:background 0.2s;">
             <td style="padding:1.3rem 1.5rem;font-weight:500;color:var(--cream);">
               <strong style="display:block;font-size:1rem;color:var(--cream);">Evening Slot</strong>
-              <span style="font-size:0.75rem;color:rgba(201,169,110,0.7);">6:30 PM &ndash; 10:30 PM (Without / With Jaman)</span>
+              <span style="font-size:0.75rem;color:rgba(201,169,110,0.7);">6:30 PM &ndash; 10:30 PM &bull; Includes Jaman (Thals / Dining)</span>
             </td>
             <td style="padding:1.3rem 1.5rem;color:rgba(245,240,232,0.8);"><i class="far fa-clock" style="color:var(--wheat);margin-right:6px;"></i>4 Hours</td>
-            <td style="padding:1.3rem 1.5rem;text-align:right;font-family:'Cormorant Garamond',serif;font-size:1.25rem;color:var(--cream);">₹11,000 / ₹15,000</td>
-            <td style="padding:1.3rem 1.5rem;text-align:right;font-family:'Cormorant Garamond',serif;font-size:1.25rem;color:var(--wheat);font-weight:600;">₹15,000 / ₹21,000</td>
+            <td style="padding:1.3rem 1.5rem;text-align:right;font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--cream);">₹15,000</td>
+            <td style="padding:1.3rem 1.5rem;text-align:right;font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--wheat);font-weight:600;">₹20,000</td>
           </tr>
-          <tr style="background:rgba(201,169,110,0.03);">
+          <tr style="border-bottom:1px solid rgba(201,169,110,0.08);background:rgba(201,169,110,0.03);">
             <td style="padding:1.3rem 1.5rem;font-weight:500;color:var(--cream);">
               <strong style="display:block;font-size:1rem;color:var(--wheat);">Full Day Event</strong>
-              <span style="font-size:0.75rem;color:rgba(201,169,110,0.7);">10:00 AM &ndash; 10:00 PM uninterrupted access</span>
+              <span style="font-size:0.75rem;color:rgba(201,169,110,0.7);">10:00 AM &ndash; 10:00 PM &bull; Includes Jaman &bull; Comprehensive Access</span>
             </td>
             <td style="padding:1.3rem 1.5rem;color:rgba(245,240,232,0.8);"><i class="far fa-clock" style="color:var(--wheat);margin-right:6px;"></i>12 Hours</td>
             <td style="padding:1.3rem 1.5rem;text-align:right;font-family:'Cormorant Garamond',serif;font-size:1.45rem;color:var(--cream);">₹30,000</td>
             <td style="padding:1.3rem 1.5rem;text-align:right;font-family:'Cormorant Garamond',serif;font-size:1.45rem;color:var(--wheat);font-weight:600;">₹30,000</td>
+          </tr>
+          <tr style="transition:background 0.2s;">
+            <td style="padding:1.3rem 1.5rem;font-weight:500;color:var(--cream);">
+              <strong style="display:block;font-size:1rem;color:var(--cream);">Only Majlis</strong>
+              <span style="font-size:0.75rem;color:rgba(201,169,110,0.7);">Custom Timings &bull; Hall Rental Only (Without Jaman)</span>
+            </td>
+            <td style="padding:1.3rem 1.5rem;color:rgba(245,240,232,0.8);"><i class="far fa-clock" style="color:var(--wheat);margin-right:6px;"></i>Custom / Flexible</td>
+            <td style="padding:1.3rem 1.5rem;text-align:right;font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--cream);">₹11,000</td>
+            <td style="padding:1.3rem 1.5rem;text-align:right;font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--wheat);font-weight:600;">₹12,000</td>
           </tr>
         </tbody>
       </table>
@@ -3332,8 +3360,8 @@
         <!-- HIDDEN BUSINESS / SUBMISSION INPUTS -->
         <input type="hidden" id="selHall" value="Evan-e-Hakimi">
         <input type="hidden" id="selSlot" value="morning">
-        <input type="hidden" id="selPackage" value="without_jaman">
-        <input type="hidden" id="selPrice" value="11000">
+        <input type="hidden" id="selPackage" value="with_jaman">
+        <input type="hidden" id="selPrice" value="15000">
         <input type="hidden" id="bDate" value="">
 
         <!-- ══════════════════════════════════════════
@@ -3472,21 +3500,20 @@
              STEP 3: CHOOSE YOUR TIMING & PACKAGE
         ══════════════════════════════════════════ -->
         <div class="wizard-step" id="stepPane3">
-          <h3 class="wizard-h">Choose Your Timing &amp; Catering Option</h3>
-          <p class="wizard-p">Select the hours you need and whether food will be served:</p>
+          <h3 class="wizard-h">Choose Your Slot &amp; Timing</h3>
+          <p class="wizard-p">Select the slot that suits your event. Food arrangement and official rates are clearly shown:</p>
 
-          <!-- Part A: Timing -->
-          <div class="wizard-label">1. Choose Slot Timing *</div>
+          <div class="wizard-label">1. Select One Booking Slot *</div>
           
           <div class="wizard-choice-card selected" id="slotChoiceMorning" onclick="selectSlotTiming('morning')">
             <div class="wcc-left">
               <div class="wcc-radio"></div>
               <div>
                 <div class="wcc-title"><i class="fas fa-sun" style="color:#fcd34d;margin-right:6px;"></i> Morning Slot</div>
-                <div class="wcc-sub">10:30 AM &ndash; 2:30 PM &bull; 4 Hours</div>
+                <div class="wcc-sub">10:30 AM &ndash; 2:30 PM &bull; 4 Hours &bull; Includes Jaman</div>
               </div>
             </div>
-            <span class="wcc-badge" style="background:rgba(201,169,110,0.12);color:var(--wheat);">Morning</span>
+            <span class="wcc-badge" style="background:rgba(201,169,110,0.12);color:var(--wheat);">With Jaman</span>
           </div>
 
           <div class="wizard-choice-card" id="slotChoiceEvening" onclick="selectSlotTiming('evening')">
@@ -3494,10 +3521,10 @@
               <div class="wcc-radio"></div>
               <div>
                 <div class="wcc-title"><i class="fas fa-moon" style="color:#93c5fd;margin-right:6px;"></i> Evening Slot</div>
-                <div class="wcc-sub">6:30 PM &ndash; 10:30 PM &bull; 4 Hours</div>
+                <div class="wcc-sub">6:30 PM &ndash; 10:30 PM &bull; 4 Hours &bull; Includes Jaman</div>
               </div>
             </div>
-            <span class="wcc-badge" style="background:rgba(201,169,110,0.12);color:var(--wheat);">Evening</span>
+            <span class="wcc-badge" style="background:rgba(201,169,110,0.12);color:var(--wheat);">With Jaman</span>
           </div>
 
           <div class="wizard-choice-card" id="slotChoiceFullday" onclick="selectSlotTiming('fullday')">
@@ -3505,34 +3532,43 @@
               <div class="wcc-radio"></div>
               <div>
                 <div class="wcc-title"><span style="color:#fcd34d;margin-right:7px;font-size:1.15rem;display:inline-block;vertical-align:-1px;">✨</span> Full Day Slot</div>
-                <div class="wcc-sub">10:00 AM &ndash; 10:00 PM &bull; 12 Hours Comprehensive Access</div>
+                <div class="wcc-sub">10:00 AM &ndash; 10:00 PM &bull; 12 Hours &bull; Includes Jaman</div>
               </div>
             </div>
-            <span class="wcc-badge" style="background:rgba(245,158,11,0.15);color:#fcd34d;">Full Day</span>
+            <span class="wcc-badge" style="background:rgba(245,158,11,0.15);color:#fcd34d;">Full Day &bull; With Jaman</span>
           </div>
 
-          <!-- Part B: Catering Option (Only if Morning or Evening) -->
-          <div id="cateringOptionsWrap" style="margin-top:1.6rem;">
-            <div class="wizard-label">2. Will food / jaman be served in the hall? *</div>
-            
-            <div class="wizard-choice-card selected" id="pkgChoiceWithout" onclick="selectCateringOption('without_jaman')">
-              <div class="wcc-left">
-                <div class="wcc-radio"></div>
-                <div>
-                  <div class="wcc-title">Without Jaman</div>
-                  <div class="wcc-sub">Hall rental only (no dining / thals arrangement)</div>
-                </div>
+          <div class="wizard-choice-card" id="slotChoiceMajlis" onclick="selectSlotTiming('majlis')">
+            <div class="wcc-left">
+              <div class="wcc-radio"></div>
+              <div>
+                <div class="wcc-title"><i class="fas fa-mosque" style="color:var(--wheat);margin-right:6px;"></i> Only Majlis</div>
+                <div class="wcc-sub">Custom Timings &bull; Hall Rental Only (Without Jaman)</div>
               </div>
             </div>
+            <span class="wcc-badge" style="background:rgba(201,169,110,0.12);color:var(--wheat);">Without Jaman</span>
+          </div>
 
-            <div class="wizard-choice-card" id="pkgChoiceWith" onclick="selectCateringOption('with_jaman')">
-              <div class="wcc-left">
-                <div class="wcc-radio"></div>
-                <div>
-                  <div class="wcc-title">With Jaman</div>
-                  <div class="wcc-sub">Complete hall &amp; community dining / thals arrangement</div>
-                </div>
-              </div>
+          <!-- Custom Timings Picker for Majlis -->
+          <div id="majlisTimingWrap" style="display:none;margin-top:1.4rem;background:rgba(201,169,110,0.06);border:1.5px solid rgba(201,169,110,0.3);border-radius:12px;padding:1.2rem;">
+            <label class="wizard-label" for="majlisCustomTiming" style="margin-bottom:0.3rem;display:flex;align-items:center;gap:6px;">
+              <i class="far fa-clock" style="color:var(--wheat);"></i> Choose or Enter Majlis Timings *
+            </label>
+            <div class="wizard-hint" style="margin-bottom:0.8rem;">
+              Tap a quick timing preset below or type your preferred hours:
+            </div>
+            
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:0.9rem;">
+              <button type="button" class="timing-chip" onclick="setMajlisTimingPreset('4:00 PM – 7:00 PM')">4:00 PM – 7:00 PM</button>
+              <button type="button" class="timing-chip" onclick="setMajlisTimingPreset('3:00 PM – 6:00 PM')">3:00 PM – 6:00 PM</button>
+              <button type="button" class="timing-chip" onclick="setMajlisTimingPreset('8:00 PM – 10:30 PM')">8:00 PM – 10:30 PM</button>
+              <button type="button" class="timing-chip" onclick="setMajlisTimingPreset('11:00 AM – 2:00 PM')">11:00 AM – 2:00 PM</button>
+            </div>
+
+            <input type="text" id="majlisCustomTiming" class="wizard-input" placeholder="e.g. 4:00 PM – 7:00 PM" value="4:00 PM – 7:00 PM">
+            <div style="font-size:0.82rem;color:rgba(245,240,232,0.65);margin-top:8px;line-height:1.5;">
+              <i class="fas fa-info-circle" style="color:var(--wheat);margin-right:4px;"></i>
+              <strong>Note:</strong> Majlis slot does not include community dining/jaman arrangement. Hall only.
             </div>
           </div>
 
@@ -3544,21 +3580,21 @@
             <div class="spb-main-row">
               <div>
                 <div style="font-size:0.88rem;color:rgba(245,240,232,0.7);margin-bottom:2px;">Total Hall Rate:</div>
-                <div class="spb-amount" id="wizPriceAmount">₹11,000</div>
+                <div class="spb-amount" id="wizPriceAmount">₹15,000</div>
               </div>
               <span class="spb-date-tag" id="wizPriceDateTag">Rate valid for selected event date</span>
             </div>
             <div class="spb-breakdown">
               <div class="spb-row">
                 <span>40% Advance Payment:</span>
-                <span class="spb-adv" id="wizAdvanceAmount">₹4,400</span>
+                <span class="spb-adv" id="wizAdvanceAmount">₹6,000</span>
               </div>
               <div style="font-size:0.82rem;color:rgba(245,240,232,0.6);margin-top:-2px;">
                 (Advance is required only after manager approves your slot)
               </div>
               <div class="spb-row" style="margin-top:0.4rem;padding-top:0.5rem;border-top:1px dashed rgba(201,169,110,0.15);">
                 <span>Remaining 60% Balance:</span>
-                <span style="font-weight:700;color:var(--cream);" id="wizBalanceAmount">₹6,600</span>
+                <span style="font-weight:700;color:var(--cream);" id="wizBalanceAmount">₹9,000</span>
               </div>
               <div style="font-size:0.82rem;color:rgba(245,240,232,0.6);margin-top:-2px;">
                 (Payable at least 2 days before the event date)
@@ -3652,8 +3688,8 @@
                 <span class="wrb-val" id="revSlot">Morning (10:30 AM &ndash; 2:30 PM)</span>
               </div>
               <div class="wrb-item">
-                <span class="wrb-label">Catering Option:</span>
-                <span class="wrb-val" id="revPackage">Without Jaman</span>
+                <span class="wrb-label">Catering / Dining:</span>
+                <span class="wrb-val" id="revPackage">With Jaman (Dining &amp; Thals Included)</span>
               </div>
               <div class="wrb-item">
                 <span class="wrb-label">Contact Person:</span>
@@ -3672,15 +3708,15 @@
             <div class="wrb-list">
               <div class="wrb-item">
                 <span class="wrb-label">Total Hall Rate:</span>
-                <span class="wrb-val" id="revTotal" style="font-size:1.25rem;color:var(--wheat);font-family:'Cormorant Garamond',serif;">₹11,000</span>
+                <span class="wrb-val" id="revTotal" style="font-size:1.25rem;color:var(--wheat);font-family:'Cormorant Garamond',serif;">₹15,000</span>
               </div>
               <div class="wrb-item">
                 <span class="wrb-label">40% Advance to Confirm:</span>
-                <span class="wrb-val" id="revAdvance" style="color:#86efac;">₹4,400</span>
+                <span class="wrb-val" id="revAdvance" style="color:#86efac;">₹6,000</span>
               </div>
               <div class="wrb-item">
                 <span class="wrb-label">Remaining 60% Balance:</span>
-                <span class="wrb-val" id="revBalance">₹6,600 (due 2 days before event)</span>
+                <span class="wrb-val" id="revBalance">₹9,000 (due 2 days before event)</span>
               </div>
             </div>
           </div>
@@ -4272,42 +4308,46 @@ function isDateOnOrAfterJan2027(dateStr) {
 }
 
 function getSlotPackagePrice(slotKey, pkgKey, dateStr) {
-  const s = String(slotKey).toLowerCase();
-  const p = String(pkgKey).toLowerCase();
+  // Support both (slot, dateStr) and (slot, pkg, dateStr)
+  if (dateStr === undefined && typeof pkgKey === 'string' && (pkgKey.includes('-') || pkgKey.includes('/'))) {
+    dateStr = pkgKey;
+    pkgKey = undefined;
+  }
+  const s = String(slotKey).toLowerCase().trim();
+  const is2027 = isDateOnOrAfterJan2027(dateStr);
+
+  // Full Day is strictly ₹30,000 (includes jaman)
   if (s === 'fullday') return 30000;
 
-  const is2027 = isDateOnOrAfterJan2027(dateStr);
-  if (is2027) {
-    // Effective 1 Jan 2027: Without Jaman ₹15,000, With Jaman ₹21,000
-    return p === 'with_jaman' ? 21000 : 15000;
-  }
-  // Before 1 Jan 2027: Without Jaman ₹11,000, With Jaman ₹15,000
-  return p === 'with_jaman' ? 15000 : 11000;
+  // Only Majlis (without jaman, custom timings): 2026: ₹11,000 | 2027: ₹12,000
+  if (s === 'majlis') return is2027 ? 12000 : 11000;
+
+  // Morning and Evening slots (includes jaman): 2026: ₹15,000 | 2027: ₹20,000
+  if (s === 'morning' || s === 'evening') return is2027 ? 20000 : 15000;
+
+  return is2027 ? 20000 : 15000;
 }
 
 const SLOT_CONFIG = {
   'morning': {
     name: 'Morning Slot',
     time: '10:30 AM – 2:30 PM',
-    packages: {
-      'without_jaman': { name: 'Morning (Without Jaman)', price: 11000 },
-      'with_jaman':    { name: 'Morning (With Jaman)',    price: 15000 }
-    }
+    includes_jaman: true
   },
   'evening': {
     name: 'Evening Slot',
     time: '6:30 PM – 10:30 PM',
-    packages: {
-      'without_jaman': { name: 'Evening (Without Jaman)', price: 11000 },
-      'with_jaman':    { name: 'Evening (With Jaman)',    price: 15000 }
-    }
+    includes_jaman: true
   },
   'fullday': {
-    name: 'Full Day Event',
+    name: 'Full Day Slot',
     time: '10:00 AM – 10:00 PM',
-    packages: {
-      'full_day':      { name: 'Full Day Comprehensive',  price: 30000 }
-    }
+    includes_jaman: true
+  },
+  'majlis': {
+    name: 'Only Majlis',
+    time: 'Custom Timings',
+    includes_jaman: false
   }
 };
 
@@ -4421,6 +4461,18 @@ function validateAndGo(fromStep, toStep) {
       if (!guests || parseInt(guests) <= 0) {
         showWizAlert('Please enter the approximate number of guests or thals.');
         return;
+      }
+    }
+
+    // Validate Step 3
+    if (fromStep <= 3 && toStep > 3) {
+      const slot = document.getElementById('selSlot')?.value || 'morning';
+      if (slot === 'majlis') {
+        const customTiming = document.getElementById('majlisCustomTiming')?.value.trim();
+        if (!customTiming) {
+          showWizAlert('Please choose or enter your preferred Majlis timings (e.g. 4:00 PM – 7:00 PM).');
+          return;
+        }
       }
     }
 
@@ -4582,49 +4634,48 @@ function selectSlotTiming(slotKey) {
   const slotInput = document.getElementById('selSlot');
   if (slotInput) slotInput.value = slotKey;
 
+  const pkgInput = document.getElementById('selPackage');
+  if (pkgInput) {
+    pkgInput.value = (slotKey === 'majlis') ? 'without_jaman' : 'with_jaman';
+  }
+
   const cards = {
     'morning': document.getElementById('slotChoiceMorning'),
     'evening': document.getElementById('slotChoiceEvening'),
-    'fullday': document.getElementById('slotChoiceFullday')
+    'fullday': document.getElementById('slotChoiceFullday'),
+    'majlis':  document.getElementById('slotChoiceMajlis')
   };
 
   Object.keys(cards).forEach(k => {
     if (cards[k]) cards[k].classList.toggle('selected', k === slotKey);
   });
 
-  const cateringWrap = document.getElementById('cateringOptionsWrap');
-  if (slotKey === 'fullday') {
-    if (cateringWrap) cateringWrap.style.display = 'none';
-    const pkgInput = document.getElementById('selPackage');
-    if (pkgInput) pkgInput.value = 'full_day';
-  } else {
-    if (cateringWrap) cateringWrap.style.display = 'block';
-    const pkgInput = document.getElementById('selPackage');
-    if (!pkgInput || pkgInput.value === 'full_day') {
-      if (pkgInput) pkgInput.value = 'without_jaman';
-    }
-    selectCateringOption(pkgInput ? pkgInput.value : 'without_jaman');
+  const majlisWrap = document.getElementById('majlisTimingWrap');
+  if (majlisWrap) {
+    majlisWrap.style.display = (slotKey === 'majlis') ? 'block' : 'none';
   }
 
   updateWizardPriceDisplay();
 }
 
+function setMajlisTimingPreset(timingVal) {
+  const input = document.getElementById('majlisCustomTiming');
+  if (input) {
+    input.value = timingVal;
+    input.focus();
+  }
+}
+
 function selectCateringOption(pkgKey) {
   const pkgInput = document.getElementById('selPackage');
   if (pkgInput) pkgInput.value = pkgKey;
-
-  const wo = document.getElementById('pkgChoiceWithout');
-  const w = document.getElementById('pkgChoiceWith');
-  if (wo) wo.classList.toggle('selected', pkgKey === 'without_jaman');
-  if (w) w.classList.toggle('selected', pkgKey === 'with_jaman');
-
   updateWizardPriceDisplay();
 }
 
 /* ── REAL-TIME PRICE COMPUTATION ── */
 function updateWizardPriceDisplay() {
   const slot = document.getElementById('selSlot')?.value || 'morning';
-  const pkg = document.getElementById('selPackage')?.value || 'without_jaman';
+  const pkg = (slot === 'majlis') ? 'without_jaman' : 'with_jaman';
   const date = document.getElementById('bDate')?.value || '';
   const price = getSlotPackagePrice(slot, pkg, date);
   const advance = Math.round(price * 0.40);
@@ -4663,7 +4714,8 @@ function populateReviewSummary() {
   const occasion = document.getElementById('bOccasion')?.value || 'Not specified';
   const guests = document.getElementById('bGuests')?.value || '35';
   const slot = document.getElementById('selSlot')?.value || 'morning';
-  const pkg = document.getElementById('selPackage')?.value || 'without_jaman';
+  const pkg = (slot === 'majlis') ? 'without_jaman' : 'with_jaman';
+  const customTiming = document.getElementById('majlisCustomTiming')?.value.trim() || '4:00 PM – 7:00 PM';
   const name = document.getElementById('bName')?.value.trim() || '—';
   const phone = document.getElementById('bPhone')?.value.trim() || '—';
 
@@ -4681,13 +4733,14 @@ function populateReviewSummary() {
   const slotLabels = {
     'morning': 'Morning (10:30 AM – 2:30 PM)',
     'evening': 'Evening (6:30 PM – 10:30 PM)',
-    'fullday': 'Full Day (10:00 AM – 10:00 PM)'
+    'fullday': 'Full Day (10:00 AM – 10:00 PM)',
+    'majlis':  `Only Majlis (${customTiming})`
   };
 
   const pkgLabels = {
     'without_jaman': 'Without Jaman (Hall Only)',
-    'with_jaman': 'With Jaman (Dining & Thals)',
-    'full_day': 'Full Day Slot (10:00 AM – 10:00 PM)'
+    'with_jaman': 'With Jaman (Dining & Thals Included)',
+    'full_day': 'With Jaman (Dining & Thals Included)'
   };
 
   const price = getSlotPackagePrice(slot, pkg, dateStr);
@@ -4710,7 +4763,7 @@ function populateReviewSummary() {
   if (revSlot) revSlot.textContent = slotLabels[slot] || slot;
 
   const revPkg = document.getElementById('revPackage');
-  if (revPkg) revPkg.textContent = pkgLabels[pkg] || pkg;
+  if (revPkg) revPkg.textContent = (slot === 'majlis') ? 'Without Jaman (Hall Only)' : 'With Jaman (Dining & Thals Included)';
 
   const revName = document.getElementById('revName');
   if (revName) revName.textContent = name;
@@ -4739,7 +4792,7 @@ async function fetchSlotAvailability(dateStr, hall) {
     const data = await res.json();
     const slots = data.slots || {};
 
-    ['morning', 'evening', 'fullday'].forEach(slotKey => {
+    ['morning', 'evening', 'fullday', 'majlis'].forEach(slotKey => {
       const cap = slotKey.charAt(0).toUpperCase() + slotKey.slice(1);
       const card = document.getElementById('slotChoice' + cap);
       const slotData = slots[slotKey];
@@ -4763,11 +4816,15 @@ async function fetchSlotAvailability(dateStr, hall) {
           if (slotKey === 'fullday') {
             badge.style.background = 'rgba(245,158,11,0.15)';
             badge.style.color = '#fcd34d';
-            badge.innerHTML = 'Full Day';
+            badge.innerHTML = 'Full Day &bull; With Jaman';
+          } else if (slotKey === 'majlis') {
+            badge.style.background = 'rgba(201,169,110,0.12)';
+            badge.style.color = 'var(--wheat)';
+            badge.innerHTML = 'Without Jaman';
           } else {
             badge.style.background = 'rgba(201,169,110,0.12)';
             badge.style.color = 'var(--wheat)';
-            badge.innerHTML = cap;
+            badge.innerHTML = 'With Jaman';
           }
         }
       }
@@ -4778,7 +4835,7 @@ async function fetchSlotAvailability(dateStr, hall) {
     const curCap = curSlot.charAt(0).toUpperCase() + curSlot.slice(1);
     const curCard = document.getElementById('slotChoice' + curCap);
     if (curCard && curCard.classList.contains('slot-disabled')) {
-      const avail = ['morning', 'evening', 'fullday'].find(k => {
+      const avail = ['morning', 'evening', 'fullday', 'majlis'].find(k => {
         const c = document.getElementById('slotChoice' + k.charAt(0).toUpperCase() + k.slice(1));
         return c && !c.classList.contains('slot-disabled');
       });
@@ -5001,7 +5058,8 @@ window.addEventListener('DOMContentLoaded', () => {
     const notes    = document.getElementById('bNotes').value.trim();
     const hall     = document.getElementById('selHall')?.value || 'Evan-e-Hakimi';
     const slot     = document.getElementById('selSlot')?.value || 'morning';
-    const pkg      = document.getElementById('selPackage')?.value || 'without_jaman';
+    const pkg      = (slot === 'majlis') ? 'without_jaman' : 'with_jaman';
+    const customTiming = (slot === 'majlis') ? (document.getElementById('majlisCustomTiming')?.value.trim() || '4:00 PM – 7:00 PM') : null;
     const price    = getSlotPackagePrice(slot, pkg, date);
     const advance  = Math.round(price * 0.40);
 
@@ -5017,6 +5075,7 @@ window.addEventListener('DOMContentLoaded', () => {
     console.log("  email:", email);
     console.log("  date:", date);
     console.log("  slot (timeSlot):", slot);
+    console.log("  customTiming:", customTiming);
     console.log("  price:", price);
     console.log("  occasion:", occasion);
     console.log("  guests:", guests);
@@ -5039,8 +5098,14 @@ window.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    const slotLabel = slot === 'morning' ? 'Morning (10:30 AM – 2:30 PM)' : slot === 'evening' ? 'Evening (6:30 PM – 10:30 PM)' : 'Full Day (10:00 AM – 10:00 PM)';
-    const pkgLabel = pkg === 'with_jaman' ? 'With Jaman' : pkg === 'full_day' ? 'Full Day Slot' : 'Without Jaman';
+    const slotLabel = slot === 'morning' 
+      ? 'Morning (10:30 AM – 2:30 PM)' 
+      : slot === 'evening' 
+      ? 'Evening (6:30 PM – 10:30 PM)' 
+      : slot === 'majlis'
+      ? `Only Majlis (${customTiming})`
+      : 'Full Day (10:00 AM – 10:00 PM)';
+    const pkgLabel = (slot === 'majlis') ? 'Without Jaman (Hall Only)' : 'With Jaman (Dining & Thals Included)';
     const formattedDate = new Date(date).toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
     // Prepare payload
@@ -5055,6 +5120,7 @@ window.addEventListener('DOMContentLoaded', () => {
       occasion,
       price,
       guests: parseInt(guests),
+      customTiming: customTiming || undefined,
       specialRequirements: notes
     };
 
@@ -5090,12 +5156,11 @@ window.addEventListener('DOMContentLoaded', () => {
         this.reset();
         selectHall('Evan-e-Hakimi');
         selectSlotTiming('morning');
-        selectCateringOption('without_jaman');
         goToStep(1);
         hideMsg();
 
         const balance = price - advance;
-        const waText = encodeURIComponent(`Hello Management, I have submitted a booking enquiry for Evan-e-Hakimi (2nd Floor).\n\nDetails:\n• Name: ${name}\n• Phone: ${phone}\n• Date: ${date} (${formattedDate})\n• Slot: ${slotLabel}\n• Package: ${pkgLabel}\n• Total Price: ₹${price.toLocaleString('en-IN')}\n• Advance (40%): ₹${advance.toLocaleString('en-IN')}\n• Remaining Balance (60%): ₹${balance.toLocaleString('en-IN')} (due at least 2 days before event date)\n• Occasion: ${occasion}\n• Approx Guests: ${guests}`);
+        const waText = encodeURIComponent(`Hello Management, I have submitted a booking enquiry for Evan-e-Hakimi (2nd Floor).\n\nDetails:\n• Name: ${name}\n• Phone: ${phone}\n• Date: ${date} (${formattedDate})\n• Slot: ${slotLabel}\n• Catering: ${pkgLabel}${customTiming ? `\n• Custom Majlis Timing: ${customTiming}` : ''}\n• Total Price: ₹${price.toLocaleString('en-IN')}\n• Advance (40%): ₹${advance.toLocaleString('en-IN')}\n• Remaining Balance (60%): ₹${balance.toLocaleString('en-IN')} (due at least 2 days before event date)\n• Occasion: ${occasion}\n• Approx Guests: ${guests}`);
         const waUrl = `https://wa.me/919033647648?text=${waText}`;
 
         // Show premium systematic popup message
@@ -5107,8 +5172,9 @@ window.addEventListener('DOMContentLoaded', () => {
             <h3 style="font-family:'Cinzel',serif;color:var(--wheat);margin-bottom:0.8rem;font-size:1.4rem">Enquiry Submitted</h3>
             <div style="background:rgba(201,169,110,0.08);border:1px solid rgba(201,169,110,0.18);border-radius:10px;padding:1rem;margin-bottom:1.4rem;text-align:left;font-size:0.82rem;line-height:1.6;color:rgba(245,240,232,0.85);">
               <div><strong>Venue:</strong> Evan-e-Hakimi (2nd Floor)</div>
-              <div><strong>Date:</strong> ${date}</div>
-              <div><strong>Slot & Package:</strong> ${slotLabel} (${pkgLabel})</div>
+              <div><strong>Date:</strong> ${date} (${formattedDate})</div>
+              <div><strong>Slot & Timing:</strong> ${slotLabel}</div>
+              <div><strong>Catering:</strong> ${pkgLabel}</div>
               <div><strong>Estimated Total:</strong> ₹${price.toLocaleString('en-IN')}</div>
               <div style="color:#86efac;"><strong>40% Advance:</strong> ₹${advance.toLocaleString('en-IN')} (upon manager approval)</div>
               <div style="color:#fcd34d;"><strong>Remaining 60% Balance:</strong> ₹${balance.toLocaleString('en-IN')} (due 2 days before event)</div>

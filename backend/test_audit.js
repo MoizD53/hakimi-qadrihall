@@ -11,17 +11,26 @@ const SLOT_CONFIG = {
   morning: {
     name: 'Morning',
     timing: '10:30 AM – 2:30 PM',
-    pricing: { without_jaman: 11000, with_jaman: 15000 }
+    pricing: { 2026: 15000, 2027: 20000 },
+    includes_jaman: true
   },
   evening: {
     name: 'Evening',
     timing: '6:30 PM – 10:30 PM',
-    pricing: { without_jaman: 11000, with_jaman: 15000 }
+    pricing: { 2026: 15000, 2027: 20000 },
+    includes_jaman: true
   },
   fullday: {
     name: 'Full Day',
     timing: '10:00 AM – 10:00 PM',
-    pricing: { full_day: 30000, without_jaman: 30000, with_jaman: 30000, standard: 30000 }
+    pricing: { 2026: 30000, 2027: 30000 },
+    includes_jaman: true
+  },
+  majlis: {
+    name: 'Only Majlis',
+    timing: 'Custom Timings',
+    pricing: { 2026: 11000, 2027: 12000 },
+    includes_jaman: false
   }
 };
 
@@ -38,16 +47,14 @@ function isDateOnOrAfterJan2027(dateStr) {
   return clean >= '2027-01-01';
 }
 
-function calculateExpectedPrice(slot, pkg, dateStr) {
-  const s = String(slot).toLowerCase();
-  const p = String(pkg).toLowerCase();
-  if (s === 'fullday') return 30000;
-  
+function calculateExpectedPrice(slot, dateStr) {
+  const s = String(slot).toLowerCase().trim();
   const is2027 = isDateOnOrAfterJan2027(dateStr);
-  if (is2027) {
-    return p === 'with_jaman' ? 21000 : 15000;
-  }
-  return p === 'with_jaman' ? 15000 : 11000;
+
+  if (s === 'fullday') return 30000;
+  if (s === 'majlis') return is2027 ? 12000 : 11000;
+  if (s === 'morning' || s === 'evening') return is2027 ? 20000 : 15000;
+  return is2027 ? 20000 : 15000;
 }
 
 function calculateAdvance(price) {
@@ -74,68 +81,56 @@ console.log('🧪 RUNNING PRODUCTION-READINESS AUDIT TESTS');
 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
 // ── TEST GROUP 1: SLOTS & DATE-BASED PRICING ──
-console.log('📋 Group 1: Date-Based Slot Configuration, Pricing, and Advance (Before & From 1 Jan 2027)');
+console.log('📋 Group 1: 4 Slots Pricing Structure (2026 vs From 1 Jan 2027)');
 
 // Before 1 January 2027 (e.g., 2026-12-31)
-it('Before 2027-01-01: Morning Without Jaman must be ₹11,000 with ₹4,400 advance (40%)', () => {
-  const price = calculateExpectedPrice('morning', 'without_jaman', '2026-12-31');
-  assert.strictEqual(price, 11000);
-  assert.strictEqual(calculateAdvance(price), 4400);
-});
-
-it('Before 2027-01-01: Morning With Jaman must be ₹15,000 with ₹6,000 advance (40%)', () => {
-  const price = calculateExpectedPrice('morning', 'with_jaman', '2026-12-31');
+it('2026: Morning Slot (with jaman) must be ₹15,000 with ₹6,000 advance (40%)', () => {
+  const price = calculateExpectedPrice('morning', '2026-12-31');
   assert.strictEqual(price, 15000);
   assert.strictEqual(calculateAdvance(price), 6000);
 });
 
-it('Before 2027-01-01: Evening Without Jaman must be ₹11,000 with ₹4,400 advance (40%)', () => {
-  const price = calculateExpectedPrice('evening', 'without_jaman', '2026-12-31');
-  assert.strictEqual(price, 11000);
-  assert.strictEqual(calculateAdvance(price), 4400);
-});
-
-it('Before 2027-01-01: Evening With Jaman must be ₹15,000 with ₹6,000 advance (40%)', () => {
-  const price = calculateExpectedPrice('evening', 'with_jaman', '2026-12-31');
+it('2026: Evening Slot (with jaman) must be ₹15,000 with ₹6,000 advance (40%)', () => {
+  const price = calculateExpectedPrice('evening', '2026-12-31');
   assert.strictEqual(price, 15000);
   assert.strictEqual(calculateAdvance(price), 6000);
+});
+
+it('2026: Full Day Slot (with jaman) must be ₹30,000 with ₹12,000 advance (40%)', () => {
+  const price = calculateExpectedPrice('fullday', '2026-12-31');
+  assert.strictEqual(price, 30000);
+  assert.strictEqual(calculateAdvance(price), 12000);
+});
+
+it('2026: Only Majlis Slot (without jaman, custom timing) must be ₹11,000 with ₹4,400 advance (40%)', () => {
+  const price = calculateExpectedPrice('majlis', '2026-12-31');
+  assert.strictEqual(price, 11000);
+  assert.strictEqual(calculateAdvance(price), 4400);
 });
 
 // From 1 January 2027 (e.g., 2027-01-01)
-it('From 2027-01-01: Morning Without Jaman must be ₹15,000 with ₹6,000 advance (40%)', () => {
-  const price = calculateExpectedPrice('morning', 'without_jaman', '2027-01-01');
-  assert.strictEqual(price, 15000);
-  assert.strictEqual(calculateAdvance(price), 6000);
+it('From 2027-01-01: Morning Slot (with jaman) must be ₹20,000 with ₹8,000 advance (40%)', () => {
+  const price = calculateExpectedPrice('morning', '2027-01-01');
+  assert.strictEqual(price, 20000);
+  assert.strictEqual(calculateAdvance(price), 8000);
 });
 
-it('From 2027-01-01: Morning With Jaman must be ₹21,000 with ₹8,400 advance (40%)', () => {
-  const price = calculateExpectedPrice('morning', 'with_jaman', '2027-01-01');
-  assert.strictEqual(price, 21000);
-  assert.strictEqual(calculateAdvance(price), 8400);
+it('From 2027-01-01: Evening Slot (with jaman) must be ₹20,000 with ₹8,000 advance (40%)', () => {
+  const price = calculateExpectedPrice('evening', '2027-01-01');
+  assert.strictEqual(price, 20000);
+  assert.strictEqual(calculateAdvance(price), 8000);
 });
 
-it('From 2027-01-01: Evening Without Jaman must be ₹15,000 with ₹6,000 advance (40%)', () => {
-  const price = calculateExpectedPrice('evening', 'without_jaman', '2027-01-01');
-  assert.strictEqual(price, 15000);
-  assert.strictEqual(calculateAdvance(price), 6000);
+it('From 2027-01-01: Full Day Slot (with jaman) must remain ₹30,000 with ₹12,000 advance (40%)', () => {
+  const price = calculateExpectedPrice('fullday', '2027-01-01');
+  assert.strictEqual(price, 30000);
+  assert.strictEqual(calculateAdvance(price), 12000);
 });
 
-it('From 2027-01-01: Evening With Jaman must be ₹21,000 with ₹8,400 advance (40%)', () => {
-  const price = calculateExpectedPrice('evening', 'with_jaman', '2027-01-01');
-  assert.strictEqual(price, 21000);
-  assert.strictEqual(calculateAdvance(price), 8400);
-});
-
-it('Full Day must remain ₹30,000 with ₹12,000 advance (40%) on both sides of cutoff', () => {
-  assert.strictEqual(calculateExpectedPrice('fullday', 'full_day', '2026-12-31'), 30000);
-  assert.strictEqual(calculateExpectedPrice('fullday', 'without_jaman', '2026-12-31'), 30000);
-  assert.strictEqual(calculateExpectedPrice('fullday', 'with_jaman', '2026-12-31'), 30000);
-  assert.strictEqual(calculateAdvance(30000), 12000);
-
-  assert.strictEqual(calculateExpectedPrice('fullday', 'full_day', '2027-01-01'), 30000);
-  assert.strictEqual(calculateExpectedPrice('fullday', 'without_jaman', '2027-01-01'), 30000);
-  assert.strictEqual(calculateExpectedPrice('fullday', 'with_jaman', '2027-01-01'), 30000);
-  assert.strictEqual(calculateAdvance(30000), 12000);
+it('From 2027-01-01: Only Majlis Slot (without jaman, custom timing) must be ₹12,000 with ₹4,800 advance (40%)', () => {
+  const price = calculateExpectedPrice('majlis', '2027-01-01');
+  assert.strictEqual(price, 12000);
+  assert.strictEqual(calculateAdvance(price), 4800);
 });
 
 // ── TEST GROUP 2: CONFLICT RULES ──
@@ -165,6 +160,15 @@ it('Evening conflicts with another Evening', () => {
 it('Morning and Evening can coexist without conflict', () => {
   assert.strictEqual(checkSlotConflict('morning', 'evening'), false);
   assert.strictEqual(checkSlotConflict('evening', 'morning'), false);
+});
+
+it('Full Day conflicts with Majlis', () => {
+  assert.strictEqual(checkSlotConflict('fullday', 'majlis'), true);
+  assert.strictEqual(checkSlotConflict('majlis', 'fullday'), true);
+});
+
+it('Majlis conflicts with another Majlis', () => {
+  assert.strictEqual(checkSlotConflict('majlis', 'majlis'), true);
 });
 
 // ── TEST GROUP 3: AVAILABILITY STATUS PRECEDENCE ──
