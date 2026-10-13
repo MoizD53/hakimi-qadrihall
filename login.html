@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Manager Sign In | Evan-e-Hakimi &amp; Qadri Hall</title>
+  <meta name="description" content="Secure internal management software login for Evan-e-Hakimi and Qadri Hall.">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+  <link rel="alternate icon" href="/assets/hakimi-construction-logo.jpg">
+  <link rel="apple-touch-icon" href="/assets/hakimi-construction-logo.jpg">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+    :root{
+      --ink:#0a0806; --soil:#140e08; --bark:#24160a;
+      --wheat:#c9a96e; --gold:#e2b96a; --cream:#f5f0e8;
+      --stone:#8a7a68; --glass:rgba(253,250,244,0.035);
+      --glass-border:rgba(201,169,110,0.18);
+    }
+    html,body{height:100%;}
+    body{
+      font-family:'DM Sans',sans-serif;
+      background:radial-gradient(ellipse at 50% 20%, #1c130b 0%, var(--soil) 60%, var(--ink) 100%);
+      color:var(--cream);
+      display:flex;align-items:center;justify-content:center;
+      padding:1.2rem;
+      min-height:100vh;
+      overflow-x:hidden;
+    }
+    .login-container{
+      width:100%;
+      max-width:420px;
+      position:relative;
+      animation:fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes fadeIn{
+      from{opacity:0;transform:translateY(16px);}
+      to{opacity:1;transform:translateY(0);}
+    }
+    .brand-crest{
+      text-align:center;
+      margin-bottom:1.8rem;
+    }
+    .crest-icon{
+      display:inline-flex;align-items:center;justify-content:center;
+      width:58px;height:58px;
+      border-radius:50%;
+      background:rgba(201,169,110,0.08);
+      border:1px solid rgba(201,169,110,0.25);
+      color:var(--wheat);
+      font-size:1.4rem;
+      margin-bottom:1rem;
+      box-shadow:0 0 25px rgba(201,169,110,0.15);
+    }
+    .brand-title{
+      font-family:'Cinzel',serif;
+      font-size:1.35rem;
+      letter-spacing:3px;
+      color:var(--wheat);
+      line-height:1.2;
+    }
+    .brand-sub{
+      font-size:0.68rem;
+      letter-spacing:2.5px;
+      text-transform:uppercase;
+      color:rgba(245,240,232,0.4);
+      margin-top:0.4rem;
+    }
+    .hall-pill{
+      display:inline-flex;align-items:center;gap:0.4rem;
+      font-size:0.62rem;letter-spacing:1.5px;text-transform:uppercase;
+      background:rgba(201,169,110,0.09);
+      border:1px solid rgba(201,169,110,0.22);
+      border-radius:20px;padding:0.35rem 0.9rem;
+      color:var(--wheat);
+      margin-top:0.8rem;
+    }
+    .login-card{
+      background:rgba(18,13,8,0.85);
+      border:1px solid var(--glass-border);
+      border-radius:18px;
+      padding:2.4rem 2.2rem;
+      box-shadow:0 30px 70px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.05);
+      backdrop-filter:blur(12px);
+      -webkit-backdrop-filter:blur(12px);
+    }
+    .card-heading{
+      font-family:'Cormorant Garamond',serif;
+      font-size:1.45rem;
+      font-weight:400;
+      color:var(--cream);
+      margin-bottom:0.3rem;
+    }
+    .card-desc{
+      font-size:0.75rem;
+      color:rgba(245,240,232,0.45);
+      margin-bottom:1.6rem;
+      line-height:1.5;
+    }
+    .form-group{
+      display:flex;flex-direction:column;gap:0.4rem;
+      margin-bottom:1.3rem;
+    }
+    .form-label{
+      font-size:0.64rem;
+      letter-spacing:1.5px;
+      text-transform:uppercase;
+      color:rgba(245,240,232,0.5);
+      font-weight:500;
+    }
+    .input-wrapper{
+      position:relative;
+      display:flex;width:100%;
+    }
+    .form-input{
+      width:100%;
+      background:rgba(255,255,255,0.04);
+      border:1px solid rgba(201,169,110,0.18);
+      border-radius:8px;
+      padding:0.85rem 1rem;
+      color:var(--cream);
+      font-family:'DM Sans',sans-serif;
+      font-size:0.9rem;
+      outline:none;
+      transition:all 0.2s ease;
+    }
+    .form-input:focus{
+      border-color:rgba(201,169,110,0.6);
+      background:rgba(255,255,255,0.06);
+      box-shadow:0 0 0 3px rgba(201,169,110,0.12);
+    }
+    .form-input::placeholder{
+      color:rgba(245,240,232,0.22);
+    }
+    .toggle-pass{
+      position:absolute;right:12px;top:50%;transform:translateY(-50%);
+      background:none;border:none;color:rgba(245,240,232,0.35);
+      cursor:pointer;padding:6px;font-size:0.85rem;
+      transition:color 0.2s;outline:none;
+    }
+    .toggle-pass:hover{color:var(--wheat);}
+    .btn-submit{
+      width:100%;
+      background:linear-gradient(135deg, var(--wheat) 0%, var(--gold) 100%);
+      color:var(--ink);
+      border:none;
+      border-radius:8px;
+      padding:0.95rem;
+      font-size:0.8rem;
+      font-weight:600;
+      letter-spacing:1.5px;
+      text-transform:uppercase;
+      cursor:pointer;
+      transition:all 0.25s ease;
+      box-shadow:0 8px 25px rgba(201,169,110,0.25);
+      display:flex;align-items:center;justify-content:center;gap:0.5rem;
+      margin-top:0.6rem;
+    }
+    .btn-submit:hover:not(:disabled){
+      transform:translateY(-2px);
+      box-shadow:0 12px 30px rgba(201,169,110,0.35);
+      filter:brightness(1.05);
+    }
+    .btn-submit:disabled{
+      opacity:0.65;
+      cursor:not-allowed;
+    }
+    .alert-banner{
+      background:rgba(239,68,68,0.12);
+      border:1px solid rgba(239,68,68,0.3);
+      color:#fca5a5;
+      border-radius:8px;
+      padding:0.75rem 1rem;
+      font-size:0.76rem;
+      display:none;
+      align-items:center;gap:0.6rem;
+      margin-bottom:1.3rem;
+      line-height:1.4;
+    }
+    .login-footer{
+      text-align:center;
+      margin-top:1.8rem;
+      font-size:0.68rem;
+      color:rgba(245,240,232,0.25);
+      letter-spacing:0.5px;
+    }
+    .login-footer i{color:var(--wheat);margin-right:0.2rem;}
+  </style>
+</head>
+<body>
+
+  <div class="login-container">
+    <div class="brand-crest">
+      <div class="crest-icon"><i class="fas fa-landmark"></i></div>
+      <h1 class="brand-title">Evan-e-Hakimi</h1>
+      <div style="font-family:'Cinzel',serif;font-size:0.95rem;letter-spacing:2px;color:rgba(245,240,232,0.7);margin-top:0.2rem;">&amp; Qadri Hall</div>
+      <p class="brand-sub">Hall Management Software</p>
+      <div class="hall-pill"><i class="fas fa-lock" style="font-size:0.55rem"></i> Authorized Staff Access</div>
+    </div>
+
+    <div class="login-card">
+      <h2 class="card-heading">Management Sign In</h2>
+      <p class="card-desc">Enter your manager credentials to access bookings, calendar, staff, and financial reports.</p>
+
+      <div class="alert-banner" id="errBanner">
+        <i class="fas fa-exclamation-circle"></i>
+        <span id="errMsg">Invalid credentials. Please try again.</span>
+      </div>
+
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label class="form-label" for="username">Manager Username</label>
+          <div class="input-wrapper">
+            <input type="text" id="username" class="form-input" placeholder="Enter username" autocomplete="username" required autofocus>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <div class="input-wrapper">
+            <input type="password" id="password" class="form-input" placeholder="Enter password" autocomplete="current-password" required style="padding-right:2.5rem;">
+            <button type="button" class="toggle-pass" onclick="togglePassword()" title="Toggle password visibility">
+              <i class="fas fa-eye" id="eyeIcon"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" id="submitBtn" class="btn-submit">
+          <span>Sign In to Dashboard</span>
+          <i class="fas fa-arrow-right" style="font-size:0.75rem"></i>
+        </button>
+      </form>
+    </div>
+
+    <div class="login-footer">
+      <i class="fas fa-shield-alt"></i> Protected internal system &bull; Evan-e-Hakimi &amp; Qadri Hall
+    </div>
+  </div>
+
+  <script>
+    // Check if user is already authenticated
+    (function checkExistingSession() {
+      const token = localStorage.getItem('mjc_admin_token') || sessionStorage.getItem('mjc_admin_token');
+      if (token) {
+        fetch('/api/admin/me', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        }).then(res => {
+          if (res.ok) {
+            window.location.replace('/admin');
+          } else {
+            localStorage.removeItem('mjc_admin_token');
+            localStorage.removeItem('mjc_admin');
+            sessionStorage.removeItem('mjc_admin_token');
+            sessionStorage.removeItem('mjc_admin');
+          }
+        }).catch(() => {
+          // If network error, allow user to log in fresh
+        });
+      }
+    })();
+
+    function togglePassword() {
+      const pwd = document.getElementById('password');
+      const icon = document.getElementById('eyeIcon');
+      if (pwd.type === 'password') {
+        pwd.type = 'text';
+        icon.className = 'fas fa-eye-slash';
+      } else {
+        pwd.type = 'password';
+        icon.className = 'fas fa-eye';
+      }
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const u = document.getElementById('username').value.trim();
+      const p = document.getElementById('password').value;
+      const btn = document.getElementById('submitBtn');
+      const errBanner = document.getElementById('errBanner');
+      const errMsg = document.getElementById('errMsg');
+
+      if (!u || !p) {
+        errMsg.textContent = 'Please enter both username and password.';
+        errBanner.style.display = 'flex';
+        return;
+      }
+
+      errBanner.style.display = 'none';
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating...';
+
+      try {
+        const response = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: u, password: p })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.token) {
+          // Store token in both localStorage (persists across refresh) and sessionStorage
+          localStorage.setItem('mjc_admin', '1');
+          localStorage.setItem('mjc_admin_token', data.token);
+          sessionStorage.setItem('mjc_admin', '1');
+          sessionStorage.setItem('mjc_admin_token', data.token);
+
+          btn.innerHTML = '<i class="fas fa-check"></i> Redirecting...';
+          window.location.replace('/admin');
+        } else {
+          errMsg.textContent = data.error || data.message || 'Invalid username or password.';
+          errBanner.style.display = 'flex';
+          btn.disabled = false;
+          btn.innerHTML = '<span>Sign In to Dashboard</span> <i class="fas fa-arrow-right" style="font-size:0.75rem"></i>';
+        }
+      } catch (err) {
+        console.error('Login error:', err);
+        errMsg.textContent = 'Unable to connect to authentication server. Please check your internet connection.';
+        errBanner.style.display = 'flex';
+        btn.disabled = false;
+        btn.innerHTML = '<span>Sign In to Dashboard</span> <i class="fas fa-arrow-right" style="font-size:0.75rem"></i>';
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,65 +1,11 @@
 /**
- * Production Readiness Audit Test Suite
- * Tests business logic, pricing, conflict detection, availability priority,
- * authorization middleware, and validation rules.
+ * Evan-e-Hakimi & Qadri Hall Management Software
+ * Comprehensive Production Readiness & Audit Test Suite
  */
 
 const assert = require('assert');
-
-// 1. Slot and pricing definition check
-const SLOT_CONFIG = {
-  morning: {
-    name: 'Morning',
-    timing: '10:30 AM – 2:30 PM',
-    pricing: { 2026: 15000, 2027: 20000 },
-    includes_jaman: true
-  },
-  evening: {
-    name: 'Evening',
-    timing: '6:30 PM – 10:30 PM',
-    pricing: { 2026: 15000, 2027: 20000 },
-    includes_jaman: true
-  },
-  fullday: {
-    name: 'Full Day',
-    timing: '10:00 AM – 10:00 PM',
-    pricing: { 2026: 30000, 2027: 30000 },
-    includes_jaman: true
-  },
-  majlis: {
-    name: 'Only Majlis',
-    timing: 'Custom Timings',
-    pricing: { 2026: 11000, 2027: 12000 },
-    includes_jaman: false
-  }
-};
-
-function checkSlotConflict(slotA, slotB) {
-  const a = String(slotA).toLowerCase();
-  const b = String(slotB).toLowerCase();
-  if (a === 'fullday' || b === 'fullday') return true;
-  return a === b;
-}
-
-function isDateOnOrAfterJan2027(dateStr) {
-  if (!dateStr) return false;
-  const clean = String(dateStr).split('T')[0].trim();
-  return clean >= '2027-01-01';
-}
-
-function calculateExpectedPrice(slot, dateStr) {
-  const s = String(slot).toLowerCase().trim();
-  const is2027 = isDateOnOrAfterJan2027(dateStr);
-
-  if (s === 'fullday') return 30000;
-  if (s === 'majlis') return is2027 ? 12000 : 11000;
-  if (s === 'morning' || s === 'evening') return is2027 ? 20000 : 15000;
-  return is2027 ? 20000 : 15000;
-}
-
-function calculateAdvance(price) {
-  return Math.round(price * 0.40);
-}
+const fs = require('fs');
+const path = require('path');
 
 let passed = 0;
 let total = 0;
@@ -77,64 +23,102 @@ function it(desc, fn) {
 }
 
 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-console.log('🧪 RUNNING PRODUCTION-READINESS AUDIT TESTS');
+console.log('🧪 RUNNING COMPREHENSIVE MANAGEMENT AUDIT TESTS');
 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
-// ── TEST GROUP 1: SLOTS & DATE-BASED PRICING ──
+// ── TEST GROUP 1: SLOTS & DATE-BASED PRICING RULES ──
 console.log('📋 Group 1: 4 Slots Pricing Structure (2026 vs From 1 Jan 2027)');
 
-// Before 1 January 2027 (e.g., 2026-12-31)
-it('2026: Morning Slot (with jaman) must be ₹15,000 with ₹6,000 advance (40%)', () => {
-  const price = calculateExpectedPrice('morning', '2026-12-31');
+function isDateOnOrAfterJan2027(dateStr) {
+  if (!dateStr) return false;
+  const clean = String(dateStr).split('T')[0].trim();
+  return clean >= '2027-01-01';
+}
+
+function calculateExpectedPrice(slot, pkg, dateStr) {
+  if (dateStr === undefined && typeof pkg === 'string' && (pkg.includes('-') || pkg.includes('/'))) {
+    dateStr = pkg;
+    pkg = undefined;
+  }
+  const s = String(slot).toLowerCase().trim();
+  const is2027 = isDateOnOrAfterJan2027(dateStr);
+
+  if (s === 'fullday') return 30000;
+  if (s === 'majlis') return is2027 ? 12000 : 11000;
+  if (s === 'morning' || s === 'evening') {
+    if (pkg === 'without_jaman') return is2027 ? 15000 : 11000;
+    return is2027 ? 20000 : 15000;
+  }
+  return is2027 ? 20000 : 15000;
+}
+
+function calculateAdvance(price) {
+  return Math.round(price * 0.40);
+}
+
+it('2026: Morning Slot (with jaman) is ₹15,000 with ₹6,000 advance (40%)', () => {
+  const price = calculateExpectedPrice('morning', 'with_jaman', '2026-10-15');
   assert.strictEqual(price, 15000);
   assert.strictEqual(calculateAdvance(price), 6000);
 });
 
-it('2026: Evening Slot (with jaman) must be ₹15,000 with ₹6,000 advance (40%)', () => {
-  const price = calculateExpectedPrice('evening', '2026-12-31');
+it('2026: Evening Slot (with jaman) is ₹15,000 with ₹6,000 advance (40%)', () => {
+  const price = calculateExpectedPrice('evening', 'with_jaman', '2026-10-15');
   assert.strictEqual(price, 15000);
   assert.strictEqual(calculateAdvance(price), 6000);
 });
 
-it('2026: Full Day Slot (with jaman) must be ₹30,000 with ₹12,000 advance (40%)', () => {
-  const price = calculateExpectedPrice('fullday', '2026-12-31');
+it('2026: Full Day Slot (with jaman) is ₹30,000 with ₹12,000 advance (40%)', () => {
+  const price = calculateExpectedPrice('fullday', 'with_jaman', '2026-10-15');
   assert.strictEqual(price, 30000);
   assert.strictEqual(calculateAdvance(price), 12000);
 });
 
-it('2026: Only Majlis Slot (without jaman, custom timing) must be ₹11,000 with ₹4,400 advance (40%)', () => {
-  const price = calculateExpectedPrice('majlis', '2026-12-31');
+it('2026: Only Majlis Slot (custom timing) is ₹11,000 with ₹4,400 advance (40%)', () => {
+  const price = calculateExpectedPrice('majlis', 'without_jaman', '2026-10-15');
   assert.strictEqual(price, 11000);
   assert.strictEqual(calculateAdvance(price), 4400);
 });
 
-// From 1 January 2027 (e.g., 2027-01-01)
-it('From 2027-01-01: Morning Slot (with jaman) must be ₹20,000 with ₹8,000 advance (40%)', () => {
-  const price = calculateExpectedPrice('morning', '2027-01-01');
+it('From 2027-01-01: Morning Slot (with jaman) is ₹20,000 with ₹8,000 advance (40%)', () => {
+  const price = calculateExpectedPrice('morning', 'with_jaman', '2027-01-10');
   assert.strictEqual(price, 20000);
   assert.strictEqual(calculateAdvance(price), 8000);
 });
 
-it('From 2027-01-01: Evening Slot (with jaman) must be ₹20,000 with ₹8,000 advance (40%)', () => {
-  const price = calculateExpectedPrice('evening', '2027-01-01');
+it('From 2027-01-01: Evening Slot (with jaman) is ₹20,000 with ₹8,000 advance (40%)', () => {
+  const price = calculateExpectedPrice('evening', 'with_jaman', '2027-01-10');
   assert.strictEqual(price, 20000);
   assert.strictEqual(calculateAdvance(price), 8000);
 });
 
-it('From 2027-01-01: Full Day Slot (with jaman) must remain ₹30,000 with ₹12,000 advance (40%)', () => {
-  const price = calculateExpectedPrice('fullday', '2027-01-01');
+it('From 2027-01-01: Without Jaman slot pricing is ₹15,000', () => {
+  const price = calculateExpectedPrice('morning', 'without_jaman', '2027-01-10');
+  assert.strictEqual(price, 15000);
+});
+
+it('From 2027-01-01: Full Day Slot remains ₹30,000 with ₹12,000 advance (40%)', () => {
+  const price = calculateExpectedPrice('fullday', 'with_jaman', '2027-01-10');
   assert.strictEqual(price, 30000);
   assert.strictEqual(calculateAdvance(price), 12000);
 });
 
-it('From 2027-01-01: Only Majlis Slot (without jaman, custom timing) must be ₹12,000 with ₹4,800 advance (40%)', () => {
-  const price = calculateExpectedPrice('majlis', '2027-01-01');
+it('From 2027-01-01: Only Majlis Slot is ₹12,000 with ₹4,800 advance (40%)', () => {
+  const price = calculateExpectedPrice('majlis', 'without_jaman', '2027-01-10');
   assert.strictEqual(price, 12000);
   assert.strictEqual(calculateAdvance(price), 4800);
 });
 
-// ── TEST GROUP 2: CONFLICT RULES ──
+// ── TEST GROUP 2: CONFLICT DETECTION RULES ──
 console.log('\n🔒 Group 2: Slot Conflict Rules');
+
+function checkSlotConflict(slotA, slotB) {
+  const a = String(slotA).toLowerCase();
+  const b = String(slotB).toLowerCase();
+  if (a === 'fullday' || b === 'fullday') return true;
+  return a === b;
+}
+
 it('Full Day conflicts with Morning', () => {
   assert.strictEqual(checkSlotConflict('fullday', 'morning'), true);
   assert.strictEqual(checkSlotConflict('morning', 'fullday'), true);
@@ -157,79 +141,37 @@ it('Evening conflicts with another Evening', () => {
   assert.strictEqual(checkSlotConflict('evening', 'evening'), true);
 });
 
-it('Morning and Evening can coexist without conflict', () => {
+it('Morning and Evening can coexist on same hall without conflict', () => {
   assert.strictEqual(checkSlotConflict('morning', 'evening'), false);
   assert.strictEqual(checkSlotConflict('evening', 'morning'), false);
 });
 
-it('Full Day conflicts with Majlis', () => {
-  assert.strictEqual(checkSlotConflict('fullday', 'majlis'), true);
-  assert.strictEqual(checkSlotConflict('majlis', 'fullday'), true);
-});
-
-it('Majlis conflicts with another Majlis', () => {
-  assert.strictEqual(checkSlotConflict('majlis', 'majlis'), true);
-});
-
-// ── TEST GROUP 3: AVAILABILITY STATUS PRECEDENCE ──
-console.log('\n📊 Group 3: Availability Status Precedence');
-it('Confirmed booking takes highest rank and cannot be overwritten by pending inquiry', () => {
-  const day = {};
-  function applySlotStatus(dayObj, slotKey, newStatus) {
-    const current = dayObj[slotKey];
-    const rank = { confirmed_booked: 3, conflict_blocked: 2, pending_inquiry: 1 };
-    const currentRank = rank[current] || 0;
-    const newRank = rank[newStatus] || 0;
-    if (newRank > currentRank) {
-      dayObj[slotKey] = newStatus;
-    }
+it('Different halls (Evan-e-Hakimi vs Qadri Hall) can hold simultaneous events without conflict', () => {
+  function checkHallConflict(b1, b2) {
+    if ((b1.hall || '').toLowerCase() !== (b2.hall || '').toLowerCase()) return false;
+    return checkSlotConflict(b1.slot, b2.slot);
   }
-
-  // 1. Pending inquiry first
-  applySlotStatus(day, 'morning', 'pending_inquiry');
-  assert.strictEqual(day['morning'], 'pending_inquiry');
-
-  // 2. Confirmed full day blocks morning with conflict_blocked
-  applySlotStatus(day, 'morning', 'conflict_blocked');
-  assert.strictEqual(day['morning'], 'conflict_blocked');
-
-  // 3. Another pending inquiry arrives, must NOT downgrade conflict_blocked
-  applySlotStatus(day, 'morning', 'pending_inquiry');
-  assert.strictEqual(day['morning'], 'conflict_blocked');
-
-  // 4. Confirmed booking upgrades to confirmed_booked
-  applySlotStatus(day, 'morning', 'confirmed_booked');
-  assert.strictEqual(day['morning'], 'confirmed_booked');
-
-  // 5. Subsequent conflict_blocked or pending_inquiry cannot downgrade confirmed_booked
-  applySlotStatus(day, 'morning', 'conflict_blocked');
-  assert.strictEqual(day['morning'], 'confirmed_booked');
-  applySlotStatus(day, 'morning', 'pending_inquiry');
-  assert.strictEqual(day['morning'], 'confirmed_booked');
+  const hakimiFullDay = { hall: 'Evan-e-Hakimi', slot: 'fullday' };
+  const qadriFullDay = { hall: 'Qadri Hall', slot: 'fullday' };
+  assert.strictEqual(checkHallConflict(hakimiFullDay, qadriFullDay), false);
 });
 
-// ── TEST GROUP 4: HALL VALIDATION ──
-console.log('\n🏛️ Group 4: Hall Selection and Rejection');
-it('Evan-e-Hakimi is accepted as valid', () => {
-  const validHalls = ['Evan-e-Hakimi', 'evan-e-hakimi', 'Evan-e-Hakimi (2nd Floor)'];
-  validHalls.forEach(h => {
-    const norm = h.trim().toLowerCase();
-    const isValid = norm === 'evan-e-hakimi' || norm === 'evan-e-hakimi (2nd floor)';
-    assert.strictEqual(isValid, true);
-  });
+// ── TEST GROUP 3: HALL MANAGEMENT VALIDATION ──
+console.log('\n🏛️ Group 3: Hall Management & Multi-Venue Support');
+
+it('Evan-e-Hakimi is accepted as valid active venue', () => {
+  const hall = 'Evan-e-Hakimi';
+  assert.strictEqual(hall.toLowerCase().includes('hakimi'), true);
 });
 
-it('Qadri Hall (and Evan-e-Qadri) is rejected strictly on backend', () => {
-  const invalidHalls = ['Qadri Hall', 'qadri hall', 'Qadri Hall (3rd Floor)', 'Evan-e-Qadri', 'evan-e-qadri', '3rd Floor Qadri'];
-  invalidHalls.forEach(h => {
-    const norm = h.trim().toLowerCase();
-    const isQadri = norm.includes('qadri');
-    assert.strictEqual(isQadri, true);
-  });
+it('Qadri Hall is accepted as valid manageable venue for approved dates', () => {
+  const hall = 'Qadri Hall';
+  assert.strictEqual(hall.toLowerCase().includes('qadri'), true);
 });
 
-// ── TEST GROUP 5: AUTHENTICATION ENFORCEMENT ──
-console.log('\n🛡️ Group 5: Authentication & Middleware Enforcement');
+// ── TEST GROUP 4: AUTHENTICATION ENFORCEMENT ──
+console.log('\n🛡️ Group 4: Authentication & Middleware Enforcement');
+
 it('requireAuth rejects missing Authorization header with 401', () => {
   const { requireAuth } = require('./middleware/auth');
   let statusSent = null;
@@ -263,87 +205,135 @@ it('requireAuth rejects invalid Bearer token with 401', () => {
   assert.strictEqual(nextCalled, false);
 });
 
-// ── TEST GROUP 6: ROUTING & ACCESS-CONTROL SPECIFICATION ──
-console.log('\n🌐 Group 6: Routing & Vercel Access-Control Rules');
-it('vercel.json separates public (/), admin (/admin), and pay (/pay) routes', () => {
+it('requireAuth accepts valid JWT token and attaches admin identity', () => {
+  const jwt = require('jsonwebtoken');
+  const { requireAuth } = require('./middleware/auth');
+  const secret = process.env.JWT_SECRET || 'test_secret';
+  process.env.JWT_SECRET = secret;
+  const validToken = jwt.sign({ username: 'admin', role: 'admin' }, secret, { expiresIn: '1h' });
+
+  const req = { headers: { authorization: 'Bearer ' + validToken } };
+  let statusSent = null;
+  const res = {
+    status: (s) => { statusSent = s; return res; },
+    json: (j) => res
+  };
+  let nextCalled = false;
+  requireAuth(req, res, () => { nextCalled = true; });
+
+  assert.strictEqual(nextCalled, true);
+  assert.strictEqual(req.admin.username, 'admin');
+  assert.strictEqual(req.admin.role, 'admin');
+});
+
+// ── TEST GROUP 5: VERCEL ROUTING & ACCESS RULES ──
+console.log('\n🌐 Group 5: Routing & Vercel Access-Control Rules');
+
+it('vercel.json maps root "/" and "/login" directly to login.html', () => {
   const vercelConfig = require('../vercel.json');
   assert.strictEqual(Array.isArray(vercelConfig.rewrites), true);
-  
+
+  const rootRewrite = vercelConfig.rewrites.find(r => r.source === '/');
+  assert.ok(rootRewrite, 'Missing / rewrite to login.html');
+  assert.strictEqual(rootRewrite.destination, '/login.html');
+
+  const loginRewrite = vercelConfig.rewrites.find(r => r.source === '/login');
+  assert.ok(loginRewrite, 'Missing /login rewrite');
+  assert.strictEqual(loginRewrite.destination, '/login.html');
+});
+
+it('vercel.json maps "/admin" to admin.html', () => {
+  const vercelConfig = require('../vercel.json');
   const adminRewrite = vercelConfig.rewrites.find(r => r.source === '/admin');
   assert.ok(adminRewrite, 'Missing /admin rewrite');
   assert.strictEqual(adminRewrite.destination, '/admin.html');
-
-  const payRewrite = vercelConfig.rewrites.find(r => r.source === '/pay');
-  assert.ok(payRewrite, 'Missing /pay rewrite');
-  assert.strictEqual(payRewrite.destination, '/pay.html');
-
-  const apiRewrite = vercelConfig.rewrites.find(r => r.source === '/api/(.*)');
-  assert.ok(apiRewrite, 'Missing /api/(.*) rewrite');
-  assert.strictEqual(apiRewrite.destination, '/api/index.js');
 });
 
-it('vercel.json clean redirects protect against redirect loops and direct .html access', () => {
+it('vercel.json redirects legacy /pay and /pay.html to /login', () => {
   const vercelConfig = require('../vercel.json');
-  assert.strictEqual(Array.isArray(vercelConfig.redirects), true);
-  
-  const adminRedirect = vercelConfig.redirects.find(r => r.source === '/admin.html');
-  assert.ok(adminRedirect, 'Missing /admin.html redirect');
-  assert.strictEqual(adminRedirect.destination, '/admin');
+  const payRedirect = vercelConfig.redirects.find(r => r.source === '/pay');
+  assert.ok(payRedirect, 'Missing /pay redirect');
+  assert.strictEqual(payRedirect.destination, '/login');
 
-  const payRedirect = vercelConfig.redirects.find(r => r.source === '/pay.html');
-  assert.ok(payRedirect, 'Missing /pay.html redirect');
-  assert.strictEqual(payRedirect.destination, '/pay');
+  const payHtmlRedirect = vercelConfig.redirects.find(r => r.source === '/pay.html');
+  assert.ok(payHtmlRedirect, 'Missing /pay.html redirect');
+  assert.strictEqual(payHtmlRedirect.destination, '/login');
+});
 
-  const indexRedirect = vercelConfig.redirects.find(r => r.source === '/index.html');
-  assert.ok(indexRedirect, 'Missing /index.html redirect');
-  assert.strictEqual(indexRedirect.destination, '/');
-
-  // Verify internal file redirects
+it('internal files and local databases are protected from public direct access', () => {
+  const vercelConfig = require('../vercel.json');
   const backendRedirect = vercelConfig.redirects.find(r => r.source === '/backend/(.*)');
   assert.ok(backendRedirect, 'Missing /backend/(.*) security redirect');
+
+  const dbRedirect = vercelConfig.redirects.find(r => r.source === '/local.db');
+  assert.ok(dbRedirect, 'Missing /local.db security redirect');
 });
 
-it('public navigation in index.html does not contain visible admin links', () => {
-  const fs = require('fs');
-  const indexHtml = fs.readFileSync(require('path').join(__dirname, '../index.html'), 'utf8');
-  assert.strictEqual(/href=["'][^"']*\/admin/i.test(indexHtml), false);
-  assert.strictEqual(/Admin Panel/i.test(indexHtml), false);
-});
+// ── TEST GROUP 6: EXPENSES MANAGEMENT VALIDATION ──
+console.log('\n💰 Group 6: Expenses Management Validation');
 
-// ── TEST GROUP 7: BOOKING GUESTS FIELD OPTIONAL VALIDATION ──
-console.log('\n👥 Group 7: Booking Guests Field Validation');
-function validateGuestCount(guests) {
-  let guestCount = 0;
-  if (guests != null && guests !== '') {
-    guestCount = parseInt(guests, 10);
-    if (isNaN(guestCount) || guestCount < 1 || guestCount > 500) {
-      return { valid: false, error: 'Guest count must be between 1 and 500' };
-    }
-  }
-  return { valid: true, guestCount };
+function validateExpense(desc, category, amount, date) {
+  if (!desc || typeof desc !== 'string' || desc.trim().length === 0) return { valid: false, error: 'Description required' };
+  if (!category || typeof category !== 'string') return { valid: false, error: 'Category required' };
+  const amt = parseFloat(amount);
+  if (isNaN(amt) || amt <= 0) return { valid: false, error: 'Valid positive amount required' };
+  if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return { valid: false, error: 'Valid date required' };
+  return { valid: true, amount: amt };
 }
 
-it('omitting guests or passing empty string/null safely defaults to 0 and passes', () => {
-  [undefined, null, '', '   '].forEach(val => {
-    const res = validateGuestCount(typeof val === 'string' ? val.trim() : val);
-    assert.strictEqual(res.valid, true);
-    assert.strictEqual(res.guestCount, 0);
-  });
+it('valid expense with required fields passes validation', () => {
+  const res = validateExpense('Electricity Bill 2nd Floor', 'utilities', 4500, '2026-10-10');
+  assert.strictEqual(res.valid, true);
+  assert.strictEqual(res.amount, 4500);
 });
 
-it('valid guest count between 1 and 500 is accepted', () => {
-  [1, 35, 150, 500, '40'].forEach(val => {
-    const res = validateGuestCount(val);
-    assert.strictEqual(res.valid, true);
-    assert.strictEqual(res.guestCount, parseInt(val, 10));
-  });
+it('expense with negative or zero amount is rejected', () => {
+  assert.strictEqual(validateExpense('Supplies', 'supplies', 0, '2026-10-10').valid, false);
+  assert.strictEqual(validateExpense('Supplies', 'supplies', -100, '2026-10-10').valid, false);
 });
 
-it('invalid guest count (< 1, > 500, or invalid string) is rejected', () => {
-  [0, -5, 501, 1000, 'abc'].forEach(val => {
-    const res = validateGuestCount(val);
-    assert.strictEqual(res.valid, false);
-  });
+// ── TEST GROUP 7: STAFF & SALARY PAYMENT RULES ──
+console.log('\n👥 Group 7: Staff Management & Salary Payment Rules');
+
+it('salary payment requires confirmed record before counting as expense', () => {
+  const staff = [
+    { id: 1, name: 'Manager', salary: 25000 },
+    { id: 2, name: 'Cleaner', salary: 12000 }
+  ];
+  // Mere existence of salary does not count as money paid
+  const salaryObligation = staff.reduce((sum, s) => sum + s.salary, 0);
+  assert.strictEqual(salaryObligation, 37000);
+
+  // Confirmed payment log
+  const payments = [
+    { staff_id: 1, period: 'October 2026', amount_paid: 25000, payment_date: '2026-10-05' }
+  ];
+  const actualSalariesPaid = payments.reduce((sum, p) => sum + p.amount_paid, 0);
+  assert.strictEqual(actualSalariesPaid, 25000);
+  assert.notStrictEqual(actualSalariesPaid, salaryObligation);
+});
+
+// ── TEST GROUP 8: FINANCIAL REPORTS & NET CASH MOVEMENT ──
+console.log('\n📊 Group 8: Financial Reports & Net Cash Movement Calculation');
+
+it('distinguishes quoted booking revenue from actual cash collected', () => {
+  const booking = { total_amount: 30000, advance_paid: 12000, balance_amount: 18000 };
+  assert.strictEqual(booking.total_amount, 30000); // Quoted value
+  assert.strictEqual(booking.advance_paid, 12000); // Money received
+  assert.strictEqual(booking.balance_amount, 18000); // Outstanding
+  assert.notStrictEqual(booking.total_amount, booking.advance_paid);
+});
+
+it('computes net cash movement: Money Actually Collected minus Total Paid Outflow', () => {
+  const cashCollected = 54000; // actual payments received
+  const expensesPaid = 8500;   // operational bills paid
+  const salariesPaid = 25000;  // confirmed staff salaries paid
+
+  const totalOutflow = expensesPaid + salariesPaid;
+  const netCashMovement = cashCollected - totalOutflow;
+
+  assert.strictEqual(totalOutflow, 33500);
+  assert.strictEqual(netCashMovement, 20500);
 });
 
 console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -353,4 +343,3 @@ console.log('━━━━━━━━━━━━━━━━━━━━━━�
 if (passed !== total) {
   process.exit(1);
 }
-

@@ -14,7 +14,7 @@ async function migrate() {
         email TEXT,
         check_in TEXT NOT NULL,
         check_out TEXT NOT NULL,
-        guests INTEGER NOT NULL,
+        guests INTEGER DEFAULT 0,
         total_amount REAL NOT NULL,
         occasion TEXT,
         notes TEXT,
@@ -27,49 +27,44 @@ async function migrate() {
         advance_verified INTEGER DEFAULT 0,
         payment_status TEXT DEFAULT 'not_paid',
         payment_notes TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        payment_method TEXT DEFAULT 'UPI',
+        balance_amount REAL DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP
       )
     `);
 
-    // 1.1 Safely ensure all columns exist (idempotent for existing SQLite / Turso databases)
-    const tableInfo = await db.execute("PRAGMA table_info(bookings)");
-    const existingCols = (tableInfo.rows || []).map(r => r.name);
+    // 1.1 Safely ensure all columns exist on bookings table
+    const bookingsInfo = await db.execute("PRAGMA table_info(bookings)");
+    const existingBookingCols = (bookingsInfo.rows || []).map(r => r.name);
 
-    if (!existingCols.includes('advance_amount')) {
-      console.log('Adding advance_amount column to bookings...');
-      await db.execute("ALTER TABLE bookings ADD COLUMN advance_amount REAL DEFAULT 0");
-    }
-    if (!existingCols.includes('advance_paid')) {
-      console.log('Adding advance_paid column to bookings...');
-      await db.execute("ALTER TABLE bookings ADD COLUMN advance_paid REAL DEFAULT 0");
-    }
-    if (!existingCols.includes('advance_verified')) {
-      console.log('Adding advance_verified column to bookings...');
-      await db.execute("ALTER TABLE bookings ADD COLUMN advance_verified INTEGER DEFAULT 0");
-    }
-    if (!existingCols.includes('payment_status')) {
-      console.log('Adding payment_status column to bookings...');
-      await db.execute("ALTER TABLE bookings ADD COLUMN payment_status TEXT DEFAULT 'not_paid'");
-    }
-    if (!existingCols.includes('payment_notes')) {
-      console.log('Adding payment_notes column to bookings...');
-      await db.execute("ALTER TABLE bookings ADD COLUMN payment_notes TEXT");
-    }
-    if (!existingCols.includes('hall')) {
-      console.log('Adding hall column to bookings...');
-      await db.execute("ALTER TABLE bookings ADD COLUMN hall TEXT DEFAULT 'Evan-e-Hakimi'");
-    }
-    if (!existingCols.includes('package')) {
-      console.log('Adding package column to bookings...');
-      await db.execute("ALTER TABLE bookings ADD COLUMN package TEXT DEFAULT 'without_jaman'");
+    const bookingColsToAdd = [
+      { name: 'advance_amount', def: 'REAL DEFAULT 0' },
+      { name: 'advance_paid', def: 'REAL DEFAULT 0' },
+      { name: 'advance_verified', def: 'INTEGER DEFAULT 0' },
+      { name: 'payment_status', def: "TEXT DEFAULT 'not_paid'" },
+      { name: 'payment_notes', def: 'TEXT' },
+      { name: 'payment_method', def: "TEXT DEFAULT 'UPI'" },
+      { name: 'balance_amount', def: 'REAL DEFAULT 0' },
+      { name: 'hall', def: "TEXT DEFAULT 'Evan-e-Hakimi'" },
+      { name: 'package', def: "TEXT DEFAULT 'without_jaman'" },
+      { name: 'updated_at', def: 'TIMESTAMP' }
+    ];
+
+    for (const col of bookingColsToAdd) {
+      if (!existingBookingCols.includes(col.name)) {
+        console.log(`Adding ${col.name} column to bookings...`);
+        await db.execute(`ALTER TABLE bookings ADD COLUMN ${col.name} ${col.def}`);
+      }
     }
 
-    // Backfill any legacy records with null hall, package, or advance_amount
+    // Backfill legacy records
     await db.execute("UPDATE bookings SET hall = 'Evan-e-Hakimi' WHERE hall IS NULL OR hall = ''");
     await db.execute("UPDATE bookings SET package = 'without_jaman' WHERE package IS NULL OR package = ''");
     await db.execute("UPDATE bookings SET advance_amount = ROUND(total_amount * 0.40) WHERE advance_amount IS NULL OR advance_amount = 0");
+    await db.execute("UPDATE bookings SET balance_amount = ROUND(total_amount - COALESCE(advance_paid, 0)) WHERE balance_amount IS NULL OR balance_amount = 0");
 
-    // 2. Create staff table
+    // 2. Create / Expand staff table
     console.log('Ensuring staff table exists...');
     await db.execute(`
       CREATE TABLE IF NOT EXISTS staff (
@@ -78,20 +73,108 @@ async function migrate() {
         role TEXT NOT NULL,
         salary REAL DEFAULT 0,
         salary_status TEXT DEFAULT 'pending',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        phone TEXT,
+        joining_date TEXT,
+        status TEXT DEFAULT 'active',
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP
       )
     `);
 
-    // 3. Create expenses table
+    const staffInfo = await db.execute("PRAGMA table_info(staff)");
+    const existingStaffCols = (staffInfo.rows || []).map(r => r.name);
+    const staffColsToAdd = [
+      { name: 'phone', def: 'TEXT' },
+      { name: 'joining_date', def: 'TEXT' },
+      { name: 'status', def: "TEXT DEFAULT 'active'" },
+      { name: 'notes', def: 'TEXT' },
+      { name: 'updated_at', def: 'TIMESTAMP' }
+    ];
+
+    for (const col of staffColsToAdd) {
+      if (!existingStaffCols.includes(col.name)) {
+        console.log(`Adding ${col.name} column to staff...`);
+        await db.execute(`ALTER TABLE staff ADD COLUMN ${col.name} ${col.def}`);
+      }
+    }
+
+    // 3. Create / Expand expenses table
     console.log('Ensuring expenses table exists...');
     await db.execute(`
       CREATE TABLE IF NOT EXISTS expenses (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        description TEXT,
         category TEXT NOT NULL,
         amount REAL NOT NULL,
         date TEXT NOT NULL,
-        status TEXT DEFAULT 'unpaid',
+        payment_method TEXT DEFAULT 'Cash',
+        paid_to TEXT,
+        status TEXT DEFAULT 'paid',
         notes TEXT,
+        receipt_url TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP
+      )
+    `);
+
+    const expensesInfo = await db.execute("PRAGMA table_info(expenses)");
+    const existingExpenseCols = (expensesInfo.rows || []).map(r => r.name);
+    const expenseColsToAdd = [
+      { name: 'description', def: 'TEXT' },
+      { name: 'payment_method', def: "TEXT DEFAULT 'Cash'" },
+      { name: 'paid_to', def: 'TEXT' },
+      { name: 'receipt_url', def: 'TEXT' },
+      { name: 'updated_at', def: 'TIMESTAMP' }
+    ];
+
+    for (const col of expenseColsToAdd) {
+      if (!existingExpenseCols.includes(col.name)) {
+        console.log(`Adding ${col.name} column to expenses...`);
+        await db.execute(`ALTER TABLE expenses ADD COLUMN ${col.name} ${col.def}`);
+      }
+    }
+
+    // 4. Create staff_salary_payments table
+    console.log('Ensuring staff_salary_payments table exists...');
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS staff_salary_payments (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        staff_id INTEGER NOT NULL,
+        period TEXT NOT NULL,
+        amount_paid REAL NOT NULL,
+        payment_date TEXT NOT NULL,
+        payment_method TEXT DEFAULT 'Cash',
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // 5. Create booking_payments table
+    console.log('Ensuring booking_payments table exists...');
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS booking_payments (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        booking_id INTEGER NOT NULL,
+        amount REAL NOT NULL,
+        payment_type TEXT DEFAULT 'advance',
+        payment_method TEXT DEFAULT 'UPI',
+        payment_date TEXT NOT NULL,
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // 6. Create audit_logs table
+    console.log('Ensuring audit_logs table exists...');
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS audit_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        action TEXT NOT NULL,
+        entity_type TEXT NOT NULL,
+        entity_id INTEGER,
+        details TEXT,
+        user TEXT DEFAULT 'admin',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
