@@ -114,25 +114,17 @@ async function logAudit(action, entityType, entityId, details, user = 'admin') {
    (Internal Management Software — No Public Website)
 ═══════════════════════════════════════════ */
 
-// 1. Clean URL redirects for legacy paths
+// 1. Clean URL redirects
 app.get('/index.html', (req, res) => res.redirect(302, '/'));
-app.get('/pay.html', (req, res) => res.redirect(302, '/login'));
-app.get('/pay', (req, res) => res.redirect(302, '/login'));
+app.get('/login', (req, res) => res.redirect(302, '/admin'));
+app.get('/login.html', (req, res) => res.redirect(302, '/admin'));
 
-// 2. Canonical routes: Root '/' and '/login' serve the login page
-app.get('/', (req, res) => {
-  const loginPath = path.join(rootDir, 'login.html');
-  if (fs.existsSync(loginPath)) return res.sendFile(loginPath);
-  res.sendFile(path.join(rootDir, 'admin.html'));
-});
+// 2. Public customer website routes
+app.get('/', (req, res) => res.sendFile(path.join(rootDir, 'index.html')));
+app.get('/pay', (req, res) => res.sendFile(path.join(rootDir, 'pay.html')));
+app.get('/pay.html', (req, res) => res.sendFile(path.join(rootDir, 'pay.html')));
 
-app.get('/login', (req, res) => {
-  const loginPath = path.join(rootDir, 'login.html');
-  if (fs.existsSync(loginPath)) return res.sendFile(loginPath);
-  res.sendFile(path.join(rootDir, 'admin.html'));
-});
-
-// 3. Protected dashboard route
+// 3. Admin portal route (serves Admin sign-in when unauthenticated, dashboard when authenticated)
 app.get(/^\/admin(\/.*)?$/, (req, res) => res.sendFile(path.join(rootDir, 'admin.html')));
 
 // 3.1 PWA & Service Worker endpoints

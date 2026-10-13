@@ -314,14 +314,277 @@
       .sidebar-overlay.open{display:block;}
       .main-wrapper{margin-left:0;}
       .mobile-menu-btn{display:inline-flex;}
-      .content-area{padding:1.2rem;}
-      .form-row{grid-template-columns:1fr;}
     }
+
+    /* ── ADMIN AUTH SCREEN (SHOWN WHEN UNAUTHENTICATED) ── */
+    #adminAuthScreen{
+      display:none;
+      width:100%;
+      min-height:100vh;
+      align-items:center;
+      justify-content:center;
+      padding:1.5rem;
+      background:radial-gradient(ellipse at 50% 20%, #1c130b 0%, var(--soil) 60%, var(--ink) 100%);
+      box-sizing:border-box;
+      z-index:9999;
+      position:relative;
+    }
+    .login-container{
+      width:100%;
+      max-width:420px;
+      position:relative;
+      animation:popIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .brand-crest{
+      text-align:center;
+      margin-bottom:1.8rem;
+    }
+    .crest-icon{
+      display:inline-flex;align-items:center;justify-content:center;
+      width:58px;height:58px;
+      border-radius:50%;
+      background:rgba(201,169,110,0.08);
+      border:1px solid rgba(201,169,110,0.25);
+      color:var(--wheat);
+      font-size:1.4rem;
+      margin-bottom:1rem;
+      box-shadow:0 0 25px rgba(201,169,110,0.15);
+    }
+    .brand-title{
+      font-family:'Cinzel',serif;
+      font-size:1.15rem;
+      letter-spacing:2px;
+      color:var(--wheat);
+      line-height:1.35;
+    }
+    .hall-pill{
+      display:inline-flex;align-items:center;gap:0.4rem;
+      font-size:0.62rem;letter-spacing:1.5px;text-transform:uppercase;
+      background:rgba(201,169,110,0.09);
+      border:1px solid rgba(201,169,110,0.22);
+      border-radius:20px;padding:0.35rem 0.9rem;
+      color:var(--wheat);
+      margin-top:0.8rem;
+    }
+    .login-card{
+      background:rgba(18,13,8,0.85);
+      border:1px solid var(--glass-border);
+      border-radius:18px;
+      padding:2.4rem 2.2rem;
+      box-shadow:0 30px 70px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.05);
+      backdrop-filter:blur(12px);
+      -webkit-backdrop-filter:blur(12px);
+    }
+    .card-heading{
+      font-family:'Cormorant Garamond',serif;
+      font-size:1.45rem;
+      font-weight:400;
+      color:var(--cream);
+      margin-bottom:0.3rem;
+    }
+    .card-desc{
+      font-size:0.75rem;
+      color:rgba(245,240,232,0.45);
+      margin-bottom:1.6rem;
+      line-height:1.5;
+    }
+    .input-wrapper{
+      position:relative;
+      display:flex;width:100%;
+    }
+    .form-input{
+      width:100%;
+      background:rgba(255,255,255,0.04);
+      border:1px solid rgba(201,169,110,0.18);
+      border-radius:8px;
+      padding:0.85rem 1rem;
+      color:var(--cream);
+      font-family:'DM Sans',sans-serif;
+      font-size:0.9rem;
+      outline:none;
+      transition:all 0.2s ease;
+    }
+    .form-input:focus{
+      border-color:rgba(201,169,110,0.6);
+      background:rgba(255,255,255,0.06);
+      box-shadow:0 0 0 3px rgba(201,169,110,0.12);
+    }
+    .form-input::placeholder{
+      color:rgba(245,240,232,0.22);
+    }
+    .toggle-pass{
+      position:absolute;right:12px;top:50%;transform:translateY(-50%);
+      background:none;border:none;color:rgba(245,240,232,0.35);
+      cursor:pointer;padding:6px;font-size:0.85rem;
+      transition:color 0.2s;outline:none;
+    }
+    .toggle-pass:hover{color:var(--wheat);}
+    .btn-submit{
+      width:100%;
+      background:linear-gradient(135deg, var(--wheat) 0%, var(--gold) 100%);
+      color:var(--ink);
+      border:none;
+      border-radius:8px;
+      padding:0.95rem;
+      font-size:0.8rem;
+      font-weight:600;
+      letter-spacing:1.5px;
+      text-transform:uppercase;
+      cursor:pointer;
+      transition:all 0.25s ease;
+      box-shadow:0 8px 25px rgba(201,169,110,0.25);
+      display:flex;align-items:center;justify-content:center;gap:0.5rem;
+      margin-top:0.6rem;
+    }
+    .btn-submit:hover:not(:disabled){
+      transform:translateY(-2px);
+      box-shadow:0 12px 30px rgba(201,169,110,0.35);
+      filter:brightness(1.05);
+    }
+    .btn-submit:disabled{
+      opacity:0.65;
+      cursor:not-allowed;
+    }
+    .alert-banner{
+      background:rgba(239,68,68,0.12);
+      border:1px solid rgba(239,68,68,0.3);
+      color:#fca5a5;
+      border-radius:8px;
+      padding:0.75rem 1rem;
+      font-size:0.76rem;
+      display:none;
+      align-items:center;gap:0.6rem;
+      margin-bottom:1.3rem;
+      line-height:1.4;
+    }
+    .login-footer{
+      text-align:center;
+      margin-top:1.8rem;
+      font-size:0.68rem;
+      color:rgba(245,240,232,0.25);
+      letter-spacing:0.5px;
+    }
+    .login-footer i{color:var(--wheat);margin-right:0.2rem;}
+
+    /* PWA Install UI */
+    .btn-install{
+      width:100%;
+      background:rgba(201,169,110,0.08);
+      border:1px solid rgba(201,169,110,0.32);
+      color:var(--wheat);
+      border-radius:8px;
+      padding:0.78rem 1rem;
+      font-size:0.75rem;
+      font-weight:600;
+      letter-spacing:1px;
+      text-transform:uppercase;
+      cursor:pointer;
+      display:flex;align-items:center;justify-content:center;gap:0.6rem;
+      transition:all 0.22s ease;
+      font-family:'DM Sans',sans-serif;
+    }
+    .btn-install:hover{
+      background:rgba(201,169,110,0.18);
+      border-color:var(--wheat);
+      transform:translateY(-1px);
+      box-shadow:0 6px 18px rgba(201,169,110,0.18);
+      color:var(--cream);
+    }
+    .ios-install-box{
+      background:rgba(201,169,110,0.06);
+      border:1px solid rgba(201,169,110,0.22);
+      border-radius:8px;
+      padding:0.8rem 1rem;
+      text-align:left;
+    }
+    .ios-install-header{
+      display:flex;align-items:center;justify-content:space-between;
+      font-size:0.7rem;font-weight:600;letter-spacing:1px;
+      text-transform:uppercase;color:var(--wheat);
+      margin-bottom:0.35rem;
+    }
+    .ios-install-desc{
+      font-size:0.72rem;line-height:1.45;color:rgba(245,240,232,0.65);
+      margin:0;
+    }
+    .btn-close-ios{
+      background:none;border:none;color:rgba(245,240,232,0.4);
+      font-size:1.1rem;cursor:pointer;line-height:1;padding:0 4px;
+    }
+    .btn-close-ios:hover{color:var(--cream);}
   </style>
 </head>
 <body>
 
-  <!-- SIDEBAR -->
+  <!-- ADMIN AUTHENTICATION SCREEN (Shown when unauthenticated at /admin) -->
+  <div id="adminAuthScreen">
+    <div class="login-container">
+      <div class="brand-crest">
+        <div class="crest-icon"><i class="fas fa-landmark"></i></div>
+        <h1 class="brand-title">Evan-e-Hakimi &amp; Qadri Hall Management System</h1>
+        <div class="hall-pill"><i class="fas fa-lock" style="font-size:0.55rem"></i> Admin Access Only</div>
+      </div>
+
+      <div class="login-card">
+        <h2 class="card-heading">Admin Sign In</h2>
+        <p class="card-desc">Sign in to access the hall management dashboard.</p>
+
+        <div class="alert-banner" id="adminErrBanner">
+          <i class="fas fa-exclamation-circle"></i>
+          <span id="adminErrMsg">Invalid credentials. Please try again.</span>
+        </div>
+
+        <form id="adminLoginForm" onsubmit="handleAdminLogin(event)">
+          <div class="form-group" style="margin-bottom:1.2rem;">
+            <label class="form-label" for="adminUsername" style="display:block;font-size:0.64rem;letter-spacing:1.5px;text-transform:uppercase;color:rgba(245,240,232,0.5);font-weight:500;margin-bottom:0.4rem;">Admin Username</label>
+            <div class="input-wrapper">
+              <input type="text" id="adminUsername" class="form-input" placeholder="Enter admin username" autocomplete="username" required autofocus>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom:1.2rem;">
+            <label class="form-label" for="adminPassword" style="display:block;font-size:0.64rem;letter-spacing:1.5px;text-transform:uppercase;color:rgba(245,240,232,0.5);font-weight:500;margin-bottom:0.4rem;">Admin Password</label>
+            <div class="input-wrapper">
+              <input type="password" id="adminPassword" class="form-input" placeholder="Enter admin password" autocomplete="current-password" required style="padding-right:2.5rem;">
+              <button type="button" class="toggle-pass" onclick="toggleAdminLoginPass()" title="Toggle password visibility">
+                <i class="fas fa-eye" id="adminEyeIcon"></i>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" id="adminSubmitBtn" class="btn-submit">
+            <span>Sign In to Dashboard</span>
+            <i class="fas fa-arrow-right" style="font-size:0.75rem"></i>
+          </button>
+        </form>
+
+        <!-- Smart PWA Installation -->
+        <div id="pwaInstallSection" style="display:none;margin-top:1.2rem;padding-top:1.2rem;border-top:1px solid rgba(201,169,110,0.14);">
+          <button type="button" id="pwaInstallBtn" class="btn-install" style="display:none;">
+            <i class="fas fa-arrow-down-to-bracket"></i>
+            <span>Install App on Device</span>
+          </button>
+
+          <div id="pwaIosBanner" class="ios-install-box" style="display:none;">
+            <div class="ios-install-header">
+              <span><i class="fas fa-mobile-screen-button"></i> Install on iPhone / iPad</span>
+              <button type="button" class="btn-close-ios" onclick="dismissIosBanner()" aria-label="Dismiss">&times;</button>
+            </div>
+            <p class="ios-install-desc">
+              Tap <i class="fas fa-arrow-up-from-bracket" style="color:var(--wheat);"></i> <strong>Share</strong> in Safari, then select <strong>Add to Home Screen</strong> <i class="fas fa-plus-square" style="color:var(--wheat);"></i> for full-screen management.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="login-footer">
+        <i class="fas fa-shield-alt"></i> Protected internal system &bull; Evan-e-Hakimi &amp; Qadri Hall Management System
+      </div>
+    </div>
+  </div>
+
+  <!-- PROTECTED DASHBOARD APP (Shown when authenticated) -->
+  <div id="adminDashboardApp" style="display:none; width:100%; min-height:100vh;">
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
       <div class="sidebar-logo"><i class="fas fa-landmark"></i></div>
@@ -1227,15 +1490,33 @@
   </div>
 
   <div id="toast"></div>
+  </div> <!-- /adminDashboardApp -->
 
   <!-- SCRIPT -->
   <script>
     /* ════════ AUTHENTICATION & SESSION MANAGEMENT ════════ */
     let authToken = localStorage.getItem('mjc_admin_token') || sessionStorage.getItem('mjc_admin_token');
 
+    function showLoginScreen() {
+      const app = document.getElementById('adminDashboardApp');
+      const auth = document.getElementById('adminAuthScreen');
+      if (app) app.style.display = 'none';
+      if (auth) auth.style.display = 'flex';
+      document.body.style.display = 'block';
+    }
+
+    function showDashboard() {
+      const auth = document.getElementById('adminAuthScreen');
+      const app = document.getElementById('adminDashboardApp');
+      if (auth) auth.style.display = 'none';
+      if (app) app.style.display = 'flex';
+      document.body.style.display = 'flex';
+      loadOverview();
+    }
+
     // Protect dashboard on load
     if (!authToken) {
-      window.location.replace('/login');
+      showLoginScreen();
     } else {
       fetch('/api/admin/me', {
         headers: { 'Authorization': 'Bearer ' + authToken }
@@ -1249,8 +1530,78 @@
         if (data && data.user && data.user.username) {
           const el = document.getElementById('adminUserDisplay');
           if (el) el.textContent = data.user.username;
+          showDashboard();
+        } else {
+          adminLogout();
         }
-      }).catch(() => {});
+      }).catch(() => {
+        showDashboard();
+      });
+    }
+
+    function toggleAdminLoginPass() {
+      const pwd = document.getElementById('adminPassword');
+      const icon = document.getElementById('adminEyeIcon');
+      if (pwd.type === 'password') {
+        pwd.type = 'text';
+        icon.className = 'fas fa-eye-slash';
+      } else {
+        pwd.type = 'password';
+        icon.className = 'fas fa-eye';
+      }
+    }
+
+    async function handleAdminLogin(e) {
+      e.preventDefault();
+      const u = document.getElementById('adminUsername').value.trim();
+      const p = document.getElementById('adminPassword').value;
+      const btn = document.getElementById('adminSubmitBtn');
+      const banner = document.getElementById('adminErrBanner');
+      const msg = document.getElementById('adminErrMsg');
+
+      if (!u || !p) {
+        msg.textContent = 'Please enter both username and password.';
+        banner.style.display = 'flex';
+        return;
+      }
+
+      banner.style.display = 'none';
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating...';
+
+      try {
+        const response = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: u, password: p })
+        });
+        const data = await response.json();
+
+        if (response.ok && data.token) {
+          authToken = data.token;
+          localStorage.setItem('mjc_admin', '1');
+          localStorage.setItem('mjc_admin_token', data.token);
+          sessionStorage.setItem('mjc_admin', '1');
+          sessionStorage.setItem('mjc_admin_token', data.token);
+
+          const el = document.getElementById('adminUserDisplay');
+          if (el) el.textContent = u;
+
+          btn.innerHTML = '<span>Sign In to Dashboard</span> <i class="fas fa-arrow-right" style="font-size:0.75rem"></i>';
+          btn.disabled = false;
+          showDashboard();
+        } else {
+          msg.textContent = data.error || data.message || 'Invalid username or password.';
+          banner.style.display = 'flex';
+          btn.disabled = false;
+          btn.innerHTML = '<span>Sign In to Dashboard</span> <i class="fas fa-arrow-right" style="font-size:0.75rem"></i>';
+        }
+      } catch (err) {
+        msg.textContent = 'Unable to connect to authentication server. Please check your internet connection.';
+        banner.style.display = 'flex';
+        btn.disabled = false;
+        btn.innerHTML = '<span>Sign In to Dashboard</span> <i class="fas fa-arrow-right" style="font-size:0.75rem"></i>';
+      }
     }
 
     async function authFetch(url, options = {}) {
@@ -1274,7 +1625,8 @@
       localStorage.removeItem('mjc_admin_token');
       sessionStorage.removeItem('mjc_admin');
       sessionStorage.removeItem('mjc_admin_token');
-      window.location.replace('/login');
+      authToken = null;
+      showLoginScreen();
     }
 
     function showToast(msg, isErr = false) {
@@ -2274,7 +2626,9 @@
 
     // Initialize application on DOM load
     window.addEventListener('DOMContentLoaded', () => {
-      loadOverview();
+      if (authToken) {
+        loadOverview();
+      }
     });
 
     // Register Service Worker for offline resilience & PWA capabilities
@@ -2291,6 +2645,91 @@
           });
       });
     }
+
+    /* ════════ SMART PWA INSTALLATION LOGIC ════════ */
+    let deferredPrompt = null;
+
+    function isAppInstalled() {
+      return window.matchMedia('(display-mode: standalone)').matches ||
+             window.matchMedia('(display-mode: minimal-ui)').matches ||
+             window.navigator.standalone === true ||
+             document.referrer.includes('android-app://');
+    }
+
+    function hideInstallUI() {
+      const sec = document.getElementById('pwaInstallSection');
+      const btn = document.getElementById('pwaInstallBtn');
+      const ios = document.getElementById('pwaIosBanner');
+      if (btn) btn.style.display = 'none';
+      if (ios) ios.style.display = 'none';
+      if (sec) sec.style.display = 'none';
+    }
+
+    function dismissIosBanner() {
+      sessionStorage.setItem('ios_banner_dismissed', '1');
+      hideInstallUI();
+    }
+
+    // 1. Native Chromium / Android beforeinstallprompt
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      if (isAppInstalled()) return;
+      if (sessionStorage.getItem('pwa_prompt_dismissed') === '1') return;
+
+      deferredPrompt = e;
+      const sec = document.getElementById('pwaInstallSection');
+      const btn = document.getElementById('pwaInstallBtn');
+      if (sec) sec.style.display = 'block';
+      if (btn) btn.style.display = 'flex';
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const btn = document.getElementById('pwaInstallBtn');
+      if (btn) {
+        btn.addEventListener('click', async () => {
+          if (!deferredPrompt) return;
+          btn.disabled = true;
+          try {
+            deferredPrompt.prompt();
+            const choice = await deferredPrompt.userChoice;
+            if (choice && choice.outcome === 'accepted') {
+              hideInstallUI();
+            } else {
+              sessionStorage.setItem('pwa_prompt_dismissed', '1');
+              hideInstallUI();
+            }
+          } catch (err) {
+            console.error('Install prompt error:', err);
+          } finally {
+            deferredPrompt = null;
+          }
+        });
+      }
+
+      // 2. iOS Safari detection
+      const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+      const isSafari = /safari/i.test(navigator.userAgent) && !/chrome|crios|android|firefox|fxios/i.test(navigator.userAgent);
+
+      if (isIos && isSafari && !isAppInstalled()) {
+        if (sessionStorage.getItem('ios_banner_dismissed') !== '1') {
+          const sec = document.getElementById('pwaInstallSection');
+          const ios = document.getElementById('pwaIosBanner');
+          if (sec) sec.style.display = 'block';
+          if (ios) ios.style.display = 'block';
+        }
+      }
+    });
+
+    window.addEventListener('appinstalled', () => {
+      hideInstallUI();
+      deferredPrompt = null;
+    });
+
+    try {
+      window.matchMedia('(display-mode: standalone)').addEventListener('change', (e) => {
+        if (e.matches) hideInstallUI();
+      });
+    } catch (_) {}
   </script>
 </body>
 </html>

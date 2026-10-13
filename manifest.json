@@ -2,7 +2,7 @@
   "name": "Evan-e-Hakimi & Qadri Hall Management",
   "short_name": "Hall Admin",
   "description": "Complete internal hall management software for Evan-e-Hakimi and Qadri Hall bookings, calendars, expenses, staff, and financial reports.",
-  "start_url": "/",
+  "start_url": "/admin",
   "scope": "/",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui", "window-controls-overlay"],

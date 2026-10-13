@@ -229,17 +229,18 @@ it('requireAuth accepts valid JWT token and attaches admin identity', () => {
 // ── TEST GROUP 5: VERCEL ROUTING & ACCESS RULES ──
 console.log('\n🌐 Group 5: Routing & Vercel Access-Control Rules');
 
-it('vercel.json maps root "/" and "/login" directly to login.html', () => {
+it('vercel.json serves public website at root and redirects /login to /admin', () => {
   const vercelConfig = require('../vercel.json');
   assert.strictEqual(Array.isArray(vercelConfig.rewrites), true);
 
+  // Root / must NOT be rewritten away to login.html (it serves public index.html)
   const rootRewrite = vercelConfig.rewrites.find(r => r.source === '/');
-  assert.ok(rootRewrite, 'Missing / rewrite to login.html');
-  assert.strictEqual(rootRewrite.destination, '/login.html');
+  assert.strictEqual(rootRewrite, undefined, 'Root / must not be rewritten to login; it serves public index.html');
 
-  const loginRewrite = vercelConfig.rewrites.find(r => r.source === '/login');
-  assert.ok(loginRewrite, 'Missing /login rewrite');
-  assert.strictEqual(loginRewrite.destination, '/login.html');
+  // /login redirects to /admin
+  const loginRedirect = vercelConfig.redirects.find(r => r.source === '/login');
+  assert.ok(loginRedirect, 'Missing /login redirect');
+  assert.strictEqual(loginRedirect.destination, '/admin');
 });
 
 it('vercel.json maps "/admin" to admin.html', () => {
@@ -249,15 +250,11 @@ it('vercel.json maps "/admin" to admin.html', () => {
   assert.strictEqual(adminRewrite.destination, '/admin.html');
 });
 
-it('vercel.json redirects legacy /pay and /pay.html to /login', () => {
+it('vercel.json rewrites /pay to pay.html for public customer payments', () => {
   const vercelConfig = require('../vercel.json');
-  const payRedirect = vercelConfig.redirects.find(r => r.source === '/pay');
-  assert.ok(payRedirect, 'Missing /pay redirect');
-  assert.strictEqual(payRedirect.destination, '/login');
-
-  const payHtmlRedirect = vercelConfig.redirects.find(r => r.source === '/pay.html');
-  assert.ok(payHtmlRedirect, 'Missing /pay.html redirect');
-  assert.strictEqual(payHtmlRedirect.destination, '/login');
+  const payRewrite = vercelConfig.rewrites.find(r => r.source === '/pay');
+  assert.ok(payRewrite, 'Missing /pay rewrite');
+  assert.strictEqual(payRewrite.destination, '/pay.html');
 });
 
 it('internal files and local databases are protected from public direct access', () => {
@@ -345,7 +342,7 @@ it('manifest.json exists and satisfies PWA criteria', () => {
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
   assert.strictEqual(manifest.name, 'Evan-e-Hakimi & Qadri Hall Management');
   assert.strictEqual(manifest.short_name, 'Hall Admin');
-  assert.strictEqual(manifest.start_url, '/');
+  assert.strictEqual(manifest.start_url, '/admin');
   assert.strictEqual(manifest.display, 'standalone');
   assert.strictEqual(manifest.theme_color, '#0a0806');
   assert.strictEqual(manifest.background_color, '#0a0806');

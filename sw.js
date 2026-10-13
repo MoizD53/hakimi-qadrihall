@@ -1,13 +1,13 @@
 /* ════════════════════════════════════════════════════════════════════════════
    Evan-e-Hakimi & Qadri Hall Management — Production Service Worker
-   Cache Version: hall-admin-v1.0.0
+   Cache Version: hall-admin-v1.1.0
    Strategy:
      - API (/api/*): Network-Only, NEVER cached. Returns JSON on offline error.
      - HTML Navigations: Network-First. Falls back to /offline.html on network drop.
      - Static Assets (/assets/*, fonts): Stale-While-Revalidate / Cache-First.
 ════════════════════════════════════════════════════════════════════════════ */
 
-const CACHE_NAME = 'hall-admin-v1.0.0';
+const CACHE_NAME = 'hall-admin-v1.1.0';
 
 const PRECACHE_ASSETS = [
   '/manifest.json',

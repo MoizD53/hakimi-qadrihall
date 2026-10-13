@@ -24,13 +24,13 @@
       "permanent": false
     },
     {
-      "source": "/pay.html",
-      "destination": "/login",
+      "source": "/login",
+      "destination": "/admin",
       "permanent": false
     },
     {
-      "source": "/pay",
-      "destination": "/login",
+      "source": "/login.html",
+      "destination": "/admin",
       "permanent": false
     },
     {
@@ -54,10 +54,6 @@
       "destination": "/api/index.js"
     },
     {
-      "source": "/login",
-      "destination": "/login.html"
-    },
-    {
       "source": "/admin",
       "destination": "/admin.html"
     },
@@ -66,8 +62,8 @@
       "destination": "/admin.html"
     },
     {
-      "source": "/",
-      "destination": "/login.html"
+      "source": "/pay",
+      "destination": "/pay.html"
     }
   ]
 }
