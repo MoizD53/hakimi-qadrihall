@@ -653,7 +653,6 @@
         </div>
       </div>
       <div class="header-actions">
-        <div class="hall-indicator" id="headerLiveIstPill" style="border-color:rgba(201,169,110,0.35);"><i class="far fa-clock" style="color:var(--wheat);"></i> <span id="headerLiveIstText">IST</span></div>
         <div class="hall-indicator"><i class="fas fa-building"></i> 2 Active Halls</div>
         <button class="btn-quick gold" onclick="openNewBookingModal()"><i class="fas fa-plus"></i> New Booking</button>
         <button class="btn-quick" onclick="openNewExpenseModal()"><i class="fas fa-plus"></i> Record Expense</button>
@@ -1646,10 +1645,6 @@
     function updateLiveIndiaClock() {
       const { greeting, timeStr, dateStr } = getIndiaTimeDetails();
       const adminName = document.getElementById('adminUserDisplay')?.textContent?.trim() || 'Admin';
-
-      // Always update live IST pill in header actions
-      const pill = document.getElementById('headerLiveIstText');
-      if (pill) pill.textContent = `${timeStr} IST`;
 
       // If active page is overview, dynamically display greeting and real India time
       if (currentNavKey === 'overview') {
