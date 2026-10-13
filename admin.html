@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Hall Management Software | Evan-e-Hakimi &amp; Qadri Hall</title>
+  <title>Hall Management Software | Hakimi53 Halls</title>
   <meta name="description" content="Complete internal hall management software for Evan-e-Hakimi and Qadri Hall.">
   <meta name="robots" content="noindex, nofollow">
   <link rel="manifest" href="/manifest.json">
@@ -147,21 +147,28 @@
 
     /* ── STATS CARDS ── */
     .stats-grid{
-      display:grid;grid-template-columns:repeat(auto-fit, minmax(190px, 1fr));gap:1rem;margin-bottom:2rem;
+      display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:1rem;margin-bottom:2rem;
     }
     .stat-card{
       background:var(--glass);border:1px solid var(--glass-border);border-radius:12px;
-      padding:1.3rem 1.2rem;position:relative;overflow:hidden;transition:all 0.2s;
+      padding:1.25rem 1.15rem;position:relative;overflow:hidden;transition:all 0.2s;
     }
     .stat-card:hover{border-color:rgba(201,169,110,0.35);transform:translateY(-2px);}
     .stat-label{
-      font-size:0.62rem;letter-spacing:1.8px;text-transform:uppercase;color:rgba(245,240,232,0.4);font-weight:600;margin-bottom:0.4rem;
+      font-size:0.62rem;letter-spacing:1.2px;text-transform:uppercase;color:rgba(245,240,232,0.45);
+      font-weight:600;margin-bottom:0.45rem;padding-right:2.4rem;line-height:1.35;
     }
     .stat-value{
       font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:400;color:var(--wheat);line-height:1.1;
     }
     .stat-sub{font-size:0.68rem;color:rgba(245,240,232,0.35);margin-top:0.35rem;}
-    .stat-icon{position:absolute;right:1.2rem;top:1.3rem;font-size:1.3rem;opacity:0.18;color:var(--wheat);}
+    .stat-icon{
+      position:absolute;right:1.1rem;top:1.15rem;
+      width:30px;height:30px;border-radius:8px;
+      background:rgba(201,169,110,0.08);border:1px solid rgba(201,169,110,0.18);
+      display:inline-flex;align-items:center;justify-content:center;
+      font-size:0.88rem;opacity:0.65;color:var(--wheat);pointer-events:none;
+    }
 
     /* ── CARDS & TABLES ── */
     .card{
@@ -589,8 +596,8 @@
     <div class="sidebar-brand">
       <div class="sidebar-logo"><i class="fas fa-landmark"></i></div>
       <div class="sidebar-brand-text">
-        <h2>Evan-e-Hakimi</h2>
-        <span>&amp; Qadri Hall</span>
+        <h2>Hakimi53 Halls</h2>
+        <span>Management System</span>
       </div>
     </div>
 
@@ -619,11 +626,6 @@
       <div class="nav-item" onclick="switchNav('reports')">
         <i class="fas fa-file-invoice-dollar"></i> Reports &amp; Analytics
       </div>
-
-      <div class="nav-section-title">System</div>
-      <div class="nav-item" onclick="switchNav('settings')">
-        <i class="fas fa-sliders-h"></i> Settings &amp; Audit
-      </div>
     </nav>
 
     <div class="sidebar-footer">
@@ -646,11 +648,12 @@
       <div class="header-left">
         <button class="mobile-menu-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
         <div class="header-title-block">
-          <h1 id="pageTitle">Management Overview</h1>
-          <p id="pageSubtitle">Real-time status &bull; Evan-e-Hakimi (2nd Fl) &bull; Qadri Hall (3rd Fl)</p>
+          <h1 id="pageTitle">Good Afternoon, Admin</h1>
+          <p id="pageSubtitle"><i class="far fa-clock" style="color:var(--wheat);"></i> Loading Indian Standard Time...</p>
         </div>
       </div>
       <div class="header-actions">
+        <div class="hall-indicator" id="headerLiveIstPill" style="border-color:rgba(201,169,110,0.35);"><i class="far fa-clock" style="color:var(--wheat);"></i> <span id="headerLiveIstText">IST</span></div>
         <div class="hall-indicator"><i class="fas fa-building"></i> 2 Active Halls</div>
         <button class="btn-quick gold" onclick="openNewBookingModal()"><i class="fas fa-plus"></i> New Booking</button>
         <button class="btn-quick" onclick="openNewExpenseModal()"><i class="fas fa-plus"></i> Record Expense</button>
@@ -1088,46 +1091,6 @@
         </div>
       </section>
 
-      <!-- ════════ PAGE 8: SETTINGS & AUDIT ════════ -->
-      <section class="page" id="page-settings">
-        <div class="card">
-          <div class="card-header"><span class="card-title"><i class="fas fa-shield-alt"></i> Venue &amp; System Configuration</span></div>
-          <div class="card-body" style="font-size:0.85rem;line-height:1.7;">
-            <div style="margin-bottom:1.2rem;">
-              <strong style="color:var(--wheat);">🏛️ Evan-e-Hakimi:</strong> 2nd Floor Banquet Hall &bull; Capacity: 35–40 Thals (~280–320 seated guests) &bull; Standard with Jaman: ₹15,000 (2026) / ₹20,000 (2027) &bull; Full Day: ₹30,000.
-            </div>
-            <div style="margin-bottom:1.2rem;">
-              <strong style="color:var(--wheat);">🏛️ Qadri Hall:</strong> 3rd Floor Banquet Hall &bull; Manageable for approved future booking dates &bull; Full Day &amp; Slot conflict rules strictly enforced.
-            </div>
-            <div>
-              <strong style="color:var(--wheat);"><i class="fas fa-lock"></i> Admin Session:</strong> Signed in as <code>admin</code> &bull; Secured with JWT (HMAC-SHA256) &bull; Database: Turso (libSQL).
-            </div>
-          </div>
-        </div>
-
-        <!-- Audit Trail -->
-        <div class="card">
-          <div class="card-header"><span class="card-title"><i class="fas fa-history"></i> System Activity Audit Trail</span></div>
-          <div class="tbl-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Timestamp</th>
-                  <th>Action</th>
-                  <th>Entity</th>
-                  <th>Entity ID</th>
-                  <th>Details</th>
-                  <th>User</th>
-                </tr>
-              </thead>
-              <tbody id="tblAuditBody">
-                <tr><td colspan="6" style="text-align:center;padding:1.5rem;">Loading audit trail...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
     </main>
   </div>
 
@@ -1511,6 +1474,7 @@
       if (auth) auth.style.display = 'none';
       if (app) app.style.display = 'flex';
       document.body.style.display = 'flex';
+      if (typeof updateLiveIndiaClock === 'function') updateLiveIndiaClock();
       loadOverview();
     }
 
@@ -1642,19 +1606,76 @@
       document.getElementById('sidebarOverlay').classList.toggle('open');
     }
 
+    /* ════════ REAL-TIME INDIA CLOCK (IST, UTC+05:30) & GREETING ════════ */
+    let currentNavKey = 'overview';
+
+    function getIndiaTimeDetails() {
+      const now = new Date();
+      const timeFmt = new Intl.DateTimeFormat('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        hour: 'numeric',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+      });
+      const dateFmt = new Intl.DateTimeFormat('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      });
+      const hourFmt = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Asia/Kolkata',
+        hour: 'numeric',
+        hourCycle: 'h23'
+      });
+      const hour = parseInt(hourFmt.format(now), 10);
+      let greeting = 'Good Morning';
+      if (hour >= 12 && hour < 17) {
+        greeting = 'Good Afternoon';
+      } else if (hour >= 17 || hour < 5) {
+        greeting = 'Good Evening';
+      }
+
+      const timeStr = timeFmt.format(now).toUpperCase();
+      const dateStr = dateFmt.format(now);
+      return { greeting, timeStr, dateStr };
+    }
+
+    function updateLiveIndiaClock() {
+      const { greeting, timeStr, dateStr } = getIndiaTimeDetails();
+      const adminName = document.getElementById('adminUserDisplay')?.textContent?.trim() || 'Admin';
+
+      // Always update live IST pill in header actions
+      const pill = document.getElementById('headerLiveIstText');
+      if (pill) pill.textContent = `${timeStr} IST`;
+
+      // If active page is overview, dynamically display greeting and real India time
+      if (currentNavKey === 'overview') {
+        const titleEl = document.getElementById('pageTitle');
+        const subEl = document.getElementById('pageSubtitle');
+        if (titleEl) titleEl.textContent = `${greeting}, ${adminName}`;
+        if (subEl) subEl.innerHTML = `<i class="far fa-clock" style="color:var(--wheat);margin-right:5px;"></i>${dateStr} &bull; ${timeStr} (IST &bull; India)`;
+      }
+    }
+
+    // Tick every second for live India time
+    setInterval(updateLiveIndiaClock, 1000);
+
     /* ════════ NAVIGATION & TABS ════════ */
     const pageTitles = {
-      'overview': { title: 'Management Overview', sub: 'Real-time status &bull; Evan-e-Hakimi (2nd Fl) &bull; Qadri Hall (3rd Fl)' },
+      'overview': { title: 'Overview', sub: '' },
       'calendar-hakimi': { title: 'Evan-e-Hakimi Calendar', sub: 'Hall 1 &bull; 2nd Floor &bull; Capacity: 35–40 Thals' },
       'calendar-qadri': { title: 'Qadri Hall Calendar', sub: 'Hall 2 &bull; 3rd Floor &bull; Manageable for approved future booking dates' },
       'bookings': { title: 'All Hall Bookings', sub: 'Complete booking registry, search &bull; filter &bull; conflict enforcement' },
       'expenses': { title: 'Expense Management', sub: 'Track utilities, maintenance, cleaning, supplies &bull; category breakdown' },
       'staff': { title: 'Staff & Payroll Directory', sub: 'Staff profiles &bull; verified salary disbursements &bull; active roles' },
-      'reports': { title: 'Financial Reports & Analytics', sub: 'Net cash movement &bull; quoted vs collected &bull; CSV exports' },
-      'settings': { title: 'System Settings & Audit Log', sub: 'Configuration, venue rules, and historical audit trail' }
+      'reports': { title: 'Financial Reports & Analytics', sub: 'Net cash movement &bull; quoted vs collected &bull; CSV exports' }
     };
 
     function switchNav(pageKey) {
+      currentNavKey = pageKey;
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
       const activeNav = Array.from(document.querySelectorAll('.nav-item')).find(el => el.getAttribute('onclick') && el.getAttribute('onclick').includes(pageKey));
       if (activeNav) activeNav.classList.add('active');
@@ -1663,9 +1684,13 @@
       const targetPage = document.getElementById('page-' + pageKey);
       if (targetPage) targetPage.classList.add('active');
 
-      const meta = pageTitles[pageKey] || { title: 'Hall Management', sub: '' };
-      document.getElementById('pageTitle').textContent = meta.title;
-      document.getElementById('pageSubtitle').innerHTML = meta.sub;
+      if (pageKey === 'overview') {
+        updateLiveIndiaClock();
+      } else {
+        const meta = pageTitles[pageKey] || { title: 'Hall Management', sub: '' };
+        document.getElementById('pageTitle').textContent = meta.title;
+        document.getElementById('pageSubtitle').innerHTML = meta.sub;
+      }
 
       if (window.innerWidth <= 900) {
         document.getElementById('sidebar').classList.remove('open');
@@ -1680,7 +1705,6 @@
       if (pageKey === 'expenses') loadExpenses();
       if (pageKey === 'staff') { loadStaff(); loadSalaryPayments(); }
       if (pageKey === 'reports') generateReports();
-      if (pageKey === 'settings') loadAuditLogs();
     }
 
     /* ════════ DATA STATE ════════ */
@@ -2582,32 +2606,6 @@
       const to = document.getElementById('repToDate').value;
       const url = `/api/reports/export-expenses.csv?from=${from}&to=${to}`;
       window.open(url, '_blank');
-    }
-
-    /* ════════ 8. SETTINGS & AUDIT LOGS ════════ */
-    async function loadAuditLogs() {
-      try {
-        const res = await authFetch('/api/audit-logs');
-        const logs = await res.json();
-        const tbody = document.getElementById('tblAuditBody');
-        if (logs.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:1.5rem;color:rgba(245,240,232,0.3);">No activity logged yet.</td></tr>`;
-          return;
-        }
-
-        tbody.innerHTML = logs.map(l => `
-          <tr>
-            <td style="font-size:0.7rem;color:rgba(245,240,232,0.4);">${l.created_at}</td>
-            <td><span class="badge" style="background:rgba(201,169,110,0.1);color:var(--wheat);">${escapeHtml(l.action)}</span></td>
-            <td>${escapeHtml(l.entity_type)}</td>
-            <td>#${l.entity_id || '—'}</td>
-            <td style="font-size:0.75rem;">${escapeHtml(l.details || '—')}</td>
-            <td style="color:var(--wheat);">${escapeHtml(l.user || 'admin')}</td>
-          </tr>
-        `).join('');
-      } catch (err) {
-        console.error('Failed to load audit logs:', err);
-      }
     }
 
     /* ════════ HELPERS & MODAL UTILITIES ════════ */
