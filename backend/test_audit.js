@@ -336,6 +336,67 @@ it('computes net cash movement: Money Actually Collected minus Total Paid Outflo
   assert.strictEqual(netCashMovement, 20500);
 });
 
+// ── TEST GROUP 9: PROGRESSIVE WEB APP (PWA) STANDARDS & CACHING ──
+console.log('\n📱 Group 9: Progressive Web App (PWA) Standards & Caching Strategy');
+
+it('manifest.json exists and satisfies PWA criteria', () => {
+  const manifestPath = path.join(__dirname, '..', 'manifest.json');
+  assert.strictEqual(fs.existsSync(manifestPath), true, 'manifest.json must exist');
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  assert.strictEqual(manifest.name, 'Evan-e-Hakimi & Qadri Hall Management');
+  assert.strictEqual(manifest.short_name, 'Hall Admin');
+  assert.strictEqual(manifest.start_url, '/');
+  assert.strictEqual(manifest.display, 'standalone');
+  assert.strictEqual(manifest.theme_color, '#0a0806');
+  assert.strictEqual(manifest.background_color, '#0a0806');
+  assert.strictEqual(Array.isArray(manifest.icons), true);
+  
+  const has192 = manifest.icons.some(i => i.sizes === '192x192' && i.purpose === 'any');
+  const has192Maskable = manifest.icons.some(i => i.sizes === '192x192' && i.purpose === 'maskable');
+  const has512 = manifest.icons.some(i => i.sizes === '512x512' && i.purpose === 'any');
+  const has512Maskable = manifest.icons.some(i => i.sizes === '512x512' && i.purpose === 'maskable');
+  assert.strictEqual(has192, true, 'Must have 192x192 any icon');
+  assert.strictEqual(has192Maskable, true, 'Must have 192x192 maskable icon');
+  assert.strictEqual(has512, true, 'Must have 512x512 any icon');
+  assert.strictEqual(has512Maskable, true, 'Must have 512x512 maskable icon');
+});
+
+it('required PWA icons exist on disk', () => {
+  const root = path.join(__dirname, '..');
+  assert.strictEqual(fs.existsSync(path.join(root, 'assets', 'icon-192.png')), true);
+  assert.strictEqual(fs.existsSync(path.join(root, 'assets', 'icon-512.png')), true);
+  assert.strictEqual(fs.existsSync(path.join(root, 'assets', 'icon-192-maskable.png')), true);
+  assert.strictEqual(fs.existsSync(path.join(root, 'assets', 'icon-512-maskable.png')), true);
+});
+
+it('service worker sw.js implements safe caching and never caches API requests', () => {
+  const swPath = path.join(__dirname, '..', 'sw.js');
+  assert.strictEqual(fs.existsSync(swPath), true);
+  const swContent = fs.readFileSync(swPath, 'utf8');
+  assert.strictEqual(swContent.includes('/api/'), true);
+  assert.strictEqual(swContent.includes('/offline.html'), true);
+  assert.strictEqual(swContent.includes('skipWaiting'), true);
+  assert.strictEqual(swContent.includes('clients.claim'), true);
+  assert.strictEqual(swContent.includes('Network-Only'), true);
+});
+
+it('login.html contains PWA manifest, smart install button, and iOS guidance', () => {
+  const loginPath = path.join(__dirname, '..', 'login.html');
+  const html = fs.readFileSync(loginPath, 'utf8');
+  assert.strictEqual(html.includes('rel="manifest"'), true);
+  assert.strictEqual(html.includes('pwaInstallBtn'), true);
+  assert.strictEqual(html.includes('beforeinstallprompt'), true);
+  assert.strictEqual(html.includes('serviceWorker.register'), true);
+  assert.strictEqual(html.includes('pwaIosBanner'), true);
+});
+
+it('admin.html contains PWA manifest and service worker registration', () => {
+  const adminPath = path.join(__dirname, '..', 'admin.html');
+  const html = fs.readFileSync(adminPath, 'utf8');
+  assert.strictEqual(html.includes('rel="manifest"'), true);
+  assert.strictEqual(html.includes('serviceWorker.register'), true);
+});
+
 console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 console.log(`RESULTS: ${passed} / ${total} tests passed (${Math.round((passed/total)*100)}%)`);
 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');

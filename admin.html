@@ -6,9 +6,15 @@
   <title>Hall Management Software | Evan-e-Hakimi &amp; Qadri Hall</title>
   <meta name="description" content="Complete internal hall management software for Evan-e-Hakimi and Qadri Hall.">
   <meta name="robots" content="noindex, nofollow">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0a0806">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Hall Admin">
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
-  <link rel="alternate icon" href="/assets/hakimi-construction-logo.jpg">
-  <link rel="apple-touch-icon" href="/assets/hakimi-construction-logo.jpg">
+  <link rel="apple-touch-icon" href="/assets/icon-192.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="/assets/icon-512.png">
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -2270,6 +2276,21 @@
     window.addEventListener('DOMContentLoaded', () => {
       loadOverview();
     });
+
+    // Register Service Worker for offline resilience & PWA capabilities
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js', { scope: '/' })
+          .then((reg) => {
+            if (reg && reg.update) {
+              reg.update().catch(() => {});
+            }
+          })
+          .catch((err) => {
+            console.warn('Admin PWA service worker registration skipped:', err);
+          });
+      });
+    }
   </script>
 </body>
 </html>

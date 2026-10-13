@@ -6,9 +6,15 @@
   <title>Admin Sign In | Evan-e-Hakimi &amp; Qadri Hall Management System</title>
   <meta name="description" content="Admin sign in for Evan-e-Hakimi &amp; Qadri Hall Management System.">
   <meta name="robots" content="noindex, nofollow">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0a0806">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Hall Admin">
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
-  <link rel="alternate icon" href="/assets/hakimi-construction-logo.jpg">
-  <link rel="apple-touch-icon" href="/assets/hakimi-construction-logo.jpg">
+  <link rel="apple-touch-icon" href="/assets/icon-192.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="/assets/icon-512.png">
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -187,6 +193,53 @@
       letter-spacing:0.5px;
     }
     .login-footer i{color:var(--wheat);margin-right:0.2rem;}
+
+    /* PWA Install UI */
+    .btn-install{
+      width:100%;
+      background:rgba(201,169,110,0.08);
+      border:1px solid rgba(201,169,110,0.32);
+      color:var(--wheat);
+      border-radius:8px;
+      padding:0.78rem 1rem;
+      font-size:0.75rem;
+      font-weight:600;
+      letter-spacing:1px;
+      text-transform:uppercase;
+      cursor:pointer;
+      display:flex;align-items:center;justify-content:center;gap:0.6rem;
+      transition:all 0.22s ease;
+      font-family:'DM Sans',sans-serif;
+    }
+    .btn-install:hover{
+      background:rgba(201,169,110,0.18);
+      border-color:var(--wheat);
+      transform:translateY(-1px);
+      box-shadow:0 6px 18px rgba(201,169,110,0.18);
+      color:var(--cream);
+    }
+    .ios-install-box{
+      background:rgba(201,169,110,0.06);
+      border:1px solid rgba(201,169,110,0.22);
+      border-radius:8px;
+      padding:0.8rem 1rem;
+      text-align:left;
+    }
+    .ios-install-header{
+      display:flex;align-items:center;justify-content:space-between;
+      font-size:0.7rem;font-weight:600;letter-spacing:1px;
+      text-transform:uppercase;color:var(--wheat);
+      margin-bottom:0.35rem;
+    }
+    .ios-install-desc{
+      font-size:0.72rem;line-height:1.45;color:rgba(245,240,232,0.65);
+      margin:0;
+    }
+    .btn-close-ios{
+      background:none;border:none;color:rgba(245,240,232,0.4);
+      font-size:1.1rem;cursor:pointer;line-height:1;padding:0 4px;
+    }
+    .btn-close-ios:hover{color:var(--cream);}
   </style>
 </head>
 <body>
@@ -230,6 +283,26 @@
           <i class="fas fa-arrow-right" style="font-size:0.75rem"></i>
         </button>
       </form>
+
+      <!-- Smart PWA Installation -->
+      <div id="pwaInstallSection" style="display:none;margin-top:1.2rem;padding-top:1.2rem;border-top:1px solid rgba(201,169,110,0.14);">
+        <!-- Native Install Button (Chromium / Android) -->
+        <button type="button" id="pwaInstallBtn" class="btn-install" style="display:none;">
+          <i class="fas fa-arrow-down-to-bracket"></i>
+          <span>Install App on Device</span>
+        </button>
+
+        <!-- iOS Safari Concise Guidance Banner -->
+        <div id="pwaIosBanner" class="ios-install-box" style="display:none;">
+          <div class="ios-install-header">
+            <span><i class="fas fa-mobile-screen-button"></i> Install on iPhone / iPad</span>
+            <button type="button" class="btn-close-ios" onclick="dismissIosBanner()" aria-label="Dismiss">&times;</button>
+          </div>
+          <p class="ios-install-desc">
+            Tap <i class="fas fa-arrow-up-from-bracket" style="color:var(--wheat);"></i> <strong>Share</strong> in Safari, then select <strong>Add to Home Screen</strong> <i class="fas fa-plus-square" style="color:var(--wheat);"></i> for full-screen management.
+          </p>
+        </div>
+      </div>
     </div>
 
     <div class="login-footer">
@@ -321,6 +394,108 @@
         btn.innerHTML = '<span>Sign In to Dashboard</span> <i class="fas fa-arrow-right" style="font-size:0.75rem"></i>';
       }
     }
+
+    /* ════════ SERVICE WORKER REGISTRATION ════════ */
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js', { scope: '/' })
+          .then((reg) => {
+            if (reg && reg.update) {
+              reg.update().catch(() => {});
+            }
+          })
+          .catch((err) => {
+            console.warn('PWA service worker registration skipped:', err);
+          });
+      });
+    }
+
+    /* ════════ SMART PWA INSTALLATION LOGIC ════════ */
+    let deferredPrompt = null;
+
+    function isAppInstalled() {
+      return window.matchMedia('(display-mode: standalone)').matches ||
+             window.matchMedia('(display-mode: minimal-ui)').matches ||
+             window.navigator.standalone === true ||
+             document.referrer.includes('android-app://');
+    }
+
+    function hideInstallUI() {
+      const sec = document.getElementById('pwaInstallSection');
+      const btn = document.getElementById('pwaInstallBtn');
+      const ios = document.getElementById('pwaIosBanner');
+      if (btn) btn.style.display = 'none';
+      if (ios) ios.style.display = 'none';
+      if (sec) sec.style.display = 'none';
+    }
+
+    function dismissIosBanner() {
+      sessionStorage.setItem('ios_banner_dismissed', '1');
+      hideInstallUI();
+    }
+
+    // 1. Native Chromium / Android beforeinstallprompt
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      if (isAppInstalled()) return;
+      if (sessionStorage.getItem('pwa_prompt_dismissed') === '1') return;
+
+      deferredPrompt = e;
+      const sec = document.getElementById('pwaInstallSection');
+      const btn = document.getElementById('pwaInstallBtn');
+      if (sec) sec.style.display = 'block';
+      if (btn) btn.style.display = 'flex';
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const btn = document.getElementById('pwaInstallBtn');
+      if (btn) {
+        btn.addEventListener('click', async () => {
+          if (!deferredPrompt) return;
+          btn.disabled = true;
+          try {
+            deferredPrompt.prompt();
+            const choice = await deferredPrompt.userChoice;
+            if (choice && choice.outcome === 'accepted') {
+              hideInstallUI();
+            } else {
+              sessionStorage.setItem('pwa_prompt_dismissed', '1');
+              hideInstallUI();
+            }
+          } catch (err) {
+            console.error('Install prompt error:', err);
+          } finally {
+            deferredPrompt = null;
+          }
+        });
+      }
+
+      // 2. iOS Safari detection (concise Add to Home Screen instructions)
+      const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+      const isSafari = /safari/i.test(navigator.userAgent) && !/chrome|crios|android|firefox|fxios/i.test(navigator.userAgent);
+
+      if (isIos && isSafari && !isAppInstalled()) {
+        if (sessionStorage.getItem('ios_banner_dismissed') !== '1') {
+          const sec = document.getElementById('pwaInstallSection');
+          const ios = document.getElementById('pwaIosBanner');
+          if (sec) sec.style.display = 'block';
+          if (ios) ios.style.display = 'block';
+        }
+      }
+    });
+
+    // 3. Hide on successful installation
+    window.addEventListener('appinstalled', () => {
+      hideInstallUI();
+      deferredPrompt = null;
+    });
+
+    // 4. Listen for display-mode standalone changes
+    try {
+      window.matchMedia('(display-mode: standalone)').addEventListener('change', (e) => {
+        if (e.matches) hideInstallUI();
+      });
+    } catch (_) {}
   </script>
 </body>
 </html>

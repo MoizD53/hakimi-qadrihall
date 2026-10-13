@@ -135,6 +135,25 @@ app.get('/login', (req, res) => {
 // 3. Protected dashboard route
 app.get(/^\/admin(\/.*)?$/, (req, res) => res.sendFile(path.join(rootDir, 'admin.html')));
 
+// 3.1 PWA & Service Worker endpoints
+app.get('/manifest.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/manifest+json');
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.sendFile(path.join(rootDir, 'manifest.json'));
+});
+
+app.get('/sw.js', (req, res) => {
+  res.setHeader('Content-Type', 'application/javascript');
+  res.setHeader('Service-Worker-Allowed', '/');
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.sendFile(path.join(rootDir, 'sw.js'));
+});
+
+app.get('/offline.html', (req, res) => {
+  res.setHeader('Content-Type', 'text/html; charset=UTF-8');
+  res.sendFile(path.join(rootDir, 'offline.html'));
+});
+
 // 4. Block direct static access to server code, database files, and config files
 app.use(['/backend', '/local.db', '/package.json', '/package-lock.json', '/vercel.json'], (req, res) => {
   res.status(404).send('Not Found');

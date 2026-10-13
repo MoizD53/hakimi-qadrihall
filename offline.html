@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Offline | Evan-e-Hakimi &amp; Qadri Hall Management</title>
+  <meta name="theme-color" content="#0a0806">
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+    :root{
+      --ink:#0a0806; --soil:#140e08; --wheat:#c9a96e; --gold:#e2b96a; --cream:#f5f0e8;
+    }
+    body{
+      font-family:'DM Sans',sans-serif;
+      background:radial-gradient(ellipse at 50% 20%, #1c130b 0%, var(--soil) 60%, var(--ink) 100%);
+      color:var(--cream);
+      display:flex;align-items:center;justify-content:center;
+      min-height:100vh;
+      padding:1.5rem;
+      text-align:center;
+    }
+    .card{
+      max-width:440px;
+      width:100%;
+      background:rgba(18,13,8,0.85);
+      border:1px solid rgba(201,169,110,0.22);
+      border-radius:18px;
+      padding:2.5rem 2rem;
+      box-shadow:0 30px 70px rgba(0,0,0,0.7);
+    }
+    .icon{
+      width:64px;height:64px;
+      border-radius:50%;
+      background:rgba(201,169,110,0.08);
+      border:1px solid rgba(201,169,110,0.25);
+      color:var(--wheat);
+      font-size:1.6rem;
+      display:inline-flex;align-items:center;justify-content:center;
+      margin-bottom:1.2rem;
+    }
+    h1{
+      font-family:'Cinzel',serif;
+      font-size:1.3rem;
+      letter-spacing:1.5px;
+      color:var(--wheat);
+      margin-bottom:0.6rem;
+    }
+    p{
+      font-size:0.85rem;
+      color:rgba(245,240,232,0.6);
+      line-height:1.5;
+      margin-bottom:1.6rem;
+    }
+    .btn-retry{
+      background:linear-gradient(135deg, var(--wheat) 0%, var(--gold) 100%);
+      color:var(--ink);
+      border:none;
+      border-radius:8px;
+      padding:0.85rem 1.6rem;
+      font-size:0.8rem;
+      font-weight:600;
+      letter-spacing:1px;
+      text-transform:uppercase;
+      cursor:pointer;
+      display:inline-flex;align-items:center;gap:0.5rem;
+      transition:transform 0.2s, filter 0.2s;
+    }
+    .btn-retry:hover{
+      transform:translateY(-1px);
+      filter:brightness(1.05);
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon"><i class="fas fa-wifi-slash"></i></div>
+    <h1>Connection Unavailable</h1>
+    <p>You appear to be offline. Evan-e-Hakimi &amp; Qadri Hall Management requires an active connection to access real-time bookings, financial records, and calendars securely.</p>
+    <button class="btn-retry" onclick="window.location.reload()">
+      <i class="fas fa-redo-alt"></i>
+      <span>Retry Connection</span>
+    </button>
+  </div>
+</body>
+</html>
