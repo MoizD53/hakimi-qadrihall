@@ -1230,6 +1230,21 @@
     // Protect dashboard on load
     if (!authToken) {
       window.location.replace('/login');
+    } else {
+      fetch('/api/admin/me', {
+        headers: { 'Authorization': 'Bearer ' + authToken }
+      }).then(r => {
+        if (!r.ok) {
+          adminLogout();
+        } else {
+          return r.json();
+        }
+      }).then(data => {
+        if (data && data.user && data.user.username) {
+          const el = document.getElementById('adminUserDisplay');
+          if (el) el.textContent = data.user.username;
+        }
+      }).catch(() => {});
     }
 
     async function authFetch(url, options = {}) {
