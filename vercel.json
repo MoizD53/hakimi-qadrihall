@@ -4,17 +4,17 @@
     {
       "source": "/index.html",
       "destination": "/",
-      "permanent": true
+      "permanent": false
     },
     {
       "source": "/pay.html",
       "destination": "/login",
-      "permanent": true
+      "permanent": false
     },
     {
       "source": "/pay",
       "destination": "/login",
-      "permanent": true
+      "permanent": false
     },
     {
       "source": "/backend/(.*)",

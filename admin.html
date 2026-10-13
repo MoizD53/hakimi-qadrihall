@@ -360,7 +360,7 @@
     <div class="sidebar-footer">
       <div class="user-pill">
         <i class="fas fa-user-shield"></i>
-        <span>Manager: <strong id="adminUserDisplay" style="color:var(--wheat);">admin</strong></span>
+        <span>Admin: <strong id="adminUserDisplay" style="color:var(--wheat);">admin</strong></span>
       </div>
       <button class="btn-logout" onclick="adminLogout()">
         <i class="fas fa-sign-out-alt"></i> Sign Out
@@ -402,7 +402,7 @@
           <div class="stat-card">
             <div class="stat-label">Pending Enquiries</div>
             <div class="stat-value" id="kpiPending" style="color:#fcd34d;">0</div>
-            <div class="stat-sub">Awaiting manager approval</div>
+            <div class="stat-sub">Awaiting admin approval</div>
             <i class="fas fa-clock stat-icon"></i>
           </div>
           <div class="stat-card">
@@ -831,7 +831,7 @@
               <strong style="color:var(--wheat);">🏛️ Qadri Hall:</strong> 3rd Floor Banquet Hall &bull; Manageable for approved future booking dates &bull; Full Day &amp; Slot conflict rules strictly enforced.
             </div>
             <div>
-              <strong style="color:var(--wheat);">🔒 Manager Session:</strong> Signed in as <code>admin</code> &bull; Secured with JWT (HMAC-SHA256) &bull; Database: Turso (libSQL).
+              <strong style="color:var(--wheat);"><i class="fas fa-lock"></i> Admin Session:</strong> Signed in as <code>admin</code> &bull; Secured with JWT (HMAC-SHA256) &bull; Database: Turso (libSQL).
             </div>
           </div>
         </div>
@@ -957,7 +957,7 @@
           <div class="form-group">
             <label for="bStatus">Initial Booking Status</label>
             <select id="bStatus" class="form-ctrl">
-              <option value="pending">Pending Manager Approval</option>
+              <option value="pending">Pending Admin Approval</option>
               <option value="confirmed">Confirmed (Check Slot Conflicts)</option>
             </select>
           </div>
@@ -1022,7 +1022,7 @@
 
           <div class="form-group">
             <label for="payNotes">Transaction Notes / UTR / Reference</label>
-            <input type="text" id="payNotes" class="form-ctrl" placeholder="e.g. UPI Ref #40291924, Received by Manager">
+            <input type="text" id="payNotes" class="form-ctrl" placeholder="e.g. UPI Ref #40291924, Received by Admin">
           </div>
         </div>
         <div class="modal-footer">

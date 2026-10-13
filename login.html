@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Manager Sign In | Evan-e-Hakimi &amp; Qadri Hall</title>
-  <meta name="description" content="Secure internal management software login for Evan-e-Hakimi and Qadri Hall.">
+  <title>Admin Sign In | Evan-e-Hakimi &amp; Qadri Hall Management System</title>
+  <meta name="description" content="Admin sign in for Evan-e-Hakimi &amp; Qadri Hall Management System.">
   <meta name="robots" content="noindex, nofollow">
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="alternate icon" href="/assets/hakimi-construction-logo.jpg">
@@ -194,15 +194,13 @@
   <div class="login-container">
     <div class="brand-crest">
       <div class="crest-icon"><i class="fas fa-landmark"></i></div>
-      <h1 class="brand-title">Evan-e-Hakimi</h1>
-      <div style="font-family:'Cinzel',serif;font-size:0.95rem;letter-spacing:2px;color:rgba(245,240,232,0.7);margin-top:0.2rem;">&amp; Qadri Hall</div>
-      <p class="brand-sub">Hall Management Software</p>
-      <div class="hall-pill"><i class="fas fa-lock" style="font-size:0.55rem"></i> Authorized Staff Access</div>
+      <h1 class="brand-title" style="font-size:1.15rem;letter-spacing:2px;line-height:1.35;">Evan-e-Hakimi &amp; Qadri Hall Management System</h1>
+      <div class="hall-pill"><i class="fas fa-lock" style="font-size:0.55rem"></i> Admin Access Only</div>
     </div>
 
     <div class="login-card">
-      <h2 class="card-heading">Management Sign In</h2>
-      <p class="card-desc">Enter your manager credentials to access bookings, calendar, staff, and financial reports.</p>
+      <h2 class="card-heading">Admin Sign In</h2>
+      <p class="card-desc">Sign in to access the hall management dashboard.</p>
 
       <div class="alert-banner" id="errBanner">
         <i class="fas fa-exclamation-circle"></i>
@@ -211,16 +209,16 @@
 
       <form id="loginForm" onsubmit="handleLogin(event)">
         <div class="form-group">
-          <label class="form-label" for="username">Manager Username</label>
+          <label class="form-label" for="username">Admin Username</label>
           <div class="input-wrapper">
-            <input type="text" id="username" class="form-input" placeholder="Enter username" autocomplete="username" required autofocus>
+            <input type="text" id="username" class="form-input" placeholder="Enter admin username" autocomplete="username" required autofocus>
           </div>
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="password">Password</label>
+          <label class="form-label" for="password">Admin Password</label>
           <div class="input-wrapper">
-            <input type="password" id="password" class="form-input" placeholder="Enter password" autocomplete="current-password" required style="padding-right:2.5rem;">
+            <input type="password" id="password" class="form-input" placeholder="Enter admin password" autocomplete="current-password" required style="padding-right:2.5rem;">
             <button type="button" class="toggle-pass" onclick="togglePassword()" title="Toggle password visibility">
               <i class="fas fa-eye" id="eyeIcon"></i>
             </button>
@@ -235,7 +233,7 @@
     </div>
 
     <div class="login-footer">
-      <i class="fas fa-shield-alt"></i> Protected internal system &bull; Evan-e-Hakimi &amp; Qadri Hall
+      <i class="fas fa-shield-alt"></i> Protected internal system &bull; Evan-e-Hakimi &amp; Qadri Hall Management System
     </div>
   </div>
 

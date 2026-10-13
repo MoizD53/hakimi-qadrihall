@@ -115,9 +115,9 @@ async function logAudit(action, entityType, entityId, details, user = 'admin') {
 ═══════════════════════════════════════════ */
 
 // 1. Clean URL redirects for legacy paths
-app.get('/index.html', (req, res) => res.redirect(301, '/'));
-app.get('/pay.html', (req, res) => res.redirect(301, '/'));
-app.get('/pay', (req, res) => res.redirect(301, '/'));
+app.get('/index.html', (req, res) => res.redirect(302, '/'));
+app.get('/pay.html', (req, res) => res.redirect(302, '/login'));
+app.get('/pay', (req, res) => res.redirect(302, '/login'));
 
 // 2. Canonical routes: Root '/' and '/login' serve the login page
 app.get('/', (req, res) => {
@@ -621,7 +621,7 @@ app.post('/api/bookings', async (req, res) => {
 
     await tx.commit();
 
-    logAudit('booking_created', 'booking', inserted.id, `Created booking for ${custName} on ${eventDate} (${cleanHall}, ${eventSlot}, ₹${finalPrice})`, req.admin?.username || 'manager');
+    logAudit('booking_created', 'booking', inserted.id, `Created booking for ${custName} on ${eventDate} (${cleanHall}, ${eventSlot}, ₹${finalPrice})`, req.admin?.username || 'admin');
 
     res.json({ success: true, bookingId: inserted.id, booking: inserted });
   } catch (err) {
@@ -891,7 +891,7 @@ app.patch('/api/bookings/:id/verify-advance', requireAuth, async (req, res) => {
 
     await tx.query(
       `INSERT INTO booking_payments (booking_id, amount, payment_type, payment_method, payment_date, notes)
-       VALUES (?, ?, 'advance', 'UPI', CURRENT_DATE, 'Advance verified by manager')`,
+       VALUES (?, ?, 'advance', 'UPI', CURRENT_DATE, 'Advance verified by admin')`,
       [req.params.id, advancePaid]
     );
 
