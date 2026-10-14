@@ -270,6 +270,41 @@
     .slot-fullday{background:rgba(74,222,128,0.12);color:#86efac;border:1px solid rgba(74,222,128,0.3);}
     .slot-majlis{background:rgba(216,180,254,0.12);color:#e9d5ff;border:1px solid rgba(216,180,254,0.3);}
 
+    /* ── INLINE STAGE PANEL DIRECTLY ABOVE CALENDAR ── */
+    .cal-stage-panel {
+      padding: 1.1rem 1.4rem 0.2rem 1.4rem;
+    }
+    .cal-stage-card {
+      background: rgba(22, 16, 10, 0.85);
+      border: 1px solid rgba(201, 169, 110, 0.35);
+      border-radius: 12px;
+      padding: 1.15rem 1.25rem;
+      margin-bottom: 1.1rem;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+    }
+    .slot-pill.active-stage-pill {
+      outline: 2px solid var(--wheat);
+      box-shadow: 0 0 10px rgba(201,169,110,0.7);
+      filter: brightness(1.25);
+    }
+    .cal-cell.active-stage-cell {
+      background: #241a0d;
+      box-shadow: inset 0 0 0 2px rgba(201,169,110,0.5);
+    }
+    .stage-nav-pill {
+      transition: all 0.18s ease;
+    }
+    .stage-nav-pill:hover {
+      background: rgba(255,255,255,0.08) !important;
+      border-color: rgba(201,169,110,0.6) !important;
+    }
+    .stage-nav-pill.active {
+      background: rgba(217,119,6,0.25) !important;
+      border-color: var(--wheat) !important;
+      color: #fff !important;
+      box-shadow: 0 0 8px rgba(217,119,6,0.3);
+    }
+
     /* ── MODALS ── */
     .modal-overlay{
       position:fixed;inset:0;background:rgba(10,8,6,0.85);backdrop-filter:blur(6px);
@@ -1401,6 +1436,8 @@
               <button class="cal-nav-btn" onclick="calNavMonth('hakimi', 1)">Next <i class="fas fa-chevron-right"></i></button>
             </div>
           </div>
+          <!-- Inline Stage Management Panel directly above calendar grid -->
+          <div id="calHakimiStagePanel" class="cal-stage-panel"></div>
           <div class="cal-grid-wrapper">
             <div class="cal-grid" id="calGridHakimi">
               <!-- Rendered by JS -->
@@ -1423,6 +1460,8 @@
               <button class="cal-nav-btn" onclick="calNavMonth('qadri', 1)">Next <i class="fas fa-chevron-right"></i></button>
             </div>
           </div>
+          <!-- Inline Stage Management Panel directly above calendar grid -->
+          <div id="calQadriStagePanel" class="cal-stage-panel"></div>
           <div class="cal-grid-wrapper">
             <div class="cal-grid" id="calGridQadri">
               <!-- Rendered by JS -->
@@ -2606,6 +2645,13 @@
       hakimi: { year: new Date().getFullYear(), month: new Date().getMonth() },
       qadri: { year: new Date().getFullYear(), month: new Date().getMonth() }
     };
+    let selectedCalendarBooking = {
+      hakimi: null,
+      qadri: null
+    };
+
+    function loadCalendarHakimi() { return renderCalendar('hakimi'); }
+    function loadCalendarQadri() { return renderCalendar('qadri'); }
 
     /* ════════ 1. OVERVIEW DATA ════════ */
     async function loadOverview() {
@@ -2799,7 +2845,238 @@
         if (calState[hallKey].month > 11) { calState[hallKey].month = 0; calState[hallKey].year++; }
         if (calState[hallKey].month < 0) { calState[hallKey].month = 11; calState[hallKey].year--; }
       }
+      selectedCalendarBooking[hallKey] = null;
       renderCalendar(hallKey);
+    }
+
+    function selectCalendarBooking(hallKey, bookingId) {
+      selectedCalendarBooking[hallKey] = bookingId;
+      renderCalendar(hallKey);
+      const targetStage = document.getElementById(hallKey === 'hakimi' ? 'calHakimiStagePanel' : 'calQadriStagePanel');
+      if (targetStage) {
+        targetStage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+
+    function renderCalendarStagePanel(hallKey) {
+      const isHakimi = hallKey === 'hakimi';
+      const hallName = isHakimi ? 'Evan-e-Hakimi' : 'Qadri Hall';
+      const targetStage = document.getElementById(isHakimi ? 'calHakimiStagePanel' : 'calQadriStagePanel');
+      if (!targetStage) return;
+
+      const st = calState[hallKey];
+      const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+      // Filter bookings for this hall and viewed month (ignore rejected/cancelled)
+      const monthBookings = allBookings.filter(b => {
+        if (!b.check_in) return false;
+        const bHall = (b.hall || 'Evan-e-Hakimi').toLowerCase();
+        const match = isHakimi ? (!bHall.includes('qadri')) : (bHall.includes('qadri'));
+        if (!match) return false;
+        if (REJECTED_STATUSES.includes(b.status)) return false;
+        const parts = b.check_in.split('-');
+        if (parts.length < 3) return false;
+        const bYear = parseInt(parts[0], 10);
+        const bMonth = parseInt(parts[1], 10) - 1;
+        return bYear === st.year && bMonth === st.month;
+      });
+
+      monthBookings.sort((a, b) => a.check_in.localeCompare(b.check_in) || (a.slot || '').localeCompare(b.slot || ''));
+
+      if (monthBookings.length === 0) {
+        selectedCalendarBooking[hallKey] = null;
+        targetStage.innerHTML = `
+          <div style="background:rgba(255,255,255,0.02);border:1px dashed rgba(245,240,232,0.15);border-radius:10px;padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:1rem;">
+            <div style="font-size:0.82rem;color:rgba(245,240,232,0.7);display:flex;align-items:center;gap:8px;">
+              <i class="far fa-calendar-check" style="color:var(--wheat);font-size:1.1rem;"></i>
+              <span>No events scheduled in <strong>${monthNames[st.month]} ${st.year}</strong> for ${hallName}. Click any date on the calendar below to add a booking.</span>
+            </div>
+            <button class="btn-quick gold" style="font-size:0.75rem;padding:0.35rem 0.8rem;" onclick="openNewBookingModal('${hallName}')">
+              <i class="fas fa-plus"></i> Quick Book
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      // Pick selected booking or default to first
+      let b = monthBookings.find(x => x.id === selectedCalendarBooking[hallKey]);
+      if (!b) {
+        b = monthBookings[0];
+        selectedCalendarBooking[hallKey] = b.id;
+      }
+      currentStageBooking = b;
+
+      const total = parseFloat(b.total_amount || 0);
+      const advPaid = parseFloat(b.advancePaid || b.advance_paid || 0);
+      const bal = Math.max(0, total - advPaid);
+      const advReq = b.advance_amount ? parseFloat(b.advance_amount) : Math.round(total * 0.4);
+      const ref = b.booking_reference || `#${b.id}`;
+      const isQadri = (b.hall || '').toLowerCase().includes('qadri');
+      const hallLabel = isQadri ? 'Qadri Hall (3rd Floor)' : 'Evan-e-Hakimi (2nd Floor)';
+      const pkgLabel = 'Available';
+
+      const isAdvReceived = advPaid >= advReq && advReq > 0;
+      const isFullySettled = bal === 0;
+
+      const phoneClean = (b.phone || '').replace(/[^0-9]/g, '');
+      const waConfirmUrl = b.whatsapp?.confirmationUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
+      const waAdvReceiptUrl = b.whatsapp?.advanceReceiptUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
+      const waBalReminderUrl = b.whatsapp?.balanceReminderUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
+      const waFullReceiptUrl = b.whatsapp?.fullyPaidUrl || b.whatsapp?.fullPaymentReceiptUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
+
+      let actionBoxHtml = '';
+      if (b.status === 'CONFIRMED_PENDING_ADVANCE') {
+        actionBoxHtml = `
+          <div style="background:rgba(252,211,77,0.08);border:1px solid rgba(252,211,77,0.3);padding:0.9rem;border-radius:8px;margin-bottom:0.8rem;">
+            <div style="font-size:0.85rem;color:#fcd34d;font-weight:600;margin-bottom:4px;">
+              <i class="fas fa-hourglass-half"></i> Awaiting 40% Advance Payment
+            </div>
+            <div style="font-size:0.75rem;color:var(--cream);opacity:0.85;margin-bottom:0.7rem;">
+              Kindly pay 40% advance (₹${advReq.toLocaleString('en-IN')}) within 24 hours to secure this booking slot.
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn-quick gold" style="font-size:0.82rem;padding:0.45rem 0.9rem;" onclick="record40Advance(${b.id})">
+                <i class="fas fa-check"></i> Received 40% Advance (₹${advReq.toLocaleString('en-IN')})
+              </button>
+              <a href="${waConfirmUrl}" target="_blank" class="btn-whatsapp" style="font-size:0.82rem;padding:0.45rem 0.9rem;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
+                <i class="fab fa-whatsapp"></i> Send 40% Advance Request WhatsApp
+              </a>
+            </div>
+          </div>
+        `;
+      } else if (b.status === 'ADVANCE_PAID' || b.status === 'ADVANCE_PARTIALLY_PAID') {
+        actionBoxHtml = `
+          <div style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.3);padding:0.9rem;border-radius:8px;margin-bottom:0.8rem;">
+            <div style="font-size:0.85rem;color:#93c5fd;font-weight:600;margin-bottom:4px;">
+              <i class="fas fa-check-circle"></i> 40% Advance Secured &bull; 60% Balance Due
+            </div>
+            <div style="font-size:0.75rem;color:var(--cream);opacity:0.85;margin-bottom:0.7rem;">
+              The remaining 60% balance of <strong>₹${bal.toLocaleString('en-IN')}</strong> is payable at Hakimi Tower, 2nd Floor, to Aliasgar Challawala, 2–3 days before the function.
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn-quick" style="background:#22c55e;color:#0a1a12;font-size:0.82rem;padding:0.45rem 0.9rem;" onclick="record60Balance(${b.id})">
+                <i class="fas fa-check-double"></i> Received Remaining 60% (₹${bal.toLocaleString('en-IN')})
+              </button>
+              <a href="${waBalReminderUrl}" target="_blank" class="btn-whatsapp" style="font-size:0.82rem;padding:0.45rem 0.9rem;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
+                <i class="fab fa-whatsapp"></i> Send 60% Reminder WhatsApp
+              </a>
+              <a href="${waAdvReceiptUrl}" target="_blank" class="btn-whatsapp-outline" style="font-size:0.82rem;padding:0.45rem 0.9rem;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
+                <i class="fab fa-whatsapp"></i> Resend 40% Advance Receipt
+              </a>
+            </div>
+          </div>
+        `;
+      } else if (b.status === 'FULLY_PAID') {
+        actionBoxHtml = `
+          <div style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.35);padding:0.9rem;border-radius:8px;margin-bottom:0.8rem;">
+            <div style="font-size:0.88rem;color:#86efac;font-weight:700;margin-bottom:4px;">
+              <i class="fas fa-check-double"></i> Booking Fully Paid &amp; Settled (₹${total.toLocaleString('en-IN')})
+            </div>
+            <div style="font-size:0.75rem;color:var(--cream);opacity:0.85;margin-bottom:0.7rem;">
+              All dues cleared. Outstanding balance is ₹0.
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <a href="${waFullReceiptUrl}" target="_blank" class="btn-whatsapp" style="font-size:0.82rem;padding:0.45rem 0.9rem;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
+                <i class="fab fa-whatsapp"></i> Send Full Settlement Receipt WhatsApp
+              </a>
+            </div>
+          </div>
+        `;
+      } else if (ENQUIRY_STATUSES.includes(b.status)) {
+        actionBoxHtml = `
+          <div style="background:rgba(217,119,6,0.1);border:1px solid rgba(217,119,6,0.3);padding:0.9rem;border-radius:8px;margin-bottom:0.8rem;">
+            <div style="font-size:0.85rem;color:#fbbf24;font-weight:600;margin-bottom:4px;">
+              <i class="fas fa-inbox"></i> Website Enquiry Pending Review
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:0.6rem;">
+              <button class="btn-quick gold" style="font-size:0.82rem;padding:0.45rem 0.9rem;" onclick="openEnquiryWorkflow(${b.id});">
+                <i class="fas fa-check"></i> Review &amp; Accept Enquiry
+              </button>
+              <button class="action-btn del" style="font-size:0.82rem;padding:0.45rem 0.9rem;" onclick="rejectEnquiryPrompt(${b.id});">
+                <i class="fas fa-times"></i> Reject Enquiry
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      // Event switcher pills if multiple bookings in this month
+      let switcherHtml = '';
+      if (monthBookings.length > 1) {
+        switcherHtml = `
+          <div style="display:flex;align-items:center;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:0.8rem;">
+            <span style="font-size:0.72rem;color:rgba(245,240,232,0.5);text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;font-weight:600;">
+              <i class="fas fa-calendar-check" style="color:var(--wheat);"></i> ${monthBookings.length} Events in ${monthNames[st.month]}:
+            </span>
+            ${monthBookings.map(mb => {
+              const isSel = mb.id === b.id;
+              const sIcon = CONFIRMED_STATUSES.includes(mb.status) ? '✓' : '⏳';
+              const dayNum = parseInt(mb.check_in.split('-')[2], 10);
+              return `
+                <button class="stage-nav-pill ${isSel ? 'active' : ''}" onclick="selectCalendarBooking('${hallKey}', ${mb.id})" style="padding:0.3rem 0.75rem;border-radius:20px;font-size:0.75rem;border:${isSel ? '1px solid var(--wheat)' : '1px solid rgba(255,255,255,0.1)'};background:${isSel ? 'rgba(217,119,6,0.22)' : 'rgba(255,255,255,0.04)'};color:${isSel ? 'var(--wheat)' : 'var(--cream)'};cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;font-weight:${isSel ? '600' : '400'};">
+                  <span>${sIcon} <strong>${dayNum} ${monthNames[st.month].slice(0,3)}</strong>: ${escapeHtml(mb.customer_name || 'Guest')} (${mb.slot})</span>
+                </button>
+              `;
+            }).join('')}
+          </div>
+        `;
+      }
+
+      targetStage.innerHTML = `
+        ${switcherHtml}
+        <div class="cal-stage-card">
+          <!-- Header -->
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:1rem;padding-bottom:0.75rem;border-bottom:1px solid rgba(255,255,255,0.08);">
+            <div>
+              <div style="font-size:1.05rem;font-weight:700;color:var(--cream);display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                <span>Booking <span style="color:var(--wheat);">${ref}</span></span>
+                <span style="opacity:0.4;">&bull;</span>
+                <span style="color:#fff;text-transform:uppercase;">${escapeHtml(b.customer_name || 'Guest')}</span>
+              </div>
+              <div style="display:flex;gap:6px;align-items:center;margin-top:5px;flex-wrap:wrap;">
+                <span class="badge ${isQadri ? 'badge-qadri' : 'badge-hakimi'}">${hallLabel}</span>
+                <span class="badge badge-${b.status}">${formatStatusLabel(b.status)}</span>
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <button type="button" class="action-btn" style="font-size:0.75rem;padding:0.35rem 0.75rem;" onclick="openEditBookingModal(${b.id})"><i class="fas fa-edit"></i> Edit</button>
+              <button type="button" class="action-btn del" style="font-size:0.75rem;padding:0.35rem 0.75rem;" onclick="deleteBooking(${b.id})"><i class="fas fa-trash"></i> Cancel</button>
+            </div>
+          </div>
+
+          <!-- Details Row -->
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:0.6rem;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.8rem;margin-bottom:1rem;font-size:0.75rem;">
+            <div><span style="opacity:0.6;display:block;font-size:0.65rem;text-transform:uppercase;">Phone</span><a href="tel:${b.phone}" style="color:var(--cream);text-decoration:none;">${escapeHtml(b.phone || '—')}</a></div>
+            <div><span style="opacity:0.6;display:block;font-size:0.65rem;text-transform:uppercase;">Date</span><strong style="color:#fcd34d;">${b.check_in || '—'}</strong></div>
+            <div><span style="opacity:0.6;display:block;font-size:0.65rem;text-transform:uppercase;">Slot</span><strong style="text-transform:capitalize;">${b.slot || '—'}</strong></div>
+            <div><span style="opacity:0.6;display:block;font-size:0.65rem;text-transform:uppercase;">Pantry</span><strong>${pkgLabel}</strong></div>
+            <div><span style="opacity:0.6;display:block;font-size:0.65rem;text-transform:uppercase;">Guests</span><span>${b.guests ? `${b.guests} guests` : 'Not specified'}</span></div>
+          </div>
+
+          <!-- 3 Financial Tracking Cards -->
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(120px, 1fr));gap:0.6rem;margin-bottom:1rem;">
+            <div style="background:rgba(217,119,6,0.08);border:1px solid rgba(217,119,6,0.25);border-radius:8px;padding:0.7rem;text-align:center;">
+              <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;opacity:0.7;margin-bottom:2px;">Total Quoted</div>
+              <div style="font-size:1.1rem;font-weight:700;color:var(--wheat);">₹${total.toLocaleString('en-IN')}</div>
+              <div style="font-size:0.65rem;opacity:0.6;">Full Event</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.03);border:1px solid ${isAdvReceived ? 'rgba(34,197,94,0.4)' : 'rgba(252,211,77,0.4)'};border-radius:8px;padding:0.7rem;text-align:center;">
+              <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;opacity:0.7;margin-bottom:2px;">Advance (40%)</div>
+              <div style="font-size:1.1rem;font-weight:700;color:#fcd34d;">₹${advPaid.toLocaleString('en-IN')}${advPaid < advReq ? ` (Req: ₹${advReq.toLocaleString('en-IN')})` : ''}</div>
+              <div style="margin-top:2px;">${isAdvReceived ? '<span style="color:#86efac;font-size:0.75rem;"><i class="fas fa-check-circle"></i> 40% Received</span>' : '<span style="color:#fcd34d;font-size:0.75rem;"><i class="fas fa-clock"></i> 40% Pending</span>'}</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.03);border:1px solid ${isFullySettled ? 'rgba(34,197,94,0.4)' : 'rgba(239,68,68,0.4)'};border-radius:8px;padding:0.7rem;text-align:center;">
+              <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;opacity:0.7;margin-bottom:2px;">Balance (60%)</div>
+              <div style="font-size:1.1rem;font-weight:700;color:var(--cream);">₹${bal.toLocaleString('en-IN')}</div>
+              <div style="margin-top:2px;">${isFullySettled ? '<span style="color:#86efac;font-size:0.75rem;"><i class="fas fa-check-double"></i> Fully Settled</span>' : '<span style="color:#fca5a5;font-size:0.75rem;"><i class="fas fa-exclamation-circle"></i> 60% Due</span>'}</div>
+            </div>
+          </div>
+
+          <!-- Dynamic Action Box -->
+          ${actionBoxHtml}
+        </div>
+      `;
     }
 
     async function renderCalendar(hallKey) {
@@ -2827,7 +3104,7 @@
       allBookings.forEach(b => {
         const bHall = (b.hall || 'Evan-e-Hakimi').toLowerCase();
         const match = isHakimi ? (!bHall.includes('qadri')) : (bHall.includes('qadri'));
-        if (match && b.check_in) {
+        if (match && b.check_in && !REJECTED_STATUSES.includes(b.status)) {
           if (!dayMap[b.check_in]) dayMap[b.check_in] = [];
           dayMap[b.check_in].push(b);
         }
@@ -2843,23 +3120,24 @@
         const dateStr = `${st.year}-${String(st.month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const isToday = dateStr === todayStr;
         const bList = dayMap[dateStr] || [];
+        const isDaySelected = bList.some(b => b.id === selectedCalendarBooking[hallKey]);
 
         let pillHtml = '';
         bList.forEach(b => {
           const sCls = 'slot-' + (b.slot || 'morning');
           const isConf = CONFIRMED_STATUSES.includes(b.status);
           const icon = isConf ? '✓ ' : '⏳ ';
-          const clickFn = isConf ? `openBookingStage(${b.id})` : `openEnquiryWorkflow(${b.id})`;
+          const isSelected = b.id === selectedCalendarBooking[hallKey];
           pillHtml += `
-            <div class="slot-pill ${sCls}" 
-                 onclick="event.stopPropagation(); ${clickFn};" 
+            <div class="slot-pill ${sCls} ${isSelected ? 'active-stage-pill' : ''}" 
+                 onclick="event.stopPropagation(); selectCalendarBooking('${hallKey}', ${b.id});" 
                  title="${escapeHtml(b.customer_name)} (${b.slot}) &bull; ${formatStatusLabel(b.status)} &bull; Click to view stage details">
               ${icon}${escapeHtml(b.customer_name || 'Booked')} (${b.slot})
             </div>`;
         });
 
         html += `
-          <div class="cal-cell ${isToday ? 'today' : ''}" onclick="handleCalendarDateClick('${hallName}', '${dateStr}')">
+          <div class="cal-cell ${isToday ? 'today' : ''} ${isDaySelected ? 'active-stage-cell' : ''}" onclick="handleCalendarDateClick('${hallName}', '${dateStr}')">
             <div class="cal-day-num">${day}</div>
             ${pillHtml}
           </div>
@@ -2867,10 +3145,12 @@
       }
 
       targetGrid.innerHTML = html;
+      renderCalendarStagePanel(hallKey);
     }
 
     function handleCalendarDateClick(hallName, dateStr) {
       const isHakimi = hallName.toLowerCase().includes('hakimi');
+      const hallKey = isHakimi ? 'hakimi' : 'qadri';
       const dayBookings = allBookings.filter(b => {
         const bHall = (b.hall || 'Evan-e-Hakimi').toLowerCase();
         const match = isHakimi ? (!bHall.includes('qadri')) : (bHall.includes('qadri'));
@@ -2882,45 +3162,8 @@
         return;
       }
 
-      const hasFullDay = dayBookings.some(b => b.slot === 'fullday');
-      const hasMorning = dayBookings.some(b => b.slot === 'morning');
-      const hasEvening = dayBookings.some(b => b.slot === 'evening');
-      const isFullyBooked = hasFullDay || (hasMorning && hasEvening);
-
-      if (isFullyBooked) {
-        if (dayBookings.length === 1) {
-          const b = dayBookings[0];
-          if (ENQUIRY_STATUSES.includes(b.status)) {
-            openEnquiryWorkflow(b.id);
-          } else {
-            openBookingStage(b.id);
-          }
-        } else {
-          showToast(`Date ${dateStr} is fully booked (${dayBookings.length} events). Click on an event pill to manage.`);
-        }
-        return;
-      }
-
-      // If day is partially booked (e.g. morning is booked, evening is free):
-      if (dayBookings.length === 1) {
-        const b = dayBookings[0];
-        const nextSlot = b.slot === 'morning' ? 'evening' : (b.slot === 'evening' ? 'morning' : 'morning');
-        const viewExisting = confirm(
-          `Date ${dateStr} already has a booking:\n• ${b.customer_name} (${b.slot.toUpperCase()})\n\nClick "OK" to view/manage this booking.\nClick "Cancel" to create a new booking for the remaining ${nextSlot.toUpperCase()} slot.`
-        );
-        if (viewExisting) {
-          if (ENQUIRY_STATUSES.includes(b.status)) {
-            openEnquiryWorkflow(b.id);
-          } else {
-            openBookingStage(b.id);
-          }
-        } else {
-          openDateQuickBook(hallName, dateStr, nextSlot);
-        }
-        return;
-      }
-
-      openDateQuickBook(hallName, dateStr, 'morning');
+      // Day has bookings -> select the first booking and display directly in the stage card above!
+      selectCalendarBooking(hallKey, dayBookings[0].id);
     }
 
     function openDateQuickBook(hallName, dateStr, preferredSlot = 'morning') {
@@ -3400,6 +3643,7 @@
             window.open(data.booking.whatsapp.advanceReceiptUrl, '_blank');
           }
           closeModal('modalBookingStage');
+          allBookings = [];
           loadOverview();
           loadEnquiries();
           loadBookings();
@@ -3427,6 +3671,7 @@
             window.open(data.booking.whatsapp.fullyPaidUrl, '_blank');
           }
           closeModal('modalBookingStage');
+          allBookings = [];
           loadOverview();
           loadEnquiries();
           loadBookings();
@@ -3804,8 +4049,11 @@
         if (res.ok) {
           showToast(editId ? 'Booking updated successfully' : 'Booking created successfully');
           closeModal('modalBooking');
+          allBookings = [];
           loadBookings();
           loadOverview();
+          loadCalendarHakimi();
+          loadCalendarQadri();
         } else {
           showToast(data.error || 'Failed to save booking', true);
         }
@@ -3824,8 +4072,11 @@
         const data = await res.json();
         if (res.ok) {
           showToast(`Booking #${id} updated to ${newStatus}`);
+          allBookings = [];
           loadBookings();
           loadOverview();
+          loadCalendarHakimi();
+          loadCalendarQadri();
         } else {
           showToast(data.error || 'Failed to update status', true);
         }
@@ -3840,8 +4091,12 @@
         const res = await authFetch(`/api/bookings/${id}`, { method: 'DELETE' });
         if (res.ok) {
           showToast(`Booking #${id} deleted`);
+          closeModal('modalBookingStage');
+          allBookings = [];
           loadBookings();
           loadOverview();
+          loadCalendarHakimi();
+          loadCalendarQadri();
         } else {
           showToast('Failed to delete booking', true);
         }
