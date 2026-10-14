@@ -25,6 +25,10 @@
       --glass-border: rgba(201,169,110,0.15);
     }
     
+    html, body {
+      overflow-x:hidden;
+      width:100%;
+    }
     body {
       font-family:'DM Sans',sans-serif;
       background:var(--ink);
@@ -34,7 +38,6 @@
       display:flex;
       align-items:center;
       justify-content:center;
-      overflow-x:hidden;
       position:relative;
       padding:1.5rem max(1rem, env(safe-area-inset-right)) calc(1.5rem + env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
     }
@@ -51,7 +54,7 @@
 
     /* Ambient Glows */
     .glow {
-      position:absolute; width:300px; height:300px;
+      position:fixed; width:300px; height:300px;
       border-radius:50%; background:radial-gradient(circle, rgba(201,169,110,0.08) 0%, transparent 70%);
       pointer-events:none; z-index:-1;
     }
@@ -256,6 +259,43 @@
       }
       .status-desc {
         margin-bottom:1rem;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .pay-card {
+        padding: 1.8rem 1.2rem;
+        border-radius: 14px;
+      }
+      .status-title {
+        font-size: 1.5rem;
+      }
+      .amount-val {
+        font-size: 1.8rem;
+      }
+      .btn-pay {
+        padding: 0.85rem 1.2rem;
+        font-size: 0.8rem;
+      }
+      .upi-id-box {
+        flex-direction: column;
+        gap: 0.6rem;
+      }
+      .upi-id-box button {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
+    @media (max-width: 340px) {
+      .pay-card {
+        padding: 1.4rem 0.85rem;
+      }
+      .status-title {
+        font-size: 1.35rem;
+      }
+      .amount-val {
+        font-size: 1.6rem;
       }
     }
   </style>

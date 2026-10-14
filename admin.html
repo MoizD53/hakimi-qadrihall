@@ -314,13 +314,506 @@
       box-shadow:0 15px 40px rgba(0,0,0,0.6);z-index:99999;display:none;align-items:center;gap:8px;
     }
 
-    /* Responsive */
+    /* ── MOBILE SIDEBAR CLOSE BUTTON ── */
+    .mobile-sidebar-close{
+      display:none;background:none;border:none;color:rgba(245,240,232,0.4);
+      font-size:1.15rem;cursor:pointer;margin-left:auto;padding:6px;line-height:1;
+    }
+    .mobile-sidebar-close:hover{color:var(--cream);}
+
+    /* ── ENQUIRY WORKFLOW, AVAILABILITY & WHATSAPP STYLES ── */
+    .modal-box.workflow-box{
+      max-width: 720px;
+    }
+    .availability-card{
+      background: rgba(255,255,255,0.025);
+      border: 1px solid rgba(201,169,110,0.2);
+      border-radius: 10px;
+      padding: 0.95rem 1.1rem;
+      margin-bottom: 1.1rem;
+    }
+    .availability-indicator{
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.65rem 0.9rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      margin-bottom: 0.75rem;
+    }
+    .availability-indicator.avail{
+      background: rgba(74,222,128,0.12);
+      border: 1px solid rgba(74,222,128,0.35);
+      color: #86efac;
+    }
+    .availability-indicator.booked{
+      background: rgba(239,68,68,0.12);
+      border: 1px solid rgba(239,68,68,0.35);
+      color: #fca5a5;
+    }
+    .availability-indicator.conflict{
+      background: rgba(251,191,36,0.12);
+      border: 1px solid rgba(251,191,36,0.35);
+      color: #fcd34d;
+    }
+    .slots-grid-preview{
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 0.5rem;
+    }
+    .slot-preview-item{
+      padding: 0.5rem 0.6rem;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(0,0,0,0.25);
+      font-size: 0.72rem;
+    }
+    .slot-preview-item.status-avail{
+      border-color: rgba(74,222,128,0.35);
+      color: #86efac;
+    }
+    .slot-preview-item.status-booked{
+      border-color: rgba(239,68,68,0.35);
+      color: #fca5a5;
+    }
+    .slot-preview-item.status-blocked{
+      border-color: rgba(251,191,36,0.35);
+      color: #fcd34d;
+    }
+    .btn-whatsapp{
+      background: #25D366;
+      color: #0b2210 !important;
+      font-weight: 600;
+      border: none;
+      border-radius: 6px;
+      padding: 0.45rem 0.85rem;
+      font-size: 0.75rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      text-decoration: none !important;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .btn-whatsapp:hover{
+      background: #22bf5b;
+      color: #000 !important;
+      transform: translateY(-1px);
+    }
+    .btn-whatsapp-outline{
+      background: rgba(37,211,102,0.1);
+      color: #86efac !important;
+      border: 1px solid rgba(37,211,102,0.35);
+      border-radius: 6px;
+      padding: 0.35rem 0.7rem;
+      font-size: 0.72rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      text-decoration: none !important;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .btn-whatsapp-outline:hover{
+      background: rgba(37,211,102,0.2);
+      border-color: #25D366;
+      color: #fff !important;
+    }
+    .workflow-summary-box{
+      background: rgba(201,169,110,0.06);
+      border: 1px solid rgba(201,169,110,0.2);
+      border-radius: 8px;
+      padding: 0.85rem 1rem;
+      margin-bottom: 1rem;
+      font-size: 0.8rem;
+      line-height: 1.6;
+    }
+    .pricing-calc-box{
+      background: rgba(18,13,8,0.9);
+      border: 1px solid rgba(201,169,110,0.25);
+      border-radius: 8px;
+      padding: 0.85rem 1rem;
+      margin-bottom: 1rem;
+    }
+    .pricing-calc-row{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.35rem 0;
+      font-size: 0.8rem;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .pricing-calc-row:last-child{
+      border-bottom: none;
+      font-weight: 700;
+    }
+    .status-tabs{
+      display: flex;
+      gap: 0.4rem;
+      margin-bottom: 1.2rem;
+      overflow-x: auto;
+      padding-bottom: 0.3rem;
+      -webkit-overflow-scrolling: touch;
+    }
+    .tab-pill{
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(201,169,110,0.18);
+      border-radius: 20px;
+      padding: 0.45rem 1rem;
+      font-size: 0.72rem;
+      color: rgba(245,240,232,0.7);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .tab-pill.active{
+      background: rgba(201,169,110,0.18);
+      border-color: var(--wheat);
+      color: var(--wheat);
+      font-weight: 600;
+    }
+    .venue-toggle-btns{
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem;
+      margin-bottom: 1rem;
+    }
+    .venue-btn{
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(201,169,110,0.2);
+      border-radius: 8px;
+      padding: 0.7rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .venue-btn.active{
+      background: rgba(201,169,110,0.15);
+      border-color: var(--wheat);
+      box-shadow: 0 0 15px rgba(201,169,110,0.15);
+    }
+    .venue-btn h4{
+      font-family: 'Cinzel', serif;
+      font-size: 0.82rem;
+      color: var(--wheat);
+      margin-bottom: 2px;
+    }
+    .venue-btn span{
+      font-size: 0.65rem;
+      color: rgba(245,240,232,0.5);
+    }
+
+    /* ── COMPREHENSIVE RESPONSIVE STYLES ── */
+    .cal-grid-wrapper{
+      width:100%;
+      overflow-x:auto;
+      -webkit-overflow-scrolling:touch;
+    }
+    .filter-input.search-input{
+      flex:1 1 220px;
+      min-width:180px;
+    }
+
+    @media (max-width: 1024px){
+      :root{ --sidebar-w: 240px; }
+      .content-area{ padding: 1.5rem; }
+      .header-bar{ padding: 0.85rem 1.5rem; }
+      .stats-grid{ grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+    }
+
     @media (max-width: 900px){
-      .sidebar{transform:translateX(-100%);}
-      .sidebar.open{transform:translateX(0);}
-      .sidebar-overlay.open{display:block;}
-      .main-wrapper{margin-left:0;}
-      .mobile-menu-btn{display:inline-flex;}
+      .sidebar{ transform:translateX(-100%); }
+      .sidebar.open{ transform:translateX(0); }
+      .sidebar-overlay.open{ display:block; }
+      .main-wrapper{ margin-left:0; width:100%; max-width:100vw; }
+      .mobile-menu-btn{ display:inline-flex; }
+      .mobile-sidebar-close{ display:inline-flex; }
+      .content-area{ padding: 1.2rem; }
+    }
+
+    @media (max-width: 768px){
+      .content-area{ padding: 1rem 0.85rem; }
+      .header-bar{
+        padding: 0.75rem 1rem;
+        gap: 0.65rem;
+      }
+      .header-left{ gap: 0.65rem; }
+      .header-title-block h1{ font-size: 1.35rem; }
+      .header-title-block p{ font-size: 0.64rem; }
+      .header-actions{ gap: 0.4rem; }
+      .btn-quick{ padding: 0.45rem 0.75rem; font-size: 0.7rem; }
+
+      .card-header{
+        padding: 0.9rem 1rem;
+        gap: 0.5rem;
+      }
+      .card-body{ padding: 1rem; }
+
+      .cal-grid{ min-width: 540px; }
+
+      .filter-toolbar{
+        padding: 0.65rem 0.75rem;
+        gap: 0.5rem;
+      }
+    }
+
+    @media (max-width: 640px){
+      .header-bar{
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.65rem;
+        padding: 0.7rem 0.85rem;
+      }
+      .header-left{
+        width: 100%;
+        justify-content: flex-start;
+      }
+      .header-title-block h1{
+        font-size: 1.25rem;
+        line-height: 1.15;
+      }
+      .header-actions{
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        justify-content: flex-start;
+      }
+      .header-actions .btn-quick{
+        flex: 1 1 auto;
+        min-height: 40px;
+        justify-content: center;
+      }
+      .hall-indicator{
+        font-size: 0.62rem;
+        padding: 0.35rem 0.65rem;
+      }
+
+      .content-area{
+        padding: 0.85rem 0.65rem;
+      }
+
+      /* Stats grid responsive */
+      .stats-grid{
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.6rem;
+        margin-bottom: 1.2rem;
+      }
+      .stats-grid .stat-card[style*="grid-column: span 2"]{
+        grid-column: span 2 !important;
+      }
+      .stat-card{
+        padding: 0.95rem 0.85rem;
+        border-radius: 10px;
+      }
+      .stat-label{
+        font-size: 0.56rem;
+        letter-spacing: 0.8px;
+        padding-right: 1.8rem;
+        margin-bottom: 0.35rem;
+      }
+      .stat-value{
+        font-size: 1.45rem;
+      }
+      .stat-sub{
+        font-size: 0.62rem;
+        margin-top: 0.25rem;
+      }
+      .stat-icon{
+        width: 26px;
+        height: 26px;
+        font-size: 0.75rem;
+        right: 0.65rem;
+        top: 0.75rem;
+      }
+
+      /* Filter toolbars full width collapse */
+      .filter-toolbar{
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+        padding: 0.75rem;
+      }
+      .filter-input, .filter-select{
+        width: 100% !important;
+        min-width: 0 !important;
+        flex: 1 1 100% !important;
+        min-height: 42px;
+        font-size: 0.82rem;
+        padding: 0.6rem 0.75rem;
+      }
+      .filter-toolbar .btn-quick,
+      .filter-toolbar button{
+        width: 100% !important;
+        justify-content: center;
+        min-height: 42px;
+        margin-left: 0 !important;
+      }
+
+      /* Tables touch scrolling */
+      .tbl-wrap{
+        border-radius: 8px;
+      }
+      th, td{
+        padding: 0.65rem 0.75rem;
+        font-size: 0.74rem;
+      }
+      th{
+        font-size: 0.58rem;
+        letter-spacing: 1.2px;
+      }
+      .action-btn{
+        min-height: 34px;
+        min-width: 34px;
+        padding: 0.35rem 0.6rem;
+        font-size: 0.72rem;
+      }
+
+      /* Calendar touch headers */
+      .cal-header{
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.6rem;
+        padding: 0.75rem 0.85rem;
+        text-align: center;
+      }
+      .cal-title{
+        font-size: 0.95rem;
+        text-align: center;
+      }
+      .cal-nav-btns{
+        width: 100%;
+        justify-content: center;
+      }
+      .cal-nav-btn{
+        flex: 1 1 auto;
+        min-height: 38px;
+        text-align: center;
+        justify-content: center;
+        display: inline-flex;
+        align-items: center;
+      }
+      .cal-grid{
+        min-width: 520px;
+      }
+      .cal-cell{
+        min-height: 75px;
+        padding: 0.35rem;
+      }
+      .slot-pill{
+        font-size: 0.52rem;
+        padding: 2px 4px;
+      }
+
+      /* Modals stacking & full touch ergonomics */
+      .modal-overlay{
+        padding: max(0.5rem, env(safe-area-inset-top)) max(0.5rem, env(safe-area-inset-right)) max(0.5rem, env(safe-area-inset-bottom)) max(0.5rem, env(safe-area-inset-left));
+      }
+      .modal-box{
+        max-height: calc(94dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+        border-radius: 12px;
+      }
+      .modal-header{
+        padding: 0.9rem 1.1rem;
+      }
+      .modal-title{
+        font-size: 1rem;
+      }
+      .modal-close{
+        width: 36px;
+        height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+      }
+      .modal-body{
+        padding: 1rem 1.1rem;
+      }
+      .modal-footer{
+        padding: 0.85rem 1.1rem;
+        flex-direction: column-reverse;
+        gap: 0.5rem;
+      }
+      .modal-footer button,
+      .modal-footer .btn-quick,
+      .modal-footer .action-btn{
+        width: 100%;
+        min-height: 44px;
+        justify-content: center;
+        font-size: 0.85rem;
+      }
+      .form-row{
+        grid-template-columns: 1fr !important;
+        gap: 0.75rem !important;
+        margin-bottom: 0.75rem !important;
+      }
+      .form-group{
+        margin-bottom: 0.75rem;
+      }
+      .form-ctrl{
+        min-height: 42px;
+        font-size: 0.85rem;
+        padding: 0.6rem 0.75rem;
+      }
+
+      /* Toast notification on mobile */
+      #toast{
+        left: 12px;
+        right: 12px;
+        bottom: max(16px, env(safe-area-inset-bottom));
+        justify-content: center;
+        text-align: center;
+        font-size: 0.78rem;
+      }
+    }
+
+    @media (max-width: 480px){
+      .header-title-block h1{ font-size: 1.15rem; }
+      .header-actions .btn-quick{ font-size: 0.68rem; padding: 0.45rem 0.65rem; }
+
+      .card-header{
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .card-title{ font-size: 0.82rem; }
+
+      .cal-grid{ min-width: 480px; }
+      .cal-cell{ min-height: 70px; padding: 0.3rem; }
+      .cal-day-num{ font-size: 0.7rem; }
+
+      .venue-toggle-btns{ grid-template-columns: 1fr; }
+      .slots-grid-preview{ grid-template-columns: 1fr 1fr; }
+      .pricing-calc-row{ font-size: 0.75rem; }
+    }
+
+    @media (max-width: 360px){
+      .content-area{ padding: 0.65rem 0.45rem; }
+      .header-bar{ padding: 0.65rem 0.65rem; }
+      .header-title-block h1{ font-size: 1.05rem; }
+      .stats-grid{
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+      }
+      .stats-grid .stat-card[style*="grid-column: span 2"]{
+        grid-column: auto !important;
+      }
+      .stat-card{ padding: 0.85rem 0.75rem; }
+      .stat-value{ font-size: 1.5rem; }
+
+      .cal-grid{ min-width: 440px; }
+      .cal-cell{ min-height: 65px; }
+
+      .slots-grid-preview{ grid-template-columns: 1fr; }
+      .tab-pill{ padding: 0.35rem 0.75rem; font-size: 0.68rem; }
+
+      .modal-overlay{ padding: 0.35rem; }
+      .modal-box{ border-radius: 10px; }
+      .modal-header, .modal-body, .modal-footer{ padding-left: 0.85rem; padding-right: 0.85rem; }
     }
 
     /* ── ADMIN AUTH SCREEN (SHOWN WHEN UNAUTHENTICATED) ── */
@@ -498,6 +991,17 @@
       letter-spacing:0.3px;
     }
     @media (max-width: 440px){
+      .login-card{
+        padding:1.8rem 1.3rem;
+        border-radius:14px;
+      }
+      .brand-title{
+        font-size:1.05rem;
+        letter-spacing:1.5px;
+      }
+      .card-heading{
+        font-size:1.3rem;
+      }
       .login-footer-pill{
         font-size:0.62rem;
         padding:0.45rem 0.9rem;
@@ -505,6 +1009,14 @@
         flex-wrap:wrap;
         justify-content:center;
         border-radius:14px;
+      }
+    }
+    @media (max-width: 340px){
+      .login-card{
+        padding:1.3rem 0.9rem;
+      }
+      .brand-title{
+        font-size:0.95rem;
       }
     }
 
@@ -639,12 +1151,17 @@
         <h2>Hakimi53 Halls</h2>
         <span>Management System</span>
       </div>
+      <button class="mobile-sidebar-close" onclick="toggleSidebar()" aria-label="Close sidebar"><i class="fas fa-times"></i></button>
     </div>
 
     <nav class="sidebar-nav">
       <div class="nav-section-title">Core Operations</div>
       <div class="nav-item active" onclick="switchNav('overview')">
         <i class="fas fa-chart-pie"></i> Overview
+      </div>
+      <div class="nav-item" onclick="switchNav('enquiries')">
+        <i class="fas fa-inbox"></i> New Enquiries
+        <span class="badge" id="navEnquiryBadge" style="margin-left:auto;background:rgba(252,211,77,0.18);border:1px solid rgba(252,211,77,0.4);color:#fcd34d;font-size:0.65rem;padding:2px 7px;border-radius:10px;font-weight:700;">0</span>
       </div>
       <div class="nav-item" onclick="switchNav('calendar-hakimi')">
         <i class="fas fa-calendar-alt"></i> Evan-e-Hakimi Cal
@@ -710,11 +1227,11 @@
             <div class="stat-sub">Across all venues</div>
             <i class="fas fa-calendar-day stat-icon"></i>
           </div>
-          <div class="stat-card">
+          <div class="stat-card" onclick="switchNav('enquiries')" style="cursor:pointer;" title="Click to review pending enquiries">
             <div class="stat-label">Pending Enquiries</div>
             <div class="stat-value" id="kpiPending" style="color:#fcd34d;">0</div>
-            <div class="stat-sub">Awaiting admin approval</div>
-            <i class="fas fa-clock stat-icon"></i>
+            <div class="stat-sub">Click to review &amp; confirm &rarr;</div>
+            <i class="fas fa-inbox stat-icon"></i>
           </div>
           <div class="stat-card">
             <div class="stat-label">Confirmed Bookings</div>
@@ -739,6 +1256,39 @@
             <div class="stat-value" id="kpiMonthExpenses">₹0</div>
             <div class="stat-sub">Operational costs</div>
             <i class="fas fa-file-invoice-dollar stat-icon"></i>
+          </div>
+        </div>
+
+        <!-- NEW: PENDING CUSTOMER ENQUIRIES AWAITING ACTION -->
+        <div class="card">
+          <div class="card-header" style="justify-content:space-between;">
+            <div>
+              <span class="card-title" style="color:var(--wheat);"><i class="fas fa-inbox"></i> New Customer Enquiries (Pending Review)</span>
+              <div style="font-size:0.68rem;color:rgba(245,240,232,0.4);margin-top:2px;">Review details, verify live availability, confirm booking or reject</div>
+            </div>
+            <button class="btn-quick" onclick="switchNav('enquiries')" style="font-size:0.7rem;padding:0.35rem 0.8rem;">
+              All Enquiries <i class="fas fa-arrow-right"></i>
+            </button>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Enquiry ID</th>
+                  <th>Customer Name</th>
+                  <th>Phone / WhatsApp</th>
+                  <th>Requested Date</th>
+                  <th>Requested Venue</th>
+                  <th>Slot &amp; Timing</th>
+                  <th>Catering</th>
+                  <th>Occasion</th>
+                  <th>Workflow Actions</th>
+                </tr>
+              </thead>
+              <tbody id="tblRecentEnquiries">
+                <tr><td colspan="9" style="text-align:center;padding:1.5rem;color:rgba(245,240,232,0.3);">No pending enquiries awaiting review.</td></tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
@@ -799,6 +1349,50 @@
         </div>
       </section>
 
+      <!-- ════════ PAGE: DEDICATED NEW ENQUIRIES ════════ -->
+      <section class="page" id="page-enquiries">
+        <div class="filter-toolbar">
+          <input type="text" id="filterEnquirySearch" class="filter-input search-input" placeholder="Search customer, phone, occasion..." oninput="debounceLoadEnquiries()">
+          <select id="filterEnquiryHall" class="filter-select" onchange="loadEnquiries()">
+            <option value="">All Requested Venues</option>
+            <option value="Evan-e-Hakimi">Evan-e-Hakimi (2nd Floor)</option>
+            <option value="Qadri Hall">Qadri Hall (3rd Floor)</option>
+          </select>
+          <select id="filterEnquiryStatus" class="filter-select" onchange="loadEnquiries()">
+            <option value="pending_only">Pending Review (New Enquiries)</option>
+            <option value="rejected_only">Rejected Enquiries</option>
+            <option value="all">All Enquiries &amp; History</option>
+          </select>
+          <button class="btn-quick gold" style="margin-left:auto;" onclick="openNewBookingModal()"><i class="fas fa-plus"></i> New Booking</button>
+        </div>
+
+        <div class="card">
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Customer</th>
+                  <th>WhatsApp / Phone</th>
+                  <th>Event Date</th>
+                  <th>Requested Venue</th>
+                  <th>Slot &amp; Timing</th>
+                  <th>Catering</th>
+                  <th>Guests</th>
+                  <th>Special Notes</th>
+                  <th>Submitted</th>
+                  <th>Status</th>
+                  <th>Workflow Actions</th>
+                </tr>
+              </thead>
+              <tbody id="tblEnquiriesBody">
+                <tr><td colspan="12" style="text-align:center;padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Loading enquiries...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
       <!-- ════════ PAGE 2: EVAN-E-HAKIMI CALENDAR ════════ -->
       <section class="page" id="page-calendar-hakimi">
         <div class="card">
@@ -813,8 +1407,10 @@
               <button class="cal-nav-btn" onclick="calNavMonth('hakimi', 1)">Next <i class="fas fa-chevron-right"></i></button>
             </div>
           </div>
-          <div class="cal-grid" id="calGridHakimi">
-            <!-- Rendered by JS -->
+          <div class="cal-grid-wrapper">
+            <div class="cal-grid" id="calGridHakimi">
+              <!-- Rendered by JS -->
+            </div>
           </div>
         </div>
       </section>
@@ -833,28 +1429,39 @@
               <button class="cal-nav-btn" onclick="calNavMonth('qadri', 1)">Next <i class="fas fa-chevron-right"></i></button>
             </div>
           </div>
-          <div class="cal-grid" id="calGridQadri">
-            <!-- Rendered by JS -->
+          <div class="cal-grid-wrapper">
+            <div class="cal-grid" id="calGridQadri">
+              <!-- Rendered by JS -->
+            </div>
           </div>
         </div>
       </section>
 
       <!-- ════════ PAGE 4: ALL BOOKINGS ════════ -->
       <section class="page" id="page-bookings">
+        <div class="status-tabs" id="bookingStatusTabs">
+          <div class="tab-pill active" onclick="setBookingStatusTab('', this)"><i class="fas fa-layer-group"></i> All Bookings (<span id="countTabAll">0</span>)</div>
+          <div class="tab-pill" onclick="setBookingStatusTab('enquiries', this)"><i class="fas fa-inbox"></i> Pending Enquiries (<span id="countTabEnquiries">0</span>)</div>
+          <div class="tab-pill" onclick="setBookingStatusTab('pending_advance', this)"><i class="fas fa-clock"></i> Confirmed (Pending Adv) (<span id="countTabPendingAdv">0</span>)</div>
+          <div class="tab-pill" onclick="setBookingStatusTab('advance_paid', this)"><i class="fas fa-check"></i> Advance Paid (<span id="countTabAdvancePaid">0</span>)</div>
+          <div class="tab-pill" onclick="setBookingStatusTab('fully_paid', this)"><i class="fas fa-award"></i> Fully Paid (<span id="countTabFullyPaid">0</span>)</div>
+          <div class="tab-pill" onclick="setBookingStatusTab('rejected', this)"><i class="fas fa-ban"></i> Rejected (<span id="countTabRejected">0</span>)</div>
+        </div>
+
         <div class="filter-toolbar">
-          <input type="text" id="filterBookSearch" class="filter-input" placeholder="Search customer, phone, occasion..." oninput="debounceLoadBookings()" style="width:240px;">
+          <input type="text" id="filterBookSearch" class="filter-input search-input" placeholder="Search customer, phone, ref, occasion..." oninput="debounceLoadBookings()">
           <select id="filterBookHall" class="filter-select" onchange="loadBookings()">
             <option value="">All Venues</option>
             <option value="Evan-e-Hakimi">Evan-e-Hakimi (2nd Floor)</option>
             <option value="Qadri Hall">Qadri Hall (3rd Floor)</option>
           </select>
           <select id="filterBookStatus" class="filter-select" onchange="loadBookings()">
-            <option value="">All Booking Statuses</option>
-            <option value="confirmed">Confirmed</option>
-            <option value="advance_verified">Advance Verified</option>
-            <option value="advance_requested">Advance Requested</option>
-            <option value="pending">Pending Review</option>
-            <option value="rejected">Rejected / Cancelled</option>
+            <option value="">All Statuses</option>
+            <option value="CONFIRMED_PENDING_ADVANCE">Confirmed (Pending Advance)</option>
+            <option value="ADVANCE_PAID">Advance Paid</option>
+            <option value="FULLY_PAID">Fully Paid</option>
+            <option value="NEW_ENQUIRY">New Enquiry</option>
+            <option value="REJECTED">Rejected</option>
           </select>
           <select id="filterBookPayment" class="filter-select" onchange="loadBookings()">
             <option value="">All Payment Statuses</option>
@@ -871,15 +1478,15 @@
             <table>
               <thead>
                 <tr>
-                  <th>ID</th>
+                  <th>Booking Ref</th>
                   <th>Customer</th>
-                  <th>Phone</th>
+                  <th>WhatsApp / Phone</th>
                   <th>Event Date</th>
                   <th>Venue</th>
-                  <th>Slot</th>
-                  <th>Pkg</th>
+                  <th>Slot &amp; Timing</th>
+                  <th>Catering</th>
                   <th>Guests</th>
-                  <th>Total Amount</th>
+                  <th>Total Quoted</th>
                   <th>Paid</th>
                   <th>Balance Due</th>
                   <th>Booking Status</th>
@@ -916,7 +1523,13 @@
         </div>
 
         <div class="filter-toolbar">
-          <input type="text" id="filterExpSearch" class="filter-input" placeholder="Search expense description, vendor..." oninput="debounceLoadExpenses()" style="width:230px;">
+          <input type="text" id="filterExpSearch" class="filter-input search-input" placeholder="Search expense description, vendor..." oninput="debounceLoadExpenses()">
+          <select id="filterExpHall" class="filter-select" onchange="loadExpenses()">
+            <option value="">All Venues</option>
+            <option value="Evan-e-Hakimi">Evan-e-Hakimi (2nd Floor)</option>
+            <option value="Qadri Hall">Qadri Hall (3rd Floor)</option>
+            <option value="Combined / Facility">Combined / Both Halls</option>
+          </select>
           <select id="filterExpCat" class="filter-select" onchange="loadExpenses()">
             <option value="">All Categories</option>
             <option value="utilities">Utilities (Electricity, Water, Gas)</option>
@@ -947,6 +1560,7 @@
                 <tr>
                   <th>Date</th>
                   <th>Description</th>
+                  <th>Venue / Hall</th>
                   <th>Category</th>
                   <th>Paid To / Vendor</th>
                   <th>Payment Method</th>
@@ -956,7 +1570,7 @@
                 </tr>
               </thead>
               <tbody id="tblExpensesBody">
-                <tr><td colspan="8" style="text-align:center;padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Loading expenses...</td></tr>
+                <tr><td colspan="9" style="text-align:center;padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Loading expenses...</td></tr>
               </tbody>
             </table>
           </div>
@@ -984,7 +1598,7 @@
         </div>
 
         <div class="filter-toolbar">
-          <input type="text" id="filterStaffSearch" class="filter-input" placeholder="Search staff name, phone, role..." oninput="debounceLoadStaff()" style="width:240px;">
+          <input type="text" id="filterStaffSearch" class="filter-input search-input" placeholder="Search staff name, phone, role..." oninput="debounceLoadStaff()">
           <select id="filterStaffStatus" class="filter-select" onchange="loadStaff()">
             <option value="">All Statuses</option>
             <option value="active">Active Only</option>
@@ -1131,6 +1745,236 @@
       </section>
 
     </main>
+  </div>
+
+  <!-- ════════ MODAL: ENQUIRY REVIEW & BOOKING WORKFLOW ════════ -->
+  <div class="modal-overlay" id="modalWorkflow">
+    <div class="modal-box workflow-box">
+      <div class="modal-header">
+        <h3 class="modal-title" id="workflowModalTitle">Review Enquiry &amp; Select Hall</h3>
+        <button class="modal-close" onclick="closeModal('modalWorkflow')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="wfBookingId">
+
+        <!-- Customer Summary Header -->
+        <div class="workflow-summary-box" id="wfCustomerSummary">
+          <!-- Rendered by JS -->
+        </div>
+
+        <!-- Venue Selection (2 Halls) -->
+        <div class="form-group">
+          <label>Select Venue / Hall *</label>
+          <div class="venue-toggle-btns">
+            <div class="venue-btn active" id="btnWfHallHakimi" onclick="selectWorkflowHall('Evan-e-Hakimi')">
+              <h4>Evan-e-Hakimi Hall</h4>
+              <span>2nd Floor &bull; 35–40 Thals (approx. 280–320 guests)</span>
+            </div>
+            <div class="venue-btn" id="btnWfHallQadri" onclick="selectWorkflowHall('Qadri Hall')">
+              <h4>Qadri Hall</h4>
+              <span>3rd Floor &bull; 25–30 Thals (approved dates)</span>
+            </div>
+          </div>
+          <input type="hidden" id="wfHall" value="Evan-e-Hakimi">
+        </div>
+
+        <!-- Event Date, Slot & Catering Selection -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="wfDate">Event Date *</label>
+            <input type="date" id="wfDate" class="form-ctrl" required onchange="triggerWorkflowAvailabilityCheck()">
+          </div>
+          <div class="form-group">
+            <label for="wfSlot">Slot &amp; Timings *</label>
+            <select id="wfSlot" class="form-ctrl" required onchange="triggerWorkflowAvailabilityCheck()">
+              <option value="morning">Morning (10:30 AM – 2:30 PM)</option>
+              <option value="evening">Evening (6:30 PM – 10:30 PM)</option>
+              <option value="fullday">Full Day (10:00 AM – 10:00 PM)</option>
+              <option value="majlis">Only Majlis (Custom Timings)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="wfPackage">Catering / Package *</label>
+            <select id="wfPackage" class="form-ctrl" required onchange="updateWorkflowPricing()">
+              <option value="with_jaman">With Jaman (Full Catering)</option>
+              <option value="without_jaman">Without Jaman (Hall Only)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="wfGuests">Expected Guests</label>
+            <input type="number" id="wfGuests" class="form-ctrl" placeholder="e.g. 250" min="1" max="500">
+          </div>
+        </div>
+
+        <!-- Live Availability Card & Day Slots Preview -->
+        <div class="availability-card" id="wfAvailabilityCard">
+          <div class="availability-indicator" id="wfAvailabilityIndicator">
+            <i class="fas fa-spinner fa-spin"></i> Checking live hall availability...
+          </div>
+          <div style="font-size:0.68rem;letter-spacing:1px;text-transform:uppercase;color:rgba(245,240,232,0.4);margin-bottom:0.4rem;">
+            Selected Hall Day Slots Overview:
+          </div>
+          <div class="slots-grid-preview" id="wfDaySlotsPreview">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Automatic Pricing & Advance Calculation -->
+        <div class="pricing-calc-box">
+          <div style="font-size:0.68rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--wheat);margin-bottom:0.6rem;font-weight:600;">
+            <i class="fas fa-calculator"></i> Automatic Pricing &amp; Payment Terms
+          </div>
+          <div class="pricing-calc-row">
+            <span>Total Event Price:</span>
+            <strong id="wfQuotedPrice" style="color:var(--wheat);">₹15,000</strong>
+          </div>
+          <div class="pricing-calc-row">
+            <span>40% Advance Required (Non-refundable):</span>
+            <strong id="wfAdvanceRequired" style="color:#fcd34d;">₹6,000</strong>
+          </div>
+          <div class="pricing-calc-row">
+            <span>Remaining 60% Balance (Due 2 days prior to event):</span>
+            <strong id="wfBalanceRemaining" style="color:var(--cream);">₹9,000</strong>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="wfCustomPrice">Price Override (₹, optional)</label>
+            <input type="number" id="wfCustomPrice" class="form-ctrl" placeholder="Auto-calculated" oninput="overrideWorkflowPricing()">
+          </div>
+          <div class="form-group">
+            <label for="wfNotes">Special Notes / Terms</label>
+            <input type="text" id="wfNotes" class="form-ctrl" placeholder="e.g. AC timing, table setups...">
+          </div>
+        </div>
+
+        <!-- Post-Confirmation WhatsApp Link Area -->
+        <div id="wfPostActions" style="display:none;margin-top:1rem;background:rgba(37,211,102,0.1);border:1px solid rgba(37,211,102,0.3);border-radius:8px;padding:0.9rem;text-align:center;">
+          <div id="wfPostMessage" style="font-size:0.82rem;font-weight:600;color:#86efac;margin-bottom:0.6rem;"></div>
+          <a id="btnWfWhatsApp" href="#" target="_blank" class="btn-whatsapp">
+            <i class="fab fa-whatsapp" style="font-size:1rem;"></i> Send Prefilled WhatsApp Message
+          </a>
+        </div>
+      </div>
+      <div class="modal-footer" id="wfFooterButtons">
+        <button type="button" class="action-btn" onclick="closeModal('modalWorkflow')">Close</button>
+        <button type="button" class="action-btn del" id="btnWfReject" onclick="executeWorkflowReject()"><i class="fas fa-times"></i> Reject Enquiry</button>
+        <button type="button" class="btn-quick gold" id="btnWfConfirm" onclick="executeWorkflowConfirm()"><i class="fas fa-check"></i> Confirm Booking</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ MODAL: BOOKING DETAILS & PAYMENTS WORKFLOW ════════ -->
+  <div class="modal-overlay" id="modalBookingDetails">
+    <div class="modal-box workflow-box">
+      <div class="modal-header">
+        <h3 class="modal-title" id="bkDetailsTitle">Booking Details &amp; Payments</h3>
+        <button class="modal-close" onclick="closeModal('modalBookingDetails')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="bkDetailsId">
+
+        <!-- Booking Overview Card -->
+        <div id="bkOverviewContent" class="workflow-summary-box">
+          <!-- Rendered by JS -->
+        </div>
+
+        <!-- WhatsApp Quick Action Buttons -->
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1.2rem;">
+          <a id="waBtnConfirmation" href="#" target="_blank" class="btn-whatsapp-outline" title="Booking Confirmation & 40% Advance Request">
+            <i class="fab fa-whatsapp"></i> Confirm &amp; Request Advance
+          </a>
+          <a id="waBtnAdvance" href="#" target="_blank" class="btn-whatsapp-outline" title="Advance Received Receipt">
+            <i class="fab fa-whatsapp"></i> Advance Receipt
+          </a>
+          <a id="waBtnFullyPaid" href="#" target="_blank" class="btn-whatsapp-outline" title="Full Settlement Receipt">
+            <i class="fab fa-whatsapp"></i> Fully Paid Receipt
+          </a>
+          <a id="waBtnRejection" href="#" target="_blank" class="btn-whatsapp-outline" title="Rejection / Cancellation Notice" style="color:#fca5a5 !important;border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.08);">
+            <i class="fab fa-whatsapp"></i> Rejection Notice
+          </a>
+        </div>
+
+        <!-- Payment History Table -->
+        <div class="card" style="margin-bottom:1.2rem;">
+          <div class="card-header" style="justify-content:space-between;padding:0.75rem 1rem;">
+            <span class="card-title" style="font-size:0.8rem;"><i class="fas fa-history"></i> Payment History &amp; Installments</span>
+            <button type="button" class="btn-quick" id="btnMarkFullyPaidDirect" onclick="triggerMarkFullyPaid()" style="font-size:0.68rem;padding:0.3rem 0.65rem;">
+              <i class="fas fa-check-double"></i> Mark as Fully Paid
+            </button>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Amount</th>
+                  <th>Type</th>
+                  <th>Method</th>
+                  <th>Recorded By</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody id="tblBkPaymentsHistory">
+                <tr><td colspan="6" style="text-align:center;padding:1rem;color:rgba(245,240,232,0.3);">No payments recorded yet.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Record Payment Form -->
+        <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(201,169,110,0.2);border-radius:8px;padding:1rem;">
+          <div style="font-size:0.72rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--wheat);margin-bottom:0.75rem;font-weight:600;">
+            <i class="fas fa-plus-circle"></i> Record Payment Installment
+          </div>
+          <form id="formRecordPaymentDetail" onsubmit="handlePaymentFromDetails(event)">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="payDetAmount">Amount to Record (₹) *</label>
+                <input type="number" id="payDetAmount" class="form-ctrl" required min="1">
+              </div>
+              <div class="form-group">
+                <label for="payDetType">Payment Type *</label>
+                <select id="payDetType" class="form-ctrl" required>
+                  <option value="advance">40% Advance Deposit</option>
+                  <option value="balance">Remaining Balance</option>
+                  <option value="full">Full Settlement</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="payDetMethod">Payment Method *</label>
+                <select id="payDetMethod" class="form-ctrl" required>
+                  <option value="UPI">UPI (GPay / PhonePe / Paytm)</option>
+                  <option value="Cash">Cash</option>
+                  <option value="Bank Transfer">Bank Transfer (NEFT/IMPS)</option>
+                  <option value="Cheque">Cheque</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="payDetDate">Payment Date *</label>
+                <input type="date" id="payDetDate" class="form-ctrl" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="payDetNotes">Reference / Transaction Details</label>
+              <input type="text" id="payDetNotes" class="form-ctrl" placeholder="e.g. UPI Ref / Cheque No / Cash receipt details">
+            </div>
+            <button type="submit" class="btn-quick gold" style="width:100%;justify-content:center;min-height:38px;">
+              <i class="fas fa-save"></i> Save Payment &amp; Update Booking
+            </button>
+          </form>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="action-btn" onclick="closeModal('modalBookingDetails')">Close</button>
+      </div>
+    </div>
   </div>
 
   <!-- ════════ MODAL: CREATE / EDIT BOOKING ════════ -->
@@ -1321,6 +2165,14 @@
 
           <div class="form-row">
             <div class="form-group">
+              <label for="eHall">Venue / Hall *</label>
+              <select id="eHall" class="form-ctrl" required>
+                <option value="Evan-e-Hakimi">Evan-e-Hakimi (2nd Floor)</option>
+                <option value="Qadri Hall">Qadri Hall (3rd Floor)</option>
+                <option value="Combined / Facility">Combined / Both Halls</option>
+              </select>
+            </div>
+            <div class="form-group">
               <label for="eCat">Category *</label>
               <select id="eCat" class="form-ctrl" required>
                 <option value="utilities">Utilities (Electricity, Water, Gas)</option>
@@ -1333,17 +2185,20 @@
                 <option value="other">Other / Miscellaneous</option>
               </select>
             </div>
-            <div class="form-group">
-              <label for="eAmount">Amount in INR (₹) *</label>
-              <input type="number" id="eAmount" class="form-ctrl" min="1" step="any" required>
-            </div>
           </div>
 
           <div class="form-row">
             <div class="form-group">
+              <label for="eAmount">Amount in INR (₹) *</label>
+              <input type="number" id="eAmount" class="form-ctrl" min="1" step="any" required>
+            </div>
+            <div class="form-group">
               <label for="eDate">Expense Date *</label>
               <input type="date" id="eDate" class="form-ctrl" required>
             </div>
+          </div>
+
+          <div class="form-row">
             <div class="form-group">
               <label for="ePayMethod">Payment Method *</label>
               <select id="ePayMethod" class="form-ctrl" required>
@@ -1353,22 +2208,21 @@
                 <option value="Cheque">Cheque</option>
               </select>
             </div>
-          </div>
-
-          <div class="form-row">
             <div class="form-group">
               <label for="ePaidTo">Paid To / Vendor Name</label>
               <input type="text" id="ePaidTo" class="form-ctrl" placeholder="e.g. Torrent Power, Hussain Bhai">
             </div>
+          </div>
+
+          <div class="form-row">
             <div class="form-group">
               <label for="eReceipt">Receipt / Invoice Ref</label>
               <input type="text" id="eReceipt" class="form-ctrl" placeholder="e.g. Bill #83921">
             </div>
-          </div>
-
-          <div class="form-group">
-            <label for="eNotes">Notes</label>
-            <input type="text" id="eNotes" class="form-ctrl" placeholder="Additional details">
+            <div class="form-group">
+              <label for="eNotes">Notes</label>
+              <input type="text" id="eNotes" class="form-ctrl" placeholder="Additional details">
+            </div>
           </div>
         </div>
         <div class="modal-footer">
@@ -1701,6 +2555,7 @@
     /* ════════ NAVIGATION & TABS ════════ */
     const pageTitles = {
       'overview': { title: 'Overview', sub: '' },
+      'enquiries': { title: 'New Customer Enquiries', sub: 'Review pending requests, select hall & slot, check live conflicts, and confirm or reject' },
       'calendar-hakimi': { title: 'Evan-e-Hakimi Calendar', sub: 'Hall 1 &bull; 2nd Floor &bull; Capacity: 35–40 Thals' },
       'calendar-qadri': { title: 'Qadri Hall Calendar', sub: 'Hall 2 &bull; 3rd Floor &bull; Manageable for approved future booking dates' },
       'bookings': { title: 'All Hall Bookings', sub: 'Complete booking registry, search &bull; filter &bull; conflict enforcement' },
@@ -1734,6 +2589,7 @@
 
       // Trigger lazy page loaders
       if (pageKey === 'overview') loadOverview();
+      if (pageKey === 'enquiries') loadEnquiries();
       if (pageKey === 'calendar-hakimi') renderCalendar('hakimi');
       if (pageKey === 'calendar-qadri') renderCalendar('qadri');
       if (pageKey === 'bookings') loadBookings();
@@ -1744,6 +2600,23 @@
 
     /* ════════ DATA STATE ════════ */
     let allBookings = [];
+    let allEnquiriesList = [];
+    let currentBookingTab = '';
+    const CONFIRMED_STATUSES = ['confirmed', 'advance_verified', 'CONFIRMED_PENDING_ADVANCE', 'ADVANCE_PARTIALLY_PAID', 'ADVANCE_PAID', 'FULLY_PAID'];
+    const ENQUIRY_STATUSES = ['pending', 'NEW_ENQUIRY', 'UNDER_REVIEW', 'waiting', 'hold', 'advance_requested'];
+    const REJECTED_STATUSES = ['rejected', 'REJECTED', 'cancelled', 'CANCELLED'];
+
+    function formatStatusLabel(st) {
+      if (!st) return 'Pending';
+      if (st === 'NEW_ENQUIRY') return 'New Enquiry';
+      if (st === 'CONFIRMED_PENDING_ADVANCE') return 'Confirmed (Pending Adv)';
+      if (st === 'ADVANCE_PAID') return 'Advance Paid';
+      if (st === 'ADVANCE_PARTIALLY_PAID') return 'Partial Advance';
+      if (st === 'FULLY_PAID') return 'Fully Paid';
+      if (st === 'REJECTED') return 'Rejected';
+      return st;
+    }
+
     let calState = {
       hakimi: { year: new Date().getFullYear(), month: new Date().getMonth() },
       qadri: { year: new Date().getFullYear(), month: new Date().getMonth() }
@@ -1762,34 +2635,49 @@
         let eventsToday = 0;
         let pendingCount = 0;
         let confirmedCount = 0;
+        let advancePaidCount = 0;
+        let fullyPaidCount = 0;
+        let rejectedCount = 0;
         let totalCollected = 0;
         let totalOutstanding = 0;
 
         const duePayments = [];
         const upcomingEvents = [];
+        const pendingEnquiries = [];
 
         allBookings.forEach(b => {
-          const isConfirmed = ['confirmed', 'advance_verified'].includes(b.status);
-          const isPending = ['pending', 'advance_requested', 'waiting', 'hold'].includes(b.status);
+          const isConfirmed = CONFIRMED_STATUSES.includes(b.status);
+          const isPending = ENQUIRY_STATUSES.includes(b.status);
+          const isRejected = REJECTED_STATUSES.includes(b.status);
+          const isFullyPaid = b.status === 'FULLY_PAID' || b.payment_status === 'fully_paid' || b.paymentStatus === 'fully_paid';
+          const isAdvPaid = ['ADVANCE_PAID', 'advance_verified', 'advance_paid', 'ADVANCE_PARTIALLY_PAID'].includes(b.status);
+
           const total = parseFloat(b.total_amount || 0);
           const paid = parseFloat(b.advancePaid || b.advance_paid || 0);
           const balance = Math.max(0, total - paid);
 
-          if (isConfirmed) confirmedCount++;
-          if (isPending) pendingCount++;
-          totalCollected += paid;
-
-          if (b.check_in === todayStr && isConfirmed) eventsToday++;
-
-          if (isConfirmed && balance > 0) {
-            totalOutstanding += balance;
-            if (b.check_in <= twoDaysLater) {
-              duePayments.push(b);
-            }
+          if (isPending) {
+            pendingCount++;
+            pendingEnquiries.push(b);
+          } else if (isConfirmed) {
+            confirmedCount++;
+            if (isFullyPaid) fullyPaidCount++;
+            else if (isAdvPaid) advancePaidCount++;
           }
+          if (isRejected) rejectedCount++;
 
-          if (b.check_in >= todayStr && b.check_in <= sevenDaysLater) {
-            upcomingEvents.push(b);
+          if (isConfirmed) {
+            totalCollected += paid;
+            if (b.check_in === todayStr) eventsToday++;
+            if (balance > 0) {
+              totalOutstanding += balance;
+              if (b.check_in <= twoDaysLater) {
+                duePayments.push(b);
+              }
+            }
+            if (b.check_in >= todayStr && b.check_in <= sevenDaysLater) {
+              upcomingEvents.push(b);
+            }
           }
         });
 
@@ -1799,10 +2687,65 @@
         document.getElementById('kpiCollected').textContent = '₹' + Math.round(totalCollected).toLocaleString('en-IN');
         document.getElementById('kpiOutstanding').textContent = '₹' + Math.round(totalOutstanding).toLocaleString('en-IN');
 
+        const navBadge = document.getElementById('navEnquiryBadge');
+        if (navBadge) {
+          navBadge.textContent = pendingCount;
+          navBadge.style.display = pendingCount > 0 ? 'inline-flex' : 'none';
+        }
+
+        // Update tab pill counts in All Bookings
+        const setElText = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+        setElText('countTabAll', allBookings.length);
+        setElText('countTabEnquiries', pendingCount);
+        setElText('countTabPendingAdv', allBookings.filter(b => b.status === 'CONFIRMED_PENDING_ADVANCE').length);
+        setElText('countTabAdvancePaid', advancePaidCount);
+        setElText('countTabFullyPaid', fullyPaidCount);
+        setElText('countTabRejected', rejectedCount);
+
         // Fetch monthly expenses for KPI
         const expRes = await authFetch('/api/expenses/summary');
         const expData = await expRes.json();
         document.getElementById('kpiMonthExpenses').textContent = '₹' + Math.round(expData.thisMonthTotal || 0).toLocaleString('en-IN');
+
+        // Render Recent Enquiries on Overview
+        const recentTbody = document.getElementById('tblRecentEnquiries');
+        if (recentTbody) {
+          if (pendingEnquiries.length === 0) {
+            recentTbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:1.5rem;color:rgba(245,240,232,0.4);">No pending enquiries awaiting review.</td></tr>`;
+          } else {
+            recentTbody.innerHTML = pendingEnquiries.slice(0, 5).map(b => {
+              const phoneClean = (b.phone || '').replace(/[^0-9]/g, '');
+              const waUrl = b.whatsapp?.confirmationUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
+              return `
+                <tr>
+                  <td><strong>#${b.id}</strong></td>
+                  <td><strong>${escapeHtml(b.customer_name || 'Guest')}</strong></td>
+                  <td>
+                    <div style="display:flex;align-items:center;gap:6px;">
+                      <a href="tel:${b.phone}" style="color:var(--cream);text-decoration:none;">${b.phone}</a>
+                      <a href="${waUrl}" target="_blank" class="btn-whatsapp-outline" style="padding:2px 6px;font-size:0.65rem;" title="Open WhatsApp Chat"><i class="fab fa-whatsapp"></i></a>
+                    </div>
+                  </td>
+                  <td style="color:#fcd34d;font-weight:600;">${b.check_in || '—'}</td>
+                  <td><span class="badge ${b.hall?.toLowerCase().includes('qadri')?'badge-qadri':'badge-hakimi'}">${escapeHtml(b.hall||'Evan-e-Hakimi')}</span></td>
+                  <td>${b.slot}</td>
+                  <td style="font-size:0.7rem;">${b.package==='with_jaman'?'With Jaman':'Hall Only'}</td>
+                  <td>${escapeHtml(b.occasion || '—')}</td>
+                  <td>
+                    <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                      <button class="action-btn pay" onclick="openEnquiryWorkflow(${b.id})" title="Review Enquiry & Check Availability" style="color:var(--wheat);border-color:var(--wheat);">
+                        <i class="fas fa-search"></i> Review
+                      </button>
+                      <button class="action-btn del" onclick="rejectEnquiryPrompt(${b.id})" title="Reject Enquiry">
+                        <i class="fas fa-times"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              `;
+            }).join('');
+          }
+        }
 
         // Render Due Payments table
         const dueTbody = document.getElementById('tblDuePayments');
@@ -1823,7 +2766,7 @@
                 <td>₹${parseFloat(b.advancePaid||b.advance_paid||0).toLocaleString('en-IN')}</td>
                 <td style="color:#fca5a5;font-weight:700;">₹${bal.toLocaleString('en-IN')}</td>
                 <td>
-                  <button class="action-btn pay" onclick="openPaymentModal(${b.id})"><i class="fas fa-rupee-sign"></i> Collect</button>
+                  <button class="action-btn pay" onclick="openBookingDetails(${b.id})"><i class="fas fa-rupee-sign"></i> Manage</button>
                 </td>
               </tr>
             `;
@@ -1845,7 +2788,7 @@
                 <td>${b.phone}</td>
                 <td>${escapeHtml(b.occasion||'—')}</td>
                 <td>${b.guests || '—'}</td>
-                <td><span class="badge badge-${b.status}">${b.status}</span></td>
+                <td><span class="badge badge-${b.status}">${formatStatusLabel(b.status)}</span></td>
                 <td><span class="badge badge-${b.paymentStatus||b.payment_status||'not_paid'}">${b.paymentStatus||b.payment_status||'not_paid'}</span></td>
               </tr>
             `;
@@ -1914,9 +2857,9 @@
         let pillHtml = '';
         bList.forEach(b => {
           const sCls = 'slot-' + (b.slot || 'morning');
-          const isConf = ['confirmed', 'advance_verified'].includes(b.status);
+          const isConf = CONFIRMED_STATUSES.includes(b.status);
           const icon = isConf ? '✓ ' : '⏳ ';
-          pillHtml += `<div class="slot-pill ${sCls}" title="${b.customer_name} (${b.slot}) - ${b.status}">${icon}${escapeHtml(b.customer_name || 'Booked')} (${b.slot})</div>`;
+          pillHtml += `<div class="slot-pill ${sCls}" title="${b.customer_name} (${b.slot}) - ${formatStatusLabel(b.status)}">${icon}${escapeHtml(b.customer_name || 'Booked')} (${b.slot})</div>`;
         });
 
         html += `
@@ -1937,6 +2880,558 @@
       recalculatePriceHint();
     }
 
+    /* ════════ NEW ENQUIRIES WORKFLOW ════════ */
+    let enquiryDebounce;
+    function debounceLoadEnquiries() {
+      clearTimeout(enquiryDebounce);
+      enquiryDebounce = setTimeout(loadEnquiries, 300);
+    }
+
+    async function loadEnquiries() {
+      const search = document.getElementById('filterEnquirySearch')?.value || '';
+      const hall = document.getElementById('filterEnquiryHall')?.value || '';
+      const stMode = document.getElementById('filterEnquiryStatus')?.value || 'pending_only';
+
+      const q = new URLSearchParams();
+      if (search) q.append('search', search);
+      if (hall) q.append('hall', hall);
+
+      if (stMode === 'pending_only') {
+        q.append('statusGroup', 'enquiries');
+      } else if (stMode === 'rejected_only') {
+        q.append('statusGroup', 'rejected');
+      }
+
+      try {
+        const res = await authFetch('/api/bookings?' + q.toString());
+        allEnquiriesList = await res.json();
+
+        const tbody = document.getElementById('tblEnquiriesBody');
+        if (allEnquiriesList.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;padding:2rem;color:rgba(245,240,232,0.4);">No enquiries found matching filters.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = allEnquiriesList.map(b => {
+          const isQadri = (b.hall || '').toLowerCase().includes('qadri');
+          const isPending = ENQUIRY_STATUSES.includes(b.status);
+          const phoneClean = (b.phone || '').replace(/[^0-9]/g, '');
+          const waUrl = b.whatsapp?.confirmationUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
+          const submittedAt = b.created_at ? new Date(b.created_at).toLocaleDateString('en-IN', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : '—';
+
+          return `
+            <tr>
+              <td><strong>#${b.id}</strong></td>
+              <td><strong>${escapeHtml(b.customer_name || 'Guest')}</strong></td>
+              <td>
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <a href="tel:${b.phone}" style="color:var(--cream);text-decoration:none;">${b.phone}</a>
+                  <a href="${waUrl}" target="_blank" class="btn-whatsapp-outline" style="padding:2px 6px;font-size:0.65rem;" title="Chat via WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                </div>
+              </td>
+              <td style="color:#fcd34d;font-weight:600;">${b.check_in || '—'}</td>
+              <td><span class="badge ${isQadri?'badge-qadri':'badge-hakimi'}">${escapeHtml(b.hall||'Evan-e-Hakimi')}</span></td>
+              <td>${b.slot}</td>
+              <td style="font-size:0.7rem;">${b.package==='with_jaman'?'With Jaman':'Without Jaman'}</td>
+              <td>${b.guests || '—'}</td>
+              <td style="font-size:0.7rem;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(b.notes||b.occasion||'')}">${escapeHtml(b.notes || b.occasion || '—')}</td>
+              <td style="font-size:0.68rem;color:rgba(245,240,232,0.45);">${submittedAt}</td>
+              <td>
+                <span class="badge badge-${b.status}">${formatStatusLabel(b.status)}</span>
+                ${b.rejection_reason ? `<div style="font-size:0.6rem;color:#fca5a5;margin-top:2px;">${escapeHtml(b.rejection_reason)}</div>` : ''}
+              </td>
+              <td>
+                <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                  <button class="btn-quick gold" style="padding:0.35rem 0.65rem;font-size:0.7rem;" onclick="openEnquiryWorkflow(${b.id})">
+                    <i class="fas fa-tasks"></i> Review &amp; Select Hall
+                  </button>
+                  <a href="${waUrl}" target="_blank" class="action-btn" title="Open WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                  ${isPending ? `<button class="action-btn del" onclick="rejectEnquiryPrompt(${b.id})" title="Reject Enquiry"><i class="fas fa-times"></i> Reject</button>` : ''}
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } catch (err) {
+        console.error('Failed to load enquiries:', err);
+      }
+    }
+
+    let currentWorkflowBooking = null;
+
+    async function openEnquiryWorkflow(bookingId) {
+      let b = allBookings.find(x => x.id === bookingId) || allEnquiriesList.find(x => x.id === bookingId);
+      if (!b) {
+        try {
+          const res = await authFetch(`/api/bookings/${bookingId}`);
+          b = await res.json();
+        } catch (_) {
+          showToast('Could not load enquiry details', true);
+          return;
+        }
+      }
+      currentWorkflowBooking = b;
+
+      document.getElementById('wfBookingId').value = b.id;
+      document.getElementById('workflowModalTitle').textContent = `Review Enquiry #${b.id} &bull; ${b.customer_name}`;
+
+      // Populate customer summary header
+      const phoneClean = (b.phone || '').replace(/[^0-9]/g, '');
+      const waUrl = b.whatsapp?.confirmationUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
+      document.getElementById('wfCustomerSummary').innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.4rem;">
+          <div>
+            <strong style="font-size:0.95rem;color:var(--wheat);">${escapeHtml(b.customer_name || 'Valued Guest')}</strong>
+            <span style="font-size:0.75rem;color:rgba(245,240,232,0.6);margin-left:8px;">&bull; ${escapeHtml(b.phone)}</span>
+          </div>
+          <a href="${waUrl}" target="_blank" class="btn-whatsapp-outline" style="font-size:0.68rem;padding:3px 8px;">
+            <i class="fab fa-whatsapp"></i> Direct WhatsApp
+          </a>
+        </div>
+        <div><strong>Occasion:</strong> ${escapeHtml(b.occasion || 'Not specified')} | <strong>Expected Guests:</strong> ${b.guests || 'Not specified'}</div>
+        ${b.notes ? `<div style="margin-top:4px;color:rgba(245,240,232,0.75);"><i class="fas fa-comment-dots" style="color:var(--wheat);"></i> <em>"${escapeHtml(b.notes)}"</em></div>` : ''}
+      `;
+
+      // Pre-fill inputs
+      const targetHall = (b.hall || 'Evan-e-Hakimi').trim().toLowerCase().includes('qadri') ? 'Qadri Hall' : 'Evan-e-Hakimi';
+      selectWorkflowHall(targetHall);
+
+      document.getElementById('wfDate').value = b.check_in || new Date().toISOString().split('T')[0];
+      document.getElementById('wfSlot').value = b.slot || 'morning';
+      document.getElementById('wfPackage').value = b.package || 'without_jaman';
+      document.getElementById('wfGuests').value = b.guests || '';
+      document.getElementById('wfNotes').value = b.notes || '';
+      document.getElementById('wfCustomPrice').value = '';
+
+      // Reset post actions
+      document.getElementById('wfPostActions').style.display = 'none';
+      document.getElementById('wfFooterButtons').style.display = 'flex';
+
+      updateWorkflowPricing();
+      triggerWorkflowAvailabilityCheck();
+      openModal('modalWorkflow');
+    }
+
+    function selectWorkflowHall(hallName) {
+      const isQadri = hallName.toLowerCase().includes('qadri');
+      document.getElementById('wfHall').value = isQadri ? 'Qadri Hall' : 'Evan-e-Hakimi';
+      document.getElementById('btnWfHallHakimi').classList.toggle('active', !isQadri);
+      document.getElementById('btnWfHallQadri').classList.toggle('active', isQadri);
+      triggerWorkflowAvailabilityCheck();
+    }
+
+    let isWfSlotAvailable = false;
+
+    async function triggerWorkflowAvailabilityCheck() {
+      const date = document.getElementById('wfDate').value;
+      const hall = document.getElementById('wfHall').value;
+      const slot = document.getElementById('wfSlot').value;
+      const bookingId = document.getElementById('wfBookingId').value;
+
+      if (!date) return;
+
+      const ind = document.getElementById('wfAvailabilityIndicator');
+      ind.className = 'availability-indicator';
+      ind.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Checking live calendar conflicts...`;
+
+      try {
+        const res = await authFetch(`/api/bookings/check-availability?date=${date}&hall=${encodeURIComponent(hall)}&slot=${slot}&excludeBookingId=${bookingId}`);
+        const data = await res.json();
+
+        isWfSlotAvailable = data.available;
+        const confirmBtn = document.getElementById('btnWfConfirm');
+
+        if (data.available) {
+          ind.className = 'availability-indicator avail';
+          ind.innerHTML = `<i class="fas fa-check-circle" style="font-size:1.1rem;"></i> <div><div><strong>AVAILABLE</strong> &bull; Slot is completely open for ${hall} on ${date}.</div><div style="font-size:0.7rem;font-weight:400;opacity:0.85;">Admin can safely lock &amp; confirm this booking.</div></div>`;
+          confirmBtn.disabled = false;
+          confirmBtn.style.opacity = '1';
+        } else if (data.status === 'ALREADY_BOOKED') {
+          ind.className = 'availability-indicator booked';
+          const bk = data.conflictBooking;
+          ind.innerHTML = `<i class="fas fa-times-circle" style="font-size:1.1rem;"></i> <div><div><strong>ALREADY BOOKED</strong> &bull; Slot is confirmed for Booking #${bk?.id || ''} (${escapeHtml(bk?.name || 'Guest')}).</div><div style="font-size:0.7rem;font-weight:400;opacity:0.85;">Choose another slot, switch hall, or select another date.</div></div>`;
+          confirmBtn.disabled = true;
+          confirmBtn.style.opacity = '0.5';
+        } else {
+          ind.className = 'availability-indicator conflict';
+          const bk = data.conflictBooking;
+          ind.innerHTML = `<i class="fas fa-exclamation-triangle" style="font-size:1.1rem;"></i> <div><div><strong>SLOT CONFLICT</strong> &bull; Conflicts with existing confirmed Booking #${bk?.id || ''} (${escapeHtml(bk?.name || 'Guest')}).</div><div style="font-size:0.7rem;font-weight:400;opacity:0.85;">Full Day conflicts with Morning/Evening/Majlis slots.</div></div>`;
+          confirmBtn.disabled = true;
+          confirmBtn.style.opacity = '0.5';
+        }
+
+        // Render Day Slots Overview
+        const targetSlots = data.targetHallSlots || {};
+        const slotsGrid = document.getElementById('wfDaySlotsPreview');
+        const slotKeys = [
+          { key: 'morning', title: 'Morning', time: '10:30 AM–2:30 PM' },
+          { key: 'evening', title: 'Evening', time: '6:30 PM–10:30 PM' },
+          { key: 'fullday', title: 'Full Day', time: '10:00 AM–10:00 PM' },
+          { key: 'majlis', title: 'Majlis', time: 'Custom' }
+        ];
+
+        slotsGrid.innerHTML = slotKeys.map(s => {
+          const info = targetSlots[s.key] || { available: true, status: 'AVAILABLE' };
+          let cls = 'status-avail';
+          let icon = '✓';
+          let txt = 'Open';
+          if (!info.available) {
+            if (info.status === 'ALREADY_BOOKED') {
+              cls = 'status-booked';
+              icon = '✗';
+              txt = 'Booked';
+            } else {
+              cls = 'status-blocked';
+              icon = '⚠️';
+              txt = 'Conflict';
+            }
+          }
+          return `
+            <div class="slot-preview-item ${cls}">
+              <div style="font-weight:700;">${icon} ${s.title}</div>
+              <div style="font-size:0.65rem;opacity:0.8;">${s.time}</div>
+              <div style="font-size:0.65rem;font-weight:600;margin-top:2px;">${txt}</div>
+            </div>
+          `;
+        }).join('');
+
+      } catch (err) {
+        ind.className = 'availability-indicator conflict';
+        ind.innerHTML = `<i class="fas fa-exclamation-circle"></i> Failed to verify availability: ${err.message}`;
+      }
+    }
+
+    function updateWorkflowPricing() {
+      const slot = document.getElementById('wfSlot').value;
+      const pkg = document.getElementById('wfPackage').value;
+      const date = document.getElementById('wfDate').value;
+      const is2027 = date && date >= '2027-01-01';
+
+      let standardPrice = 15000;
+      if (slot === 'fullday') standardPrice = 30000;
+      else if (slot === 'majlis') standardPrice = is2027 ? 15000 : 11000;
+      else {
+        if (pkg === 'without_jaman') standardPrice = is2027 ? 15000 : 11000;
+        else standardPrice = is2027 ? 21000 : 15000;
+      }
+
+      const customPriceVal = parseFloat(document.getElementById('wfCustomPrice').value);
+      const finalPrice = !isNaN(customPriceVal) && customPriceVal > 0 ? customPriceVal : standardPrice;
+      const advanceVal = Math.round(finalPrice * 0.40);
+      const balanceVal = finalPrice - advanceVal;
+
+      document.getElementById('wfQuotedPrice').textContent = '₹' + finalPrice.toLocaleString('en-IN');
+      document.getElementById('wfAdvanceRequired').textContent = '₹' + advanceVal.toLocaleString('en-IN');
+      document.getElementById('wfBalanceRemaining').textContent = '₹' + balanceVal.toLocaleString('en-IN');
+    }
+
+    function overrideWorkflowPricing() {
+      updateWorkflowPricing();
+    }
+
+    async function executeWorkflowConfirm() {
+      const bookingId = document.getElementById('wfBookingId').value;
+      const hall = document.getElementById('wfHall').value;
+      const date = document.getElementById('wfDate').value;
+      const slot = document.getElementById('wfSlot').value;
+      const pkg = document.getElementById('wfPackage').value;
+      const guests = document.getElementById('wfGuests').value;
+      const customPrice = parseFloat(document.getElementById('wfCustomPrice').value);
+      const notes = document.getElementById('wfNotes').value;
+
+      if (!isWfSlotAvailable) {
+        if (!confirm('The selected slot indicates a potential conflict. Do you still wish to attempt server-side verification and confirmation?')) {
+          return;
+        }
+      }
+
+      const btn = document.getElementById('btnWfConfirm');
+      const originalHTML = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Confirming & Reserving Slot...';
+
+      try {
+        const payload = {
+          hall,
+          date,
+          check_in: date,
+          slot,
+          package: pkg,
+          guests: guests ? parseInt(guests, 10) : 0,
+          notes: notes || undefined
+        };
+        if (!isNaN(customPrice) && customPrice > 0) {
+          payload.price = customPrice;
+          payload.advance_amount = Math.round(customPrice * 0.40);
+        }
+
+        const res = await authFetch(`/api/bookings/${bookingId}/confirm`, {
+          method: 'POST',
+          body: payload
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          showToast(`Booking #${bookingId} confirmed! Ref: ${data.booking.booking_reference}`);
+          
+          document.getElementById('wfFooterButtons').style.display = 'none';
+          const postActions = document.getElementById('wfPostActions');
+          postActions.style.display = 'block';
+          postActions.style.background = 'rgba(37,211,102,0.12)';
+          postActions.style.borderColor = 'rgba(37,211,102,0.35)';
+
+          document.getElementById('wfPostMessage').innerHTML = `
+            <div style="font-size:0.95rem;color:#86efac;margin-bottom:4px;">
+              <i class="fas fa-check-circle"></i> Booking Successfully Confirmed!
+            </div>
+            <div style="font-size:0.75rem;color:var(--cream);font-weight:400;">
+              Reference: <strong>${data.booking.booking_reference}</strong> &bull; Status: <strong>CONFIRMED_PENDING_ADVANCE</strong>
+            </div>
+          `;
+
+          const waLink = document.getElementById('btnWfWhatsApp');
+          waLink.href = data.booking.whatsapp?.confirmationUrl || '#';
+          waLink.innerHTML = `<i class="fab fa-whatsapp" style="font-size:1.1rem;"></i> Send Booking Confirmation & 40% Advance Request`;
+
+          loadOverview();
+          loadEnquiries();
+          loadBookings();
+        } else {
+          showToast(data.error || 'Failed to confirm booking', true);
+          btn.disabled = false;
+          btn.innerHTML = originalHTML;
+        }
+      } catch (err) {
+        showToast('Confirmation error: ' + err.message, true);
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
+      }
+    }
+
+    async function executeWorkflowReject() {
+      const bookingId = document.getElementById('wfBookingId').value;
+      const reason = prompt('Please enter rejection reason (sent in customer WhatsApp message):', 'Requested slot or date is already booked or unavailable');
+      if (reason === null) return;
+
+      try {
+        const res = await authFetch(`/api/bookings/${bookingId}/reject`, {
+          method: 'POST',
+          body: { reason: reason.trim() }
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          showToast(`Enquiry #${bookingId} rejected`);
+
+          document.getElementById('wfFooterButtons').style.display = 'none';
+          const postActions = document.getElementById('wfPostActions');
+          postActions.style.display = 'block';
+          postActions.style.background = 'rgba(239,68,68,0.12)';
+          postActions.style.borderColor = 'rgba(239,68,68,0.35)';
+
+          document.getElementById('wfPostMessage').innerHTML = `
+            <div style="font-size:0.95rem;color:#fca5a5;margin-bottom:4px;">
+              <i class="fas fa-ban"></i> Enquiry Marked as Rejected
+            </div>
+            <div style="font-size:0.75rem;color:var(--cream);font-weight:400;">
+              Reason: <em>"${escapeHtml(reason)}"</em> &bull; Slot freed
+            </div>
+          `;
+
+          const waLink = document.getElementById('btnWfWhatsApp');
+          waLink.href = data.booking.whatsapp?.rejectionUrl || '#';
+          waLink.className = 'btn-whatsapp-outline';
+          waLink.style.borderColor = '#ef4444';
+          waLink.style.color = '#fca5a5';
+          waLink.innerHTML = `<i class="fab fa-whatsapp"></i> Send Rejection Notice via WhatsApp`;
+
+          loadOverview();
+          loadEnquiries();
+          loadBookings();
+        } else {
+          showToast(data.error || 'Failed to reject enquiry', true);
+        }
+      } catch (err) {
+        showToast('Rejection error: ' + err.message, true);
+      }
+    }
+
+    async function rejectEnquiryPrompt(bookingId) {
+      const reason = prompt('Please enter rejection reason (e.g. Slot already booked):', 'Requested date or slot is unavailable');
+      if (reason === null) return;
+
+      try {
+        const res = await authFetch(`/api/bookings/${bookingId}/reject`, {
+          method: 'POST',
+          body: { reason: reason.trim() }
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          showToast(`Enquiry #${bookingId} marked as rejected`);
+          if (data.booking.whatsapp?.rejectionUrl) {
+            window.open(data.booking.whatsapp.rejectionUrl, '_blank');
+          }
+          loadOverview();
+          loadEnquiries();
+          loadBookings();
+        } else {
+          showToast(data.error || 'Failed to reject enquiry', true);
+        }
+      } catch (err) {
+        showToast('Error: ' + err.message, true);
+      }
+    }
+
+    /* ════════ BOOKING DETAILS & PAYMENTS MODAL ════════ */
+    let currentDetailsBooking = null;
+
+    async function openBookingDetails(bookingId) {
+      try {
+        const res = await authFetch(`/api/bookings/${bookingId}`);
+        const b = await res.json();
+        currentDetailsBooking = b;
+
+        document.getElementById('bkDetailsId').value = b.id;
+        const ref = b.booking_reference || `#${b.id}`;
+        document.getElementById('bkDetailsTitle').innerHTML = `Booking Management &bull; <span style="color:var(--wheat);">${ref}</span>`;
+
+        const total = parseFloat(b.total_amount || 0);
+        const paid = parseFloat(b.advancePaid || b.advance_paid || 0);
+        const bal = Math.max(0, total - paid);
+        const isQadri = (b.hall || '').toLowerCase().includes('qadri');
+
+        // Overview Summary
+        document.getElementById('bkOverviewContent').innerHTML = `
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.6rem;">
+            <div>
+              <strong style="font-size:1rem;color:var(--cream);">${escapeHtml(b.customer_name || 'Guest')}</strong>
+              <div style="font-size:0.75rem;color:rgba(245,240,232,0.6);">Phone: <a href="tel:${b.phone}" style="color:var(--wheat);">${b.phone}</a> &bull; Occasion: ${escapeHtml(b.occasion || '—')}</div>
+            </div>
+            <div>
+              <span class="badge ${isQadri?'badge-qadri':'badge-hakimi'}">${escapeHtml(b.hall || 'Evan-e-Hakimi')}</span>
+              <span class="badge badge-${b.status}">${formatStatusLabel(b.status)}</span>
+              <span class="badge badge-${b.paymentStatus || b.payment_status || 'not_paid'}">${b.paymentStatus || b.payment_status || 'not_paid'}</span>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:0.6rem;background:rgba(0,0,0,0.3);padding:0.75rem;border-radius:6px;margin-top:0.5rem;">
+            <div><span style="font-size:0.65rem;color:rgba(245,240,232,0.4);display:block;">DATE &amp; SLOT</span><strong>${b.check_in}</strong> (${b.slot})</div>
+            <div><span style="font-size:0.65rem;color:rgba(245,240,232,0.4);display:block;">QUOTED TOTAL</span><strong style="color:var(--wheat);">₹${total.toLocaleString('en-IN')}</strong></div>
+            <div><span style="font-size:0.65rem;color:rgba(245,240,232,0.4);display:block;">TOTAL COLLECTED</span><strong style="color:#86efac;">₹${paid.toLocaleString('en-IN')}</strong></div>
+            <div><span style="font-size:0.65rem;color:rgba(245,240,232,0.4);display:block;">OUTSTANDING BALANCE</span><strong style="color:${bal>0?'#fca5a5':'#86efac'};">₹${bal.toLocaleString('en-IN')}</strong></div>
+          </div>
+        `;
+
+        // Configure WhatsApp action links
+        const wa = b.whatsapp || {};
+        document.getElementById('waBtnConfirmation').href = wa.confirmationUrl || '#';
+        document.getElementById('waBtnAdvance').href = wa.advanceReceiptUrl || '#';
+        document.getElementById('waBtnFullyPaid').href = wa.fullyPaidUrl || '#';
+        document.getElementById('waBtnRejection').href = wa.rejectionUrl || '#';
+
+        // Payment history table
+        const pTable = document.getElementById('tblBkPaymentsHistory');
+        const payments = b.payments || [];
+        if (payments.length === 0) {
+          pTable.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:1rem;color:rgba(245,240,232,0.4);">No payment installments recorded yet.</td></tr>`;
+        } else {
+          pTable.innerHTML = payments.map(p => `
+            <tr>
+              <td><strong>${p.payment_date || (p.created_at ? p.created_at.split('T')[0] : '—')}</strong></td>
+              <td style="color:#86efac;font-weight:700;">₹${parseFloat(p.amount || 0).toLocaleString('en-IN')}</td>
+              <td><span class="badge badge-advance" style="font-size:0.55rem;">${p.payment_type || 'installment'}</span></td>
+              <td>${p.payment_method || 'UPI'}</td>
+              <td style="font-size:0.7rem;color:var(--wheat);">${p.created_by || 'admin'}</td>
+              <td style="font-size:0.7rem;">${escapeHtml(p.notes || '—')}</td>
+            </tr>
+          `).join('');
+        }
+
+        // Configure payment form pre-fills
+        document.getElementById('payDetAmount').value = bal > 0 ? bal : (total * 0.4);
+        document.getElementById('payDetAmount').max = bal > 0 ? bal : total;
+        document.getElementById('payDetType').value = bal === 0 ? 'full' : (paid > 0 ? 'balance' : 'advance');
+        document.getElementById('payDetDate').valueAsDate = new Date();
+        document.getElementById('payDetNotes').value = '';
+
+        // If balance is 0, disable mark fully paid button
+        const fullBtn = document.getElementById('btnMarkFullyPaidDirect');
+        if (bal === 0) {
+          fullBtn.disabled = true;
+          fullBtn.style.opacity = '0.5';
+          fullBtn.innerHTML = '<i class="fas fa-check"></i> Already Fully Paid';
+        } else {
+          fullBtn.disabled = false;
+          fullBtn.style.opacity = '1';
+          fullBtn.innerHTML = '<i class="fas fa-check-double"></i> Mark as Fully Paid';
+        }
+
+        openModal('modalBookingDetails');
+      } catch (err) {
+        showToast('Failed to open booking details: ' + err.message, true);
+      }
+    }
+
+    async function handlePaymentFromDetails(e) {
+      e.preventDefault();
+      const id = document.getElementById('bkDetailsId').value;
+      const amt = parseFloat(document.getElementById('payDetAmount').value);
+      const type = document.getElementById('payDetType').value;
+      const method = document.getElementById('payDetMethod').value;
+      const date = document.getElementById('payDetDate').value;
+      const notes = document.getElementById('payDetNotes').value;
+
+      try {
+        const res = await authFetch(`/api/bookings/${id}/payments`, {
+          method: 'POST',
+          body: { amount: amt, payment_type: type, payment_method: method, payment_date: date, notes }
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast(`Recorded payment of ₹${amt.toLocaleString('en-IN')}`);
+          openBookingDetails(id);
+          loadBookings();
+          loadOverview();
+        } else {
+          showToast(data.error || 'Failed to record payment', true);
+        }
+      } catch (err) {
+        showToast('Payment error: ' + err.message, true);
+      }
+    }
+
+    async function triggerMarkFullyPaid() {
+      const id = document.getElementById('bkDetailsId').value;
+      if (!confirm(`Mark Booking #${id} as Fully Paid? This will settle remaining balance to ₹0 and generate WhatsApp settlement receipt.`)) {
+        return;
+      }
+
+      try {
+        const res = await authFetch(`/api/bookings/${id}/mark-fully-paid`, {
+          method: 'POST',
+          body: { payment_method: 'Cash', notes: 'Marked fully paid by admin' }
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast(`Booking #${id} marked as fully paid!`);
+          openBookingDetails(id);
+          loadBookings();
+          loadOverview();
+        } else {
+          showToast(data.error || 'Failed to mark fully paid', true);
+        }
+      } catch (err) {
+        showToast('Error: ' + err.message, true);
+      }
+    }
+
+    function setBookingStatusTab(statusGroup, tabEl) {
+      currentBookingTab = statusGroup;
+      document.querySelectorAll('#bookingStatusTabs .tab-pill').forEach(el => el.classList.remove('active'));
+      if (tabEl) tabEl.classList.add('active');
+      loadBookings();
+    }
+
     /* ════════ 4. BOOKINGS MANAGEMENT ════════ */
     let bookDebounce;
     function debounceLoadBookings() {
@@ -1955,6 +3450,7 @@
       if (hall) q.append('hall', hall);
       if (status) q.append('status', status);
       if (pay) q.append('paymentStatus', pay);
+      if (currentBookingTab) q.append('statusGroup', currentBookingTab);
 
       try {
         const res = await authFetch('/api/bookings?' + q.toString());
@@ -1971,18 +3467,30 @@
           const advPaid = parseFloat(b.advancePaid || b.advance_paid || 0);
           const balance = Math.max(0, total - advPaid);
           const isQadri = (b.hall || '').toLowerCase().includes('qadri');
+          const bookingRef = b.booking_reference || `#${b.id}`;
 
           const conflictNotice = b.hasConflict 
             ? `<div style="font-size:0.62rem;color:#fca5a5;background:rgba(239,68,68,0.15);padding:2px 4px;border-radius:3px;margin-top:2px;">⚠️ Conflict with #${b.conflictDetails?.id}</div>` 
             : '';
 
+          const phoneClean = (b.phone || '').replace(/[^0-9]/g, '');
+          const waUrl = b.whatsapp?.confirmationUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
+
           return `
             <tr>
-              <td><strong>#${b.id}</strong></td>
-              <td><strong>${escapeHtml(b.customer_name||'Guest')}</strong></td>
-              <td><a href="tel:${b.phone}" style="color:var(--cream);text-decoration:none;">${b.phone}</a></td>
+              <td>
+                <strong style="color:var(--wheat);">${escapeHtml(bookingRef)}</strong>
+                <div style="font-size:0.65rem;color:rgba(245,240,232,0.4);">ID: #${b.id}</div>
+              </td>
+              <td><strong>${escapeHtml(b.customer_name || 'Guest')}</strong></td>
+              <td>
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <a href="tel:${b.phone}" style="color:var(--cream);text-decoration:none;">${b.phone}</a>
+                  <a href="${waUrl}" target="_blank" class="btn-whatsapp-outline" style="padding:2px 6px;font-size:0.65rem;" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                </div>
+              </td>
               <td><strong>${b.check_in}</strong></td>
-              <td><span class="badge ${isQadri?'badge-qadri':'badge-hakimi'}">${escapeHtml(b.hall||'Evan-e-Hakimi')}</span></td>
+              <td><span class="badge ${isQadri?'badge-qadri':'badge-hakimi'}">${escapeHtml(b.hall || 'Evan-e-Hakimi')}</span></td>
               <td>${b.slot}</td>
               <td style="font-size:0.7rem;">${b.package==='with_jaman'?'With Jaman':'Hall Only'}</td>
               <td>${b.guests || '—'}</td>
@@ -1990,17 +3498,16 @@
               <td>₹${advPaid.toLocaleString('en-IN')}</td>
               <td style="color:${balance>0?'#fca5a5':'#86efac'};font-weight:600;">₹${balance.toLocaleString('en-IN')}</td>
               <td>
-                <span class="badge badge-${b.status}">${b.status}</span>
+                <span class="badge badge-${b.status}">${formatStatusLabel(b.status)}</span>
                 ${conflictNotice}
               </td>
-              <td><span class="badge badge-${b.paymentStatus||b.payment_status||'not_paid'}">${b.paymentStatus||b.payment_status||'not_paid'}</span></td>
+              <td><span class="badge badge-${b.paymentStatus || b.payment_status || 'not_paid'}">${b.paymentStatus || b.payment_status || 'not_paid'}</span></td>
               <td>
                 <div style="display:flex;gap:4px;flex-wrap:wrap;">
-                  <button class="action-btn pay" onclick="openPaymentModal(${b.id})" title="Record Payment"><i class="fas fa-rupee-sign"></i></button>
-                  ${b.status==='pending' ? `<button class="action-btn" onclick="updateBookingStatus(${b.id}, 'confirmed')" title="Confirm Booking" style="color:#86efac;border-color:#86efac;"><i class="fas fa-check"></i></button>` : ''}
+                  <button class="action-btn pay" onclick="openBookingDetails(${b.id})" title="Booking Details & Payments"><i class="fas fa-file-invoice"></i> Manage</button>
+                  ${ENQUIRY_STATUSES.includes(b.status) ? `<button class="action-btn" onclick="openEnquiryWorkflow(${b.id})" title="Review & Confirm" style="color:var(--wheat);border-color:var(--wheat);"><i class="fas fa-tasks"></i></button>` : ''}
                   <button class="action-btn" onclick="openEditBookingModal(${b.id})" title="Edit Details"><i class="fas fa-edit"></i></button>
                   <button class="action-btn del" onclick="deleteBooking(${b.id})" title="Cancel Booking"><i class="fas fa-trash"></i></button>
-                  <a class="action-btn" href="https://wa.me/91${b.phone.replace(/[^0-9]/g,'')}?text=Assalamu%20Alaikum%20${encodeURIComponent(b.customer_name||'Guest')}" target="_blank" title="WhatsApp Chat"><i class="fab fa-whatsapp"></i></a>
                 </div>
               </td>
             </tr>
@@ -2050,10 +3557,10 @@
 
       let standardPrice = 15000;
       if (slot === 'fullday') standardPrice = 30000;
-      else if (slot === 'majlis') standardPrice = is2027 ? 12000 : 11000;
+      else if (slot === 'majlis') standardPrice = is2027 ? 15000 : 11000;
       else {
         if (pkg === 'without_jaman') standardPrice = is2027 ? 15000 : 11000;
-        else standardPrice = is2027 ? 20000 : 15000;
+        else standardPrice = is2027 ? 21000 : 15000;
       }
 
       // Pre-fill price only if user hasn't overridden it
@@ -2212,6 +3719,7 @@
       const search = document.getElementById('filterExpSearch')?.value || '';
       const cat = document.getElementById('filterExpCat')?.value || '';
       const pay = document.getElementById('filterExpPay')?.value || '';
+      const hall = document.getElementById('filterExpHall')?.value || '';
       const from = document.getElementById('filterExpFrom')?.value || '';
       const to = document.getElementById('filterExpTo')?.value || '';
 
@@ -2219,6 +3727,7 @@
       if (search) q.append('search', search);
       if (cat) q.append('category', cat);
       if (pay) q.append('payment_method', pay);
+      if (hall) q.append('hall', hall);
       if (from) q.append('from', from);
       if (to) q.append('to', to);
 
@@ -2240,14 +3749,22 @@
 
         const tbody = document.getElementById('tblExpensesBody');
         if (allExpenses.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;color:rgba(245,240,232,0.4);">No expenses recorded.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:2rem;color:rgba(245,240,232,0.4);">No expenses recorded.</td></tr>`;
           return;
         }
 
-        tbody.innerHTML = allExpenses.map(e => `
+        tbody.innerHTML = allExpenses.map(e => {
+          let hallBadge = '<span class="badge" style="background:rgba(201,169,110,0.12);color:var(--wheat);">Evan-e-Hakimi</span>';
+          if (e.hall === 'Qadri Hall') {
+            hallBadge = '<span class="badge" style="background:rgba(147,197,253,0.12);color:#93c5fd;">Qadri Hall</span>';
+          } else if (e.hall === 'Combined / Facility') {
+            hallBadge = '<span class="badge" style="background:rgba(245,240,232,0.1);color:var(--cream);">Both Halls</span>';
+          }
+          return `
           <tr>
             <td><strong>${e.date}</strong></td>
             <td><strong>${escapeHtml(e.description || e.notes || 'Expense')}</strong></td>
+            <td>${hallBadge}</td>
             <td><span class="badge" style="background:rgba(201,169,110,0.1);color:var(--wheat);">${escapeHtml(e.category)}</span></td>
             <td>${escapeHtml(e.paid_to || '—')}</td>
             <td>${escapeHtml(e.payment_method || 'Cash')}</td>
@@ -2260,7 +3777,7 @@
               </div>
             </td>
           </tr>
-        `).join('');
+        `; }).join('');
       } catch (err) {
         console.error('Failed to load expenses:', err);
       }
@@ -2270,6 +3787,7 @@
       document.getElementById('formExpense').reset();
       document.getElementById('expEditId').value = '';
       document.getElementById('expModalTitle').textContent = 'Record Expense';
+      document.getElementById('eHall').value = 'Evan-e-Hakimi';
       document.getElementById('eDate').valueAsDate = new Date();
       openModal('modalExpense');
     }
@@ -2280,6 +3798,7 @@
       document.getElementById('expEditId').value = id;
       document.getElementById('expModalTitle').textContent = 'Edit Expense #' + id;
       document.getElementById('eDesc').value = e.description || e.notes || '';
+      document.getElementById('eHall').value = e.hall || 'Evan-e-Hakimi';
       document.getElementById('eCat').value = e.category || 'utilities';
       document.getElementById('eAmount').value = e.amount || '';
       document.getElementById('eDate').value = e.date || '';
@@ -2295,6 +3814,7 @@
       const id = document.getElementById('expEditId').value;
       const payload = {
         description: document.getElementById('eDesc').value,
+        hall: document.getElementById('eHall').value || 'Evan-e-Hakimi',
         category: document.getElementById('eCat').value,
         amount: parseFloat(document.getElementById('eAmount').value),
         date: document.getElementById('eDate').value,
@@ -2639,7 +4159,8 @@
     function exportExpensesCSV() {
       const from = document.getElementById('repFromDate').value;
       const to = document.getElementById('repToDate').value;
-      const url = `/api/reports/export-expenses.csv?from=${from}&to=${to}`;
+      const hall = document.getElementById('repHall')?.value || 'all';
+      const url = `/api/reports/export-expenses.csv?from=${from}&to=${to}&hall=${hall}`;
       window.open(url, '_blank');
     }
 

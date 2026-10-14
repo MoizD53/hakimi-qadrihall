@@ -48,6 +48,10 @@ async function migrate() {
       { name: 'balance_amount', def: 'REAL DEFAULT 0' },
       { name: 'hall', def: "TEXT DEFAULT 'Evan-e-Hakimi'" },
       { name: 'package', def: "TEXT DEFAULT 'without_jaman'" },
+      { name: 'booking_reference', def: 'TEXT' },
+      { name: 'rejection_reason', def: 'TEXT' },
+      { name: 'confirmed_at', def: 'TIMESTAMP' },
+      { name: 'rejected_at', def: 'TIMESTAMP' },
       { name: 'updated_at', def: 'TIMESTAMP' }
     ];
 
@@ -63,6 +67,7 @@ async function migrate() {
     await db.execute("UPDATE bookings SET package = 'without_jaman' WHERE package IS NULL OR package = ''");
     await db.execute("UPDATE bookings SET advance_amount = ROUND(total_amount * 0.40) WHERE advance_amount IS NULL OR advance_amount = 0");
     await db.execute("UPDATE bookings SET balance_amount = ROUND(total_amount - COALESCE(advance_paid, 0)) WHERE balance_amount IS NULL OR balance_amount = 0");
+    await db.execute("UPDATE bookings SET booking_reference = printf('EH-2026-%04d', id) WHERE (booking_reference IS NULL OR booking_reference = '') AND (status IN ('confirmed', 'advance_verified', 'CONFIRMED_PENDING_ADVANCE', 'ADVANCE_PAID', 'FULLY_PAID'))");
 
     // 2. Create / Expand staff table
     console.log('Ensuring staff table exists...');
@@ -112,6 +117,7 @@ async function migrate() {
         paid_to TEXT,
         status TEXT DEFAULT 'paid',
         notes TEXT,
+        hall TEXT DEFAULT 'Evan-e-Hakimi',
         receipt_url TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP
@@ -124,6 +130,7 @@ async function migrate() {
       { name: 'description', def: 'TEXT' },
       { name: 'payment_method', def: "TEXT DEFAULT 'Cash'" },
       { name: 'paid_to', def: 'TEXT' },
+      { name: 'hall', def: "TEXT DEFAULT 'Evan-e-Hakimi'" },
       { name: 'receipt_url', def: 'TEXT' },
       { name: 'updated_at', def: 'TIMESTAMP' }
     ];
@@ -134,6 +141,8 @@ async function migrate() {
         await db.execute(`ALTER TABLE expenses ADD COLUMN ${col.name} ${col.def}`);
       }
     }
+
+    await db.execute("UPDATE expenses SET hall = 'Evan-e-Hakimi' WHERE hall IS NULL OR hall = ''");
 
     // 4. Create staff_salary_payments table
     console.log('Ensuring staff_salary_payments table exists...');
@@ -161,9 +170,17 @@ async function migrate() {
         payment_method TEXT DEFAULT 'UPI',
         payment_date TEXT NOT NULL,
         notes TEXT,
+        created_by TEXT DEFAULT 'admin',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    const bpInfo = await db.execute("PRAGMA table_info(booking_payments)");
+    const existingBpCols = (bpInfo.rows || []).map(r => r.name);
+    if (!existingBpCols.includes('created_by')) {
+      console.log('Adding created_by column to booking_payments...');
+      await db.execute("ALTER TABLE booking_payments ADD COLUMN created_by TEXT DEFAULT 'admin'");
+    }
 
     // 6. Create audit_logs table
     console.log('Ensuring audit_logs table exists...');

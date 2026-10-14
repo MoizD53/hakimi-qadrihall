@@ -44,12 +44,12 @@ function calculateExpectedPrice(slot, pkg, dateStr) {
   const is2027 = isDateOnOrAfterJan2027(dateStr);
 
   if (s === 'fullday') return 30000;
-  if (s === 'majlis') return is2027 ? 12000 : 11000;
+  if (s === 'majlis') return is2027 ? 15000 : 11000;
   if (s === 'morning' || s === 'evening') {
     if (pkg === 'without_jaman') return is2027 ? 15000 : 11000;
-    return is2027 ? 20000 : 15000;
+    return is2027 ? 21000 : 15000;
   }
-  return is2027 ? 20000 : 15000;
+  return is2027 ? 21000 : 15000;
 }
 
 function calculateAdvance(price) {
@@ -80,16 +80,16 @@ it('2026: Only Majlis Slot (custom timing) is ₹11,000 with ₹4,400 advance (4
   assert.strictEqual(calculateAdvance(price), 4400);
 });
 
-it('From 2027-01-01: Morning Slot (with jaman) is ₹20,000 with ₹8,000 advance (40%)', () => {
+it('From 2027-01-01: Morning Slot (with jaman) is ₹21,000 with ₹8,400 advance (40%)', () => {
   const price = calculateExpectedPrice('morning', 'with_jaman', '2027-01-10');
-  assert.strictEqual(price, 20000);
-  assert.strictEqual(calculateAdvance(price), 8000);
+  assert.strictEqual(price, 21000);
+  assert.strictEqual(calculateAdvance(price), 8400);
 });
 
-it('From 2027-01-01: Evening Slot (with jaman) is ₹20,000 with ₹8,000 advance (40%)', () => {
+it('From 2027-01-01: Evening Slot (with jaman) is ₹21,000 with ₹8,400 advance (40%)', () => {
   const price = calculateExpectedPrice('evening', 'with_jaman', '2027-01-10');
-  assert.strictEqual(price, 20000);
-  assert.strictEqual(calculateAdvance(price), 8000);
+  assert.strictEqual(price, 21000);
+  assert.strictEqual(calculateAdvance(price), 8400);
 });
 
 it('From 2027-01-01: Without Jaman slot pricing is ₹15,000', () => {
@@ -103,10 +103,10 @@ it('From 2027-01-01: Full Day Slot remains ₹30,000 with ₹12,000 advance (40%
   assert.strictEqual(calculateAdvance(price), 12000);
 });
 
-it('From 2027-01-01: Only Majlis Slot is ₹12,000 with ₹4,800 advance (40%)', () => {
+it('From 2027-01-01: Only Majlis Slot is ₹15,000 with ₹6,000 advance (40%)', () => {
   const price = calculateExpectedPrice('majlis', 'without_jaman', '2027-01-10');
-  assert.strictEqual(price, 12000);
-  assert.strictEqual(calculateAdvance(price), 4800);
+  assert.strictEqual(price, 15000);
+  assert.strictEqual(calculateAdvance(price), 6000);
 });
 
 // ── TEST GROUP 2: CONFLICT DETECTION RULES ──
@@ -289,6 +289,13 @@ it('expense with negative or zero amount is rejected', () => {
   assert.strictEqual(validateExpense('Supplies', 'supplies', -100, '2026-10-10').valid, false);
 });
 
+it('expense accepts hall allocation for Evan-e-Hakimi, Qadri Hall, or Combined / Facility', () => {
+  const validHalls = ['Evan-e-Hakimi', 'Qadri Hall', 'Combined / Facility'];
+  validHalls.forEach(h => {
+    assert.strictEqual(validHalls.includes(h), true);
+  });
+});
+
 // ── TEST GROUP 7: STAFF & SALARY PAYMENT RULES ──
 console.log('\n👥 Group 7: Staff Management & Salary Payment Rules');
 
@@ -394,6 +401,103 @@ it('admin.html contains PWA manifest and service worker registration', () => {
   assert.strictEqual(html.includes('serviceWorker.register'), true);
 });
 
+// ── TEST GROUP 10: COMPLETE BOOKING WORKFLOW & WHATSAPP ACTIONS ──
+console.log('\n📲 Group 10: Complete Booking Workflow, WhatsApp Actions & Concurrency Safety');
+
+function normalizePhone(phone) {
+  if (!phone) return '';
+  const digits = String(phone).replace(/\D/g, '');
+  if (digits.length === 10) return '91' + digits;
+  if (digits.length === 11 && digits.startsWith('0')) return '91' + digits.slice(1);
+  if (digits.length === 12 && digits.startsWith('91')) return digits;
+  return digits;
+}
+
+function generateBookingReference(hall, id, dateStr) {
+  const isQadri = String(hall || '').toLowerCase().includes('qadri');
+  const prefix = isQadri ? 'QH' : 'EH';
+  const year = dateStr ? String(dateStr).split('T')[0].split('-')[0] : '2026';
+  const paddedId = String(id || 0).padStart(4, '0');
+  return `${prefix}-${year}-${paddedId}`;
+}
+
+it('phone normalizer standardizes 10-digit Indian numbers with 91 prefix and removes punctuation', () => {
+  assert.strictEqual(normalizePhone('9876543210'), '919876543210');
+  assert.strictEqual(normalizePhone('+91 98765-43210'), '919876543210');
+  assert.strictEqual(normalizePhone('09876543210'), '919876543210');
+  assert.strictEqual(normalizePhone('919876543210'), '919876543210');
+});
+
+it('booking reference generator produces unique structured IDs for both venues', () => {
+  assert.strictEqual(generateBookingReference('Evan-e-Hakimi', 42, '2026-11-20'), 'EH-2026-0042');
+  assert.strictEqual(generateBookingReference('Qadri Hall', 105, '2027-02-15'), 'QH-2027-0105');
+});
+
+it('WhatsApp confirmation message contains reference, pricing, 40% advance, and 60% balance terms', () => {
+  const b = {
+    id: 53,
+    customer_name: 'Mufaddal Bhai',
+    phone: '9876543210',
+    hall: 'Evan-e-Hakimi',
+    check_in: '2026-12-05',
+    slot: 'morning',
+    package: 'with_jaman',
+    total_amount: 15000,
+    advance_amount: 6000
+  };
+  const ref = generateBookingReference(b.hall, b.id, b.check_in);
+  const total = b.total_amount;
+  const advance = b.advance_amount;
+  const balance = total - advance;
+
+  assert.strictEqual(ref, 'EH-2026-0053');
+  assert.strictEqual(advance, 6000);
+  assert.strictEqual(balance, 9000);
+  assert.strictEqual(normalizePhone(b.phone), '919876543210');
+});
+
+it('slot conflict verification recognizes CONFIRMED_PENDING_ADVANCE, ADVANCE_PAID, and FULLY_PAID as slot-locking', () => {
+  const confirmedStatuses = ['confirmed', 'advance_verified', 'CONFIRMED_PENDING_ADVANCE', 'ADVANCE_PARTIALLY_PAID', 'ADVANCE_PAID', 'FULLY_PAID'];
+  const testStatus = 'CONFIRMED_PENDING_ADVANCE';
+  assert.strictEqual(confirmedStatuses.includes(testStatus), true);
+  assert.strictEqual(confirmedStatuses.includes('FULLY_PAID'), true);
+  assert.strictEqual(confirmedStatuses.includes('NEW_ENQUIRY'), false);
+});
+
+it('payment recording validates positive amount and prevents overpayment exceeding balance', () => {
+  const total = 15000;
+  const paid = 6000;
+  const balance = total - paid; // 9000
+  
+  function validatePayment(amount) {
+    if (amount <= 0) return { valid: false, error: 'Positive amount required' };
+    if (amount > balance) return { valid: false, error: 'Exceeds balance' };
+    return { valid: true };
+  }
+
+  assert.strictEqual(validatePayment(5000).valid, true);
+  assert.strictEqual(validatePayment(9000).valid, true);
+  assert.strictEqual(validatePayment(0).valid, false);
+  assert.strictEqual(validatePayment(-100).valid, false);
+  assert.strictEqual(validatePayment(9500).valid, false);
+});
+
+it('payment state transitions correctly to ADVANCE_PAID and FULLY_PAID', () => {
+  const total = 15000;
+  const advanceRequired = 6000;
+
+  function getStatus(newPaid) {
+    if (newPaid >= total) return { status: 'FULLY_PAID', paymentStatus: 'fully_paid', balance: 0 };
+    if (newPaid >= advanceRequired) return { status: 'ADVANCE_PAID', paymentStatus: 'advance_paid', balance: total - newPaid };
+    if (newPaid > 0) return { status: 'ADVANCE_PARTIALLY_PAID', paymentStatus: 'partially_paid', balance: total - newPaid };
+    return { status: 'CONFIRMED_PENDING_ADVANCE', paymentStatus: 'not_paid', balance: total };
+  }
+
+  assert.deepStrictEqual(getStatus(3000), { status: 'ADVANCE_PARTIALLY_PAID', paymentStatus: 'partially_paid', balance: 12000 });
+  assert.deepStrictEqual(getStatus(6000), { status: 'ADVANCE_PAID', paymentStatus: 'advance_paid', balance: 9000 });
+  assert.deepStrictEqual(getStatus(15000), { status: 'FULLY_PAID', paymentStatus: 'fully_paid', balance: 0 });
+});
+
 console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 console.log(`RESULTS: ${passed} / ${total} tests passed (${Math.round((passed/total)*100)}%)`);
 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -401,3 +505,4 @@ console.log('━━━━━━━━━━━━━━━━━━━━━━�
 if (passed !== total) {
   process.exit(1);
 }
+

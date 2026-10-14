@@ -310,6 +310,138 @@ const SLOT_CONFIG = {
   }
 };
 
+const CONFIRMED_STATUSES = ['confirmed', 'advance_verified', 'CONFIRMED_PENDING_ADVANCE', 'ADVANCE_PARTIALLY_PAID', 'ADVANCE_PAID', 'FULLY_PAID'];
+const ENQUIRY_STATUSES = ['pending', 'NEW_ENQUIRY', 'UNDER_REVIEW', 'waiting', 'hold', 'advance_requested'];
+const REJECTED_STATUSES = ['rejected', 'REJECTED', 'cancelled', 'CANCELLED'];
+
+function normalizePhone(phone) {
+  if (!phone) return '';
+  const digits = String(phone).replace(/\D/g, '');
+  if (digits.length === 10) return '91' + digits;
+  if (digits.length === 11 && digits.startsWith('0')) return '91' + digits.slice(1);
+  if (digits.length === 12 && digits.startsWith('91')) return digits;
+  return digits;
+}
+
+function generateBookingReference(hall, id, dateStr) {
+  const isQadri = String(hall || '').toLowerCase().includes('qadri');
+  const prefix = isQadri ? 'QH' : 'EH';
+  const year = dateStr ? String(dateStr).split('T')[0].split('-')[0] : '2026';
+  const paddedId = String(id || 0).padStart(4, '0');
+  return `${prefix}-${year}-${paddedId}`;
+}
+
+function formatSlotName(slot) {
+  const s = String(slot || '').toLowerCase();
+  if (s === 'morning') return 'Morning (10:30 AM – 2:30 PM)';
+  if (s === 'evening') return 'Evening (6:30 PM – 10:30 PM)';
+  if (s === 'fullday') return 'Full Day (10:00 AM – 10:00 PM)';
+  if (s === 'majlis') return 'Only Majlis (Custom Timings)';
+  return slot || 'Morning';
+}
+
+function generateWhatsAppPayloads(b) {
+  const phone = normalizePhone(b.phone);
+  const name = b.customer_name || 'Valued Guest';
+  const ref = b.booking_reference || generateBookingReference(b.hall, b.id, b.check_in);
+  const hall = b.hall || 'Evan-e-Hakimi';
+  const dateStr = b.check_in ? String(b.check_in).split('T')[0] : 'Event Date';
+  const slotName = formatSlotName(b.slot);
+  const pkgName = b.package === 'with_jaman' ? 'With Jaman' : (b.package === 'without_jaman' ? 'Without Jaman' : (b.package || 'Standard'));
+  const total = Math.round(parseFloat(b.total_amount || 0));
+  const advance = Math.round(parseFloat(b.advance_amount || total * 0.4));
+  const paid = Math.round(parseFloat(b.advance_paid || b.advancePaid || 0));
+  const balance = Math.max(0, total - paid);
+
+  // Template 1: Confirmation & 40% Advance Request
+  const textConfirmation = 
+`*Salaam / Greetings ${name},*
+
+We are pleased to inform you that your booking for *${hall}* has been *approved & reserved*.
+
+📋 *Booking Details:*
+• *Reference:* ${ref}
+• *Date:* ${dateStr}
+• *Slot:* ${slotName}
+• *Catering:* ${pkgName}
+
+💰 *Payment Terms:*
+• *Total Quoted Amount:* ₹${total.toLocaleString('en-IN')}
+• *40% Advance Required:* ₹${advance.toLocaleString('en-IN')} *(Non-refundable to secure date)*
+• *Remaining 60% Balance:* ₹${(total - advance).toLocaleString('en-IN')} *(Due at least 2 days prior to the event)*
+
+Kindly transfer the 40% advance to confirm your slot reservation.
+
+Warm regards,
+*Evan-e-Hakimi & Qadri Hall Management*`;
+
+  // Template 2: Advance Payment Received & Booking Secured
+  const textAdvanceReceived = 
+`*Salaam / Greetings ${name},*
+
+We have received your advance payment of *₹${paid.toLocaleString('en-IN')}* for *${hall}*.
+
+✅ *Your booking is now confirmed & secured!*
+• *Booking Ref:* ${ref}
+• *Event Date:* ${dateStr} (${slotName})
+• *Total Amount:* ₹${total.toLocaleString('en-IN')}
+• *Advance Received:* ₹${paid.toLocaleString('en-IN')}
+• *Remaining Balance Due:* ₹${balance.toLocaleString('en-IN')}
+
+⚠️ *Reminder:* The remaining 60% balance of ₹${balance.toLocaleString('en-IN')} must be cleared at least 2 days before the event date.
+
+Thank you,
+*Evan-e-Hakimi & Qadri Hall Management*`;
+
+  // Template 3: Full Payment Received
+  const textFullyPaid = 
+`*Salaam / Greetings ${name},*
+
+We confirm receipt of the full payment of *₹${total.toLocaleString('en-IN')}* for your event at *${hall}*.
+
+🎉 *Your booking is completely settled!*
+• *Booking Ref:* ${ref}
+• *Event Date:* ${dateStr} (${slotName})
+• *Outstanding Balance:* ₹0 (Fully Paid)
+
+We look forward to hosting your gathering. Please feel free to reach out for any setup arrangements.
+
+Warm regards,
+*Evan-e-Hakimi & Qadri Hall Management*`;
+
+  // Template 4: Rejection Notification
+  const reason = b.rejection_reason || 'Requested slot or date is already booked or unavailable';
+  const textRejection = 
+`*Salaam / Greetings ${name},*
+
+Regarding your booking enquiry for *${hall}* on *${dateStr}* (${slotName}):
+
+We regret to inform you that we are unable to accommodate this reservation at this time.
+*Reason:* ${reason}
+
+We sincerely apologize for any inconvenience. Please reach out to us if you would like to explore alternative dates or hall options.
+
+Warm regards,
+*Evan-e-Hakimi & Qadri Hall Management*`;
+
+  const baseUrl = phone ? `https://wa.me/${phone}?text=` : `https://wa.me/?text=`;
+
+  return {
+    normalizedPhone: phone,
+    confirmationUrl: baseUrl + encodeURIComponent(textConfirmation),
+    advanceReceiptUrl: baseUrl + encodeURIComponent(textAdvanceReceived),
+    fullyPaidUrl: baseUrl + encodeURIComponent(textFullyPaid),
+    fullPaymentReceiptUrl: baseUrl + encodeURIComponent(textFullyPaid),
+    rejectionUrl: baseUrl + encodeURIComponent(textRejection),
+    templates: {
+      confirmation: textConfirmation,
+      advanceReceived: textAdvanceReceived,
+      fullyPaid: textFullyPaid,
+      rejection: textRejection
+    }
+  };
+}
+
 function isDateOnOrAfterJan2027(dateStr) {
   if (!dateStr) return false;
   const clean = String(dateStr).split('T')[0].trim();
@@ -329,21 +461,22 @@ function calculateHallPrice(slot, pkg, dateStr) {
     return 30000;
   }
 
-  // Only Majlis (without jaman, custom timings): 2026: ₹11,000 | 2027: ₹12,000
+  // Only Majlis (without jaman, custom timings): 2026: ₹11,000 | 2027: ₹15,000
   if (normalizedSlot === 'majlis') {
-    return is2027OrLater ? 12000 : 11000;
+    return is2027OrLater ? 15000 : 11000;
   }
 
   // Morning and Evening slots
+  // 2026: ₹15,000 with Jaman, ₹11,000 without Jaman
+  // 2027: ₹21,000 with Jaman, ₹15,000 without Jaman
   if (normalizedSlot === 'morning' || normalizedSlot === 'evening') {
     if (pkg === 'without_jaman') {
       return is2027OrLater ? 15000 : 11000;
     }
-    // with_jaman: 2026: ₹15,000 | 2027: ₹20,000
-    return is2027OrLater ? 20000 : 15000;
+    return is2027OrLater ? 21000 : 15000;
   }
 
-  return is2027OrLater ? 20000 : 15000;
+  return is2027OrLater ? 21000 : 15000;
 }
 
 function calculateAdvanceAmount(totalPrice) {
@@ -358,33 +491,39 @@ function checkSlotConflict(slotA, slotB) {
 }
 
 // Concurrency-safe conflict verification helper using Turso/libSQL write transaction
-async function assertNoBookingConflict(tx, bookingId) {
-  const current = await tx.query('SELECT * FROM bookings WHERE id = ?', [bookingId]);
-  if (!current.rows || current.rows.length === 0) {
-    const err = new Error('Booking not found');
-    err.status = 404;
-    throw err;
+async function assertNoBookingConflict(tx, bookingId, overrideDate, overrideHall, overrideSlot) {
+  let target;
+  if (bookingId) {
+    const current = await tx.query('SELECT * FROM bookings WHERE id = ?', [bookingId]);
+    if (!current.rows || current.rows.length === 0) {
+      const err = new Error('Booking not found');
+      err.status = 404;
+      throw err;
+    }
+    target = current.rows[0];
+  } else {
+    target = {};
   }
 
-  const target = current.rows[0];
-  const targetDate = target.check_in && target.check_in.toISOString 
-    ? target.check_in.toISOString().split('T')[0] 
-    : String(target.check_in).split('T')[0];
-  const targetHall = target.hall || 'Evan-e-Hakimi';
-  const targetSlot = target.slot;
+  const rawDate = overrideDate || target.check_in;
+  const targetDate = rawDate && rawDate.toISOString 
+    ? rawDate.toISOString().split('T')[0] 
+    : String(rawDate).split('T')[0];
+  const targetHall = (overrideHall || target.hall || 'Evan-e-Hakimi').trim().toLowerCase().includes('qadri') ? 'Qadri Hall' : 'Evan-e-Hakimi';
+  const targetSlot = String(overrideSlot || target.slot || 'morning').toLowerCase().trim();
 
   // Query existing confirmed bookings inside the write transaction for the SAME hall
   const existingConfirmed = await tx.query(
-    `SELECT id, customer_name, slot, status, hall FROM bookings 
+    `SELECT id, customer_name, slot, status, hall, booking_reference FROM bookings 
      WHERE id != ? AND check_in = ? AND COALESCE(hall, 'Evan-e-Hakimi') = ? 
-     AND status IN ('confirmed', 'advance_verified')`,
-    [bookingId, targetDate, targetHall]
+     AND status IN ('confirmed', 'advance_verified', 'CONFIRMED_PENDING_ADVANCE', 'ADVANCE_PARTIALLY_PAID', 'ADVANCE_PAID', 'FULLY_PAID')`,
+    [bookingId || 0, targetDate, targetHall]
   );
 
   const conflictingBooking = (existingConfirmed.rows || []).find(c => checkSlotConflict(targetSlot, c.slot));
   if (conflictingBooking) {
     const err = new Error(
-      `Booking conflict: Booking #${conflictingBooking.id} (${conflictingBooking.customer_name}, slot: ${conflictingBooking.slot}) is already confirmed on ${targetDate} for ${targetHall}. Cannot confirm a conflicting slot.`
+      `Slot conflict: Booking #${conflictingBooking.id} (${conflictingBooking.customer_name}, slot: ${conflictingBooking.slot}${conflictingBooking.booking_reference ? ', ref: ' + conflictingBooking.booking_reference : ''}) is already confirmed on ${targetDate} for ${targetHall}. Cannot confirm a conflicting slot.`
     );
     err.status = 409;
     throw err;
@@ -400,7 +539,7 @@ async function assertNoBookingConflict(tx, bookingId) {
 // GET /api/bookings — List bookings with search & filters (admin only)
 app.get('/api/bookings', requireAuth, async (req, res) => {
   try {
-    const { hall, status, paymentStatus, search, fromDate, toDate } = req.query;
+    const { hall, status, statusGroup, paymentStatus, search, fromDate, toDate } = req.query;
 
     let query = `
       SELECT *, 
@@ -427,6 +566,23 @@ app.get('/api/bookings', requireAuth, async (req, res) => {
       params.push(status.trim());
     }
 
+    if (statusGroup && statusGroup.trim() !== '') {
+      const sg = statusGroup.trim().toLowerCase();
+      if (sg === 'enquiries' || sg === 'new_enquiries') {
+        query += ` AND status IN ('NEW_ENQUIRY', 'pending', 'waiting', 'hold', 'UNDER_REVIEW', 'advance_requested')`;
+      } else if (sg === 'confirmed') {
+        query += ` AND status IN ('confirmed', 'advance_verified', 'CONFIRMED_PENDING_ADVANCE', 'ADVANCE_PARTIALLY_PAID', 'ADVANCE_PAID', 'FULLY_PAID')`;
+      } else if (sg === 'pending_advance') {
+        query += ` AND status = 'CONFIRMED_PENDING_ADVANCE'`;
+      } else if (sg === 'advance_paid') {
+        query += ` AND status IN ('ADVANCE_PAID', 'advance_paid', 'advance_verified', 'ADVANCE_PARTIALLY_PAID')`;
+      } else if (sg === 'fully_paid') {
+        query += ` AND (status = 'FULLY_PAID' OR payment_status = 'fully_paid')`;
+      } else if (sg === 'rejected') {
+        query += ` AND status IN ('REJECTED', 'rejected', 'cancelled', 'CANCELLED')`;
+      }
+    }
+
     if (paymentStatus && paymentStatus.trim() !== '') {
       query += ` AND payment_status = ?`;
       params.push(paymentStatus.trim());
@@ -444,8 +600,8 @@ app.get('/api/bookings', requireAuth, async (req, res) => {
 
     if (search && search.trim() !== '') {
       const s = `%${search.trim().toLowerCase()}%`;
-      query += ` AND (LOWER(customer_name) LIKE ? OR phone LIKE ? OR LOWER(occasion) LIKE ? OR id LIKE ?)`;
-      params.push(s, s, s, s);
+      query += ` AND (LOWER(customer_name) LIKE ? OR phone LIKE ? OR LOWER(occasion) LIKE ? OR id LIKE ? OR LOWER(COALESCE(booking_reference, '')) LIKE ?)`;
+      params.push(s, s, s, s, s);
     }
 
     query += ` ORDER BY check_in ASC, created_at DESC`;
@@ -453,8 +609,8 @@ app.get('/api/bookings', requireAuth, async (req, res) => {
     const result = await db.query(query, params);
     const rows = result.rows || [];
 
-    // Annotate slot conflicts per hall
-    const confirmedList = rows.filter(b => ['confirmed', 'advance_verified'].includes(b.status));
+    // Annotate slot conflicts per hall against all confirmed statuses
+    const confirmedList = rows.filter(b => CONFIRMED_STATUSES.includes(b.status));
     
     const annotatedRows = rows.map(b => {
       const bDate = b.check_in && b.check_in.toISOString ? b.check_in.toISOString().split('T')[0] : String(b.check_in).split('T')[0];
@@ -467,20 +623,187 @@ app.get('/api/bookings', requireAuth, async (req, res) => {
       });
 
       const totalVal = parseFloat(b.total_amount || 0);
-      const advPaid = parseFloat(b.advancePaid || 0);
+      const advPaid = parseFloat(b.advancePaid || b.advance_paid || 0);
       const balVal = Math.max(0, totalVal - advPaid);
+
+      const bookingRef = b.booking_reference || (CONFIRMED_STATUSES.includes(b.status) ? generateBookingReference(b.hall, b.id, b.check_in) : null);
 
       return {
         ...b,
+        booking_reference: bookingRef,
         balanceAmount: balVal,
         hasConflict: !!conflictWith,
-        conflictDetails: conflictWith ? { id: conflictWith.id, name: conflictWith.customer_name, slot: conflictWith.slot, hall: conflictWith.hall } : null
+        conflictDetails: conflictWith ? { id: conflictWith.id, name: conflictWith.customer_name, slot: conflictWith.slot, hall: conflictWith.hall } : null,
+        whatsapp: generateWhatsAppPayloads({ ...b, booking_reference: bookingRef })
       };
     });
 
     res.json(annotatedRows);
   } catch (err) {
     sendError(res, 500, 'Failed to fetch bookings', err);
+  }
+});
+
+// GET /api/bookings/summary — Summary counts for central dashboard (admin only)
+app.get('/api/bookings/summary', requireAuth, async (req, res) => {
+  try {
+    const result = await db.query('SELECT status, payment_status, total_amount, advance_paid FROM bookings');
+    const rows = result.rows || [];
+
+    let newEnquiries = 0;
+    let confirmedPendingAdvance = 0;
+    let advancePaid = 0;
+    let fullyPaid = 0;
+    let rejected = 0;
+    let totalConfirmed = 0;
+    let totalCollected = 0;
+    let totalOutstanding = 0;
+
+    rows.forEach(r => {
+      const s = r.status;
+      const isConf = CONFIRMED_STATUSES.includes(s);
+      const total = parseFloat(r.total_amount || 0);
+      const paid = parseFloat(r.advance_paid || 0);
+      const bal = Math.max(0, total - paid);
+
+      if (ENQUIRY_STATUSES.includes(s)) {
+        newEnquiries++;
+      } else if (s === 'CONFIRMED_PENDING_ADVANCE') {
+        confirmedPendingAdvance++;
+        totalConfirmed++;
+      } else if (s === 'FULLY_PAID' || r.payment_status === 'fully_paid') {
+        fullyPaid++;
+        totalConfirmed++;
+      } else if (s === 'ADVANCE_PAID' || s === 'advance_verified' || s === 'ADVANCE_PARTIALLY_PAID') {
+        advancePaid++;
+        totalConfirmed++;
+      } else if (isConf) {
+        totalConfirmed++;
+      }
+
+      if (REJECTED_STATUSES.includes(s)) {
+        rejected++;
+      }
+
+      if (isConf) {
+        totalCollected += paid;
+        totalOutstanding += bal;
+      }
+    });
+
+    res.json({
+      success: true,
+      newEnquiries,
+      pendingEnquiries: newEnquiries,
+      confirmedPendingAdvance,
+      advancePaid,
+      fullyPaid,
+      rejected,
+      totalConfirmed,
+      totalBookings: rows.length,
+      totalCollected,
+      totalOutstanding
+    });
+  } catch (err) {
+    sendError(res, 500, 'Failed to fetch bookings summary', err);
+  }
+});
+
+// GET /api/bookings/check-availability — Live slot availability check for enquiry workflow
+app.get('/api/bookings/check-availability', async (req, res) => {
+  try {
+    const queryDate = req.query.date || req.query.event_date || req.query.check_in;
+    const { hall = 'Evan-e-Hakimi', slot, excludeBookingId } = req.query;
+    if (!queryDate) {
+      return res.status(400).json({ error: 'Date is required for availability check' });
+    }
+
+    const cleanDate = String(queryDate).split('T')[0].trim();
+    const cleanHall = String(hall).toLowerCase().includes('qadri') ? 'Qadri Hall' : 'Evan-e-Hakimi';
+    const checkSlot = slot ? String(slot).toLowerCase().trim() : null;
+    const excludeId = excludeBookingId ? parseInt(excludeBookingId, 10) : 0;
+
+    // Fetch all confirmed bookings on this date for both halls
+    const result = await db.query(
+      `SELECT id, customer_name, slot, hall, status, booking_reference FROM bookings 
+       WHERE check_in = ? AND id != ?
+       AND status IN ('confirmed', 'advance_verified', 'CONFIRMED_PENDING_ADVANCE', 'ADVANCE_PARTIALLY_PAID', 'ADVANCE_PAID', 'FULLY_PAID')`,
+      [cleanDate, excludeId]
+    );
+
+    const bookingsOnDate = result.rows || [];
+
+    const slotBreakdown = (hallName) => {
+      const isQadriTarget = hallName.toLowerCase().includes('qadri');
+      const hBookings = bookingsOnDate.filter(b => {
+        const isQ = (b.hall || 'Evan-e-Hakimi').toLowerCase().includes('qadri');
+        return isQadriTarget ? isQ : !isQ;
+      });
+      
+      const slots = {
+        morning: { available: true, status: 'AVAILABLE', label: '10:30 AM – 2:30 PM', booking: null },
+        evening: { available: true, status: 'AVAILABLE', label: '6:30 PM – 10:30 PM', booking: null },
+        fullday: { available: true, status: 'AVAILABLE', label: '10:00 AM – 10:00 PM', booking: null },
+        majlis: { available: true, status: 'AVAILABLE', label: 'Custom Timings', booking: null }
+      };
+
+      hBookings.forEach(b => {
+        const bs = String(b.slot).toLowerCase();
+        const bInfo = { id: b.id, name: b.customer_name, ref: b.booking_reference, slot: b.slot };
+
+        if (bs === 'fullday') {
+          slots.fullday = { available: false, status: 'ALREADY_BOOKED', label: 'Full Day Booked', booking: bInfo };
+          slots.morning = { available: false, status: 'CONFLICT_BLOCKED', label: 'Blocked by Full Day', booking: bInfo };
+          slots.evening = { available: false, status: 'CONFLICT_BLOCKED', label: 'Blocked by Full Day', booking: bInfo };
+          slots.majlis = { available: false, status: 'CONFLICT_BLOCKED', label: 'Blocked by Full Day', booking: bInfo };
+        } else if (bs === 'morning') {
+          slots.morning = { available: false, status: 'ALREADY_BOOKED', label: 'Morning Booked', booking: bInfo };
+          slots.fullday = { available: false, status: 'CONFLICT_BLOCKED', label: 'Blocked by Morning', booking: bInfo };
+        } else if (bs === 'evening') {
+          slots.evening = { available: false, status: 'ALREADY_BOOKED', label: 'Evening Booked', booking: bInfo };
+          slots.fullday = { available: false, status: 'CONFLICT_BLOCKED', label: 'Blocked by Evening', booking: bInfo };
+        } else if (bs === 'majlis') {
+          slots.majlis = { available: false, status: 'ALREADY_BOOKED', label: 'Majlis Booked', booking: bInfo };
+          slots.fullday = { available: false, status: 'CONFLICT_BLOCKED', label: 'Blocked by Majlis', booking: bInfo };
+        }
+      });
+
+      return slots;
+    };
+
+    const targetHallSlots = slotBreakdown(cleanHall);
+    const otherHallName = cleanHall === 'Evan-e-Hakimi' ? 'Qadri Hall' : 'Evan-e-Hakimi';
+    const otherHallSlots = slotBreakdown(otherHallName);
+
+    let isAvailable = true;
+    let slotStatus = 'AVAILABLE';
+    let conflictBooking = null;
+
+    if (checkSlot) {
+      const slotInfo = targetHallSlots[checkSlot];
+      if (slotInfo) {
+        isAvailable = slotInfo.available;
+        slotStatus = slotInfo.status;
+        conflictBooking = slotInfo.booking;
+      }
+    }
+
+    res.json({
+      success: true,
+      date: cleanDate,
+      hall: cleanHall,
+      slot: checkSlot,
+      available: isAvailable,
+      status: slotStatus,
+      conflictBooking,
+      targetHallSlots,
+      bothHalls: {
+        [cleanHall]: targetHallSlots,
+        [otherHallName]: otherHallSlots
+      }
+    });
+  } catch (err) {
+    sendError(res, 500, 'Failed to check availability', err);
   }
 });
 
@@ -494,6 +817,7 @@ app.get('/api/bookings/:id', requireAuth, async (req, res) => {
         payment_status as paymentStatus, 
         payment_notes as paymentNotes, 
         payment_method as paymentMethod,
+        COALESCE(balance_amount, (total_amount - advance_paid)) as balanceAmount,
         COALESCE(hall, 'Evan-e-Hakimi') as hall, 
         COALESCE(package, 'without_jaman') as package 
        FROM bookings WHERE id = ?`,
@@ -513,13 +837,16 @@ app.get('/api/bookings/:id', requireAuth, async (req, res) => {
     );
 
     booking.payments = paymentsResult.rows || [];
+    booking.booking_reference = booking.booking_reference || (CONFIRMED_STATUSES.includes(booking.status) ? generateBookingReference(booking.hall, booking.id, booking.check_in) : null);
+    booking.whatsapp = generateWhatsAppPayloads(booking);
+
     res.json(booking);
   } catch (err) {
     sendError(res, 500, 'Failed to fetch booking', err);
   }
 });
 
-// POST /api/bookings — Create booking (internal management for Evan-e-Hakimi & Qadri Hall)
+// POST /api/bookings — Create booking or enquiry (Public and Admin)
 app.post('/api/bookings', async (req, res) => {
   let tx;
   try {
@@ -529,7 +856,8 @@ app.post('/api/bookings', async (req, res) => {
       phone, 
       email, 
       date, 
-      check_in,
+      check_in, 
+      event_date,
       timeSlot, 
       slot,
       occasion, 
@@ -541,14 +869,16 @@ app.post('/api/bookings', async (req, res) => {
       notes,
       hall = 'Evan-e-Hakimi',
       package: pkg = 'without_jaman',
-      status = 'pending',
+      jaman_type,
+      status = 'NEW_ENQUIRY',
       payment_method = 'UPI'
     } = req.body;
 
     const custName = (customer_name || name || '').trim();
-    const eventDate = (check_in || date || '').trim();
+    const eventDate = (event_date || check_in || date || '').trim();
     const eventSlot = String(slot || timeSlot || 'morning').toLowerCase().trim();
     const cleanHall = String(hall).trim().toLowerCase().includes('qadri') ? 'Qadri Hall' : 'Evan-e-Hakimi';
+    const cleanPkg = jaman_type || pkg || 'without_jaman';
     const notesCombined = (notes || specialRequirements || '').trim();
 
     // Input validation
@@ -572,7 +902,7 @@ app.post('/api/bookings', async (req, res) => {
       }
     }
 
-    const calculatedPrice = calculateHallPrice(eventSlot, pkg, eventDate);
+    const calculatedPrice = calculateHallPrice(eventSlot, cleanPkg, eventDate);
     const finalPrice = price != null ? parseFloat(price) : calculatedPrice;
     const finalAdvance = advance_amount != null ? parseFloat(advance_amount) : calculateAdvanceAmount(finalPrice);
     const finalAdvancePaid = parseFloat(advance_paid) || 0;
@@ -585,23 +915,15 @@ app.post('/api/bookings', async (req, res) => {
       paymentStatus = finalAdvancePaid >= finalAdvance ? 'advance_paid' : 'partially_paid';
     }
 
+    // Default status for customer submissions is NEW_ENQUIRY (does NOT lock slot until admin confirms)
+    let initialStatus = status || 'NEW_ENQUIRY';
+    const isDirectConfirm = CONFIRMED_STATUSES.includes(initialStatus);
+
     tx = await db.transaction('write');
 
     // If booking is created directly as confirmed, enforce conflict rules inside transaction
-    if (status === 'confirmed' || status === 'advance_verified') {
-      const existingConfirmed = await tx.query(
-        `SELECT id, customer_name, slot FROM bookings 
-         WHERE check_in = ? AND COALESCE(hall, 'Evan-e-Hakimi') = ? 
-         AND status IN ('confirmed', 'advance_verified')`,
-        [eventDate, cleanHall]
-      );
-      const conflict = (existingConfirmed.rows || []).find(c => checkSlotConflict(eventSlot, c.slot));
-      if (conflict) {
-        await tx.rollback();
-        return res.status(409).json({
-          error: `Slot conflict: Booking #${conflict.id} (${conflict.customer_name}, ${conflict.slot}) is already confirmed for ${cleanHall} on ${eventDate}.`
-        });
-      }
+    if (isDirectConfirm) {
+      await assertNoBookingConflict(tx, null, eventDate, cleanHall, eventSlot);
     }
 
     const result = await tx.query(
@@ -613,33 +935,279 @@ app.post('/api/bookings', async (req, res) => {
       RETURNING *`,
       [
         custName, phone.trim(), email?.trim() || null, eventDate, eventDate, guestCount,
-        finalPrice, finalAdvance, finalAdvancePaid, (status === 'advance_verified' ? 1 : 0),
+        finalPrice, finalAdvance, finalAdvancePaid, (initialStatus === 'advance_verified' ? 1 : 0),
         paymentStatus, payment_method, balanceAmount, occasion?.trim() || 'Not specified',
-        notesCombined || null, eventSlot, status, cleanHall, pkg
+        notesCombined || null, eventSlot, initialStatus, cleanHall, cleanPkg
       ]
     );
 
     const inserted = result.rows && result.rows[0] ? result.rows[0] : { id: result.lastInsertRowid };
 
+    // If confirmed upon creation, assign booking reference
+    if (isDirectConfirm) {
+      const ref = generateBookingReference(cleanHall, inserted.id, eventDate);
+      await tx.query('UPDATE bookings SET booking_reference = ?, confirmed_at = CURRENT_TIMESTAMP WHERE id = ?', [ref, inserted.id]);
+      inserted.booking_reference = ref;
+    }
+
     // Record initial payment installment if advance was paid upon creation
     if (finalAdvancePaid > 0) {
       await tx.query(
-        `INSERT INTO booking_payments (booking_id, amount, payment_type, payment_method, payment_date, notes)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [inserted.id, finalAdvancePaid, finalAdvancePaid >= finalPrice ? 'full' : 'advance', payment_method, eventDate, 'Initial payment recorded at booking creation']
+        `INSERT INTO booking_payments (booking_id, amount, payment_type, payment_method, payment_date, notes, created_by)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [inserted.id, finalAdvancePaid, finalAdvancePaid >= finalPrice ? 'full' : 'advance', payment_method, eventDate, 'Initial payment recorded at booking creation', req.admin?.username || 'system']
       );
     }
 
     await tx.commit();
 
-    logAudit('booking_created', 'booking', inserted.id, `Created booking for ${custName} on ${eventDate} (${cleanHall}, ${eventSlot}, ₹${finalPrice})`, req.admin?.username || 'admin');
+    logAudit('booking_created', 'booking', inserted.id, `Created ${initialStatus} for ${custName} on ${eventDate} (${cleanHall}, ${eventSlot}, ₹${finalPrice})`, req.admin?.username || 'public_enquiry');
+
+    inserted.whatsapp = generateWhatsAppPayloads(inserted);
 
     res.json({ success: true, bookingId: inserted.id, booking: inserted });
   } catch (err) {
     if (tx) {
       try { await tx.rollback(); } catch (_) {}
     }
+    if (err.status) {
+      return res.status(err.status).json({ error: err.message });
+    }
     sendError(res, 500, 'Failed to create booking', err);
+  }
+});
+
+// POST /api/bookings/:id/confirm — Confirm an enquiry with concurrency check, reference, & lock slot
+app.post('/api/bookings/:id/confirm', requireAuth, async (req, res) => {
+  let tx;
+  try {
+    const bookingId = req.params.id;
+    const { 
+      hall, 
+      date, 
+      check_in, 
+      slot, 
+      package: pkg, 
+      price, 
+      advance_amount, 
+      customer_name, 
+      phone, 
+      occasion, 
+      guests, 
+      notes 
+    } = req.body;
+
+    tx = await db.transaction('write');
+
+    const cur = await tx.query('SELECT * FROM bookings WHERE id = ?', [bookingId]);
+    if (!cur.rows || cur.rows.length === 0) {
+      await tx.rollback();
+      return res.status(404).json({ error: 'Booking enquiry not found' });
+    }
+    const current = cur.rows[0];
+
+    const targetDate = (check_in || date || current.check_in || '').split('T')[0].trim();
+    const targetHall = (hall || current.hall || 'Evan-e-Hakimi').trim().toLowerCase().includes('qadri') ? 'Qadri Hall' : 'Evan-e-Hakimi';
+    const targetSlot = (slot || current.slot || 'morning').toLowerCase().trim();
+    const targetPkg = pkg || current.package || 'without_jaman';
+
+    // Concurrency-safe check against any other confirmed bookings inside the write transaction
+    await assertNoBookingConflict(tx, bookingId, targetDate, targetHall, targetSlot);
+
+    // Calculate final amounts
+    const calculatedPrice = calculateHallPrice(targetSlot, targetPkg, targetDate);
+    const finalPrice = price != null ? parseFloat(price) : (current.total_amount > 0 ? parseFloat(current.total_amount) : calculatedPrice);
+    const finalAdvance = advance_amount != null ? parseFloat(advance_amount) : calculateAdvanceAmount(finalPrice);
+    const advancePaid = parseFloat(current.advance_paid) || 0;
+    const balanceAmount = Math.max(0, finalPrice - advancePaid);
+
+    // Generate unique reference if missing
+    const bookingRef = current.booking_reference || generateBookingReference(targetHall, bookingId, targetDate);
+
+    // Status transition: if already fully paid keep fully_paid, otherwise CONFIRMED_PENDING_ADVANCE
+    const targetStatus = advancePaid >= finalPrice ? 'FULLY_PAID' : (advancePaid >= finalAdvance ? 'ADVANCE_PAID' : 'CONFIRMED_PENDING_ADVANCE');
+
+    await tx.query(
+      `UPDATE bookings SET
+        customer_name = ?,
+        phone = ?,
+        check_in = ?,
+        check_out = ?,
+        slot = ?,
+        hall = ?,
+        package = ?,
+        total_amount = ?,
+        advance_amount = ?,
+        balance_amount = ?,
+        booking_reference = ?,
+        status = ?,
+        occasion = ?,
+        guests = ?,
+        notes = ?,
+        confirmed_at = CURRENT_TIMESTAMP,
+        updated_at = CURRENT_TIMESTAMP
+       WHERE id = ?`,
+      [
+        (customer_name || current.customer_name).trim(),
+        (phone || current.phone).trim(),
+        targetDate,
+        targetDate,
+        targetSlot,
+        targetHall,
+        targetPkg,
+        finalPrice,
+        finalAdvance,
+        balanceAmount,
+        bookingRef,
+        targetStatus,
+        (occasion || current.occasion || 'Not specified').trim(),
+        guests != null ? parseInt(guests, 10) : current.guests,
+        (notes || current.notes || null),
+        bookingId
+      ]
+    );
+
+    const updated = await tx.query('SELECT * FROM bookings WHERE id = ?', [bookingId]);
+    await tx.commit();
+
+    const bookingRow = updated.rows[0];
+    const whatsapp = generateWhatsAppPayloads(bookingRow);
+
+    logAudit('enquiry_confirmed', 'booking', bookingId, `Enquiry #${bookingId} confirmed as ${bookingRef} for ${bookingRow.customer_name} (${targetHall}, ${targetDate}, ${targetSlot})`, req.admin.username);
+
+    res.json({
+      success: true,
+      message: `Booking #${bookingId} successfully confirmed with reference ${bookingRef}. Slot is now reserved.`,
+      booking: {
+        ...bookingRow,
+        whatsapp
+      }
+    });
+  } catch (err) {
+    if (tx) {
+      try { await tx.rollback(); } catch (_) {}
+    }
+    if (err.status) {
+      return res.status(err.status).json({ error: err.message });
+    }
+    sendError(res, 500, 'Failed to confirm booking enquiry', err);
+  }
+});
+
+// POST /api/bookings/:id/reject — Reject an enquiry with reason and audit trail
+app.post('/api/bookings/:id/reject', requireAuth, async (req, res) => {
+  let tx;
+  try {
+    const bookingId = req.params.id;
+    const { reason = 'Requested slot or date is unavailable' } = req.body;
+
+    tx = await db.transaction('write');
+
+    const cur = await tx.query('SELECT * FROM bookings WHERE id = ?', [bookingId]);
+    if (!cur.rows || cur.rows.length === 0) {
+      await tx.rollback();
+      return res.status(404).json({ error: 'Booking enquiry not found' });
+    }
+    const current = cur.rows[0];
+
+    await tx.query(
+      `UPDATE bookings SET
+        status = 'REJECTED',
+        rejection_reason = ?,
+        rejected_at = CURRENT_TIMESTAMP,
+        updated_at = CURRENT_TIMESTAMP
+       WHERE id = ?`,
+      [reason.trim(), bookingId]
+    );
+
+    const updated = await tx.query('SELECT * FROM bookings WHERE id = ?', [bookingId]);
+    await tx.commit();
+
+    const bookingRow = updated.rows[0];
+    const whatsapp = generateWhatsAppPayloads(bookingRow);
+
+    logAudit('enquiry_rejected', 'booking', bookingId, `Enquiry #${bookingId} rejected for ${current.customer_name}. Reason: ${reason}`, req.admin.username);
+
+    res.json({
+      success: true,
+      message: `Enquiry #${bookingId} has been rejected.`,
+      booking: {
+        ...bookingRow,
+        whatsapp
+      }
+    });
+  } catch (err) {
+    if (tx) {
+      try { await tx.rollback(); } catch (_) {}
+    }
+    sendError(res, 500, 'Failed to reject booking enquiry', err);
+  }
+});
+
+// POST /api/bookings/:id/mark-fully-paid — Mark booking as fully paid and record final settlement
+app.post('/api/bookings/:id/mark-fully-paid', requireAuth, async (req, res) => {
+  let tx;
+  try {
+    const bookingId = req.params.id;
+    const { payment_method = 'Cash', notes = 'Final settlement recorded by admin', payment_date } = req.body;
+
+    tx = await db.transaction('write');
+
+    const cur = await tx.query('SELECT * FROM bookings WHERE id = ?', [bookingId]);
+    if (!cur.rows || cur.rows.length === 0) {
+      await tx.rollback();
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+    const b = cur.rows[0];
+
+    const total = parseFloat(b.total_amount) || 0;
+    const paid = parseFloat(b.advance_paid) || 0;
+    const remainingBalance = Math.max(0, total - paid);
+    const payDate = payment_date || new Date().toISOString().split('T')[0];
+
+    // If there is any remaining balance, insert payment record
+    if (remainingBalance > 0) {
+      await tx.query(
+        `INSERT INTO booking_payments (booking_id, amount, payment_type, payment_method, payment_date, notes, created_by)
+         VALUES (?, ?, 'full', ?, ?, ?, ?)`,
+        [bookingId, remainingBalance, payment_method, payDate, notes?.trim() || 'Final balance clearance', req.admin.username]
+      );
+    }
+
+    await tx.query(
+      `UPDATE bookings SET
+        advance_paid = ?,
+        balance_amount = 0,
+        payment_status = 'fully_paid',
+        status = 'FULLY_PAID',
+        payment_method = ?,
+        payment_notes = ?,
+        updated_at = CURRENT_TIMESTAMP
+       WHERE id = ?`,
+      [total, payment_method, notes?.trim() || b.payment_notes, bookingId]
+    );
+
+    const updated = await tx.query('SELECT * FROM bookings WHERE id = ?', [bookingId]);
+    await tx.commit();
+
+    const bookingRow = updated.rows[0];
+    const whatsapp = generateWhatsAppPayloads(bookingRow);
+
+    logAudit('booking_fully_paid', 'booking', bookingId, `Booking #${bookingId} marked as fully paid (₹${total})`, req.admin.username);
+
+    res.json({
+      success: true,
+      message: `Booking #${bookingId} is marked as fully paid. Outstanding balance is ₹0.`,
+      booking: {
+        ...bookingRow,
+        whatsapp
+      }
+    });
+  } catch (err) {
+    if (tx) {
+      try { await tx.rollback(); } catch (_) {}
+    }
+    sendError(res, 500, 'Failed to mark booking as fully paid', err);
   }
 });
 
@@ -679,20 +1247,8 @@ app.put('/api/bookings/:id', requireAuth, async (req, res) => {
     const current = cur.rows[0];
 
     const targetStatus = status || current.status;
-    if (targetStatus === 'confirmed' || targetStatus === 'advance_verified') {
-      const existingConfirmed = await tx.query(
-        `SELECT id, customer_name, slot FROM bookings 
-         WHERE id != ? AND check_in = ? AND COALESCE(hall, 'Evan-e-Hakimi') = ? 
-         AND status IN ('confirmed', 'advance_verified')`,
-        [bookingId, eventDate || current.check_in, cleanHall]
-      );
-      const conflict = (existingConfirmed.rows || []).find(c => checkSlotConflict(eventSlot || current.slot, c.slot));
-      if (conflict) {
-        await tx.rollback();
-        return res.status(409).json({
-          error: `Slot conflict: Booking #${conflict.id} (${conflict.customer_name}, ${conflict.slot}) is already confirmed for ${cleanHall} on ${eventDate || current.check_in}.`
-        });
-      }
+    if (CONFIRMED_STATUSES.includes(targetStatus)) {
+      await assertNoBookingConflict(tx, bookingId, eventDate || current.check_in, cleanHall, eventSlot || current.slot);
     }
 
     const totalAmount = price != null ? parseFloat(price) : current.total_amount;
@@ -707,11 +1263,14 @@ app.put('/api/bookings/:id', requireAuth, async (req, res) => {
       paymentStatus = advancePaid >= advanceAmount ? 'advance_paid' : 'partially_paid';
     }
 
+    const bookingRef = current.booking_reference || (CONFIRMED_STATUSES.includes(targetStatus) ? generateBookingReference(cleanHall, bookingId, eventDate || current.check_in) : null);
+
     await tx.query(
       `UPDATE bookings SET
         customer_name = ?, phone = ?, email = ?, check_in = ?, check_out = ?,
         slot = ?, occasion = ?, total_amount = ?, advance_amount = ?, balance_amount = ?,
         payment_status = ?, guests = ?, notes = ?, hall = ?, package = ?, status = ?,
+        booking_reference = COALESCE(?, booking_reference),
         updated_at = CURRENT_TIMESTAMP
        WHERE id = ?`,
       [
@@ -731,6 +1290,7 @@ app.put('/api/bookings/:id', requireAuth, async (req, res) => {
         cleanHall,
         pkg || current.package,
         targetStatus,
+        bookingRef,
         bookingId
       ]
     );
@@ -738,12 +1298,18 @@ app.put('/api/bookings/:id', requireAuth, async (req, res) => {
     const updated = await tx.query('SELECT * FROM bookings WHERE id = ?', [bookingId]);
     await tx.commit();
 
+    const bookingRow = updated.rows[0];
+    bookingRow.whatsapp = generateWhatsAppPayloads(bookingRow);
+
     logAudit('booking_updated', 'booking', bookingId, `Updated booking #${bookingId} for ${customer_name || current.customer_name}`, req.admin.username);
 
-    res.json({ success: true, booking: updated.rows[0] });
+    res.json({ success: true, booking: bookingRow });
   } catch (err) {
     if (tx) {
       try { await tx.rollback(); } catch (_) {}
+    }
+    if (err.status) {
+      return res.status(err.status).json({ error: err.message });
     }
     sendError(res, 500, 'Failed to update booking', err);
   }
@@ -754,27 +1320,39 @@ app.patch('/api/bookings/:id/status', requireAuth, async (req, res) => {
   let tx;
   try {
     const { status } = req.body;
-    const allowed = ['pending', 'confirmed', 'rejected', 'hold', 'waiting', 'advance_requested', 'advance_verified'];
+    const allowed = ['pending', 'NEW_ENQUIRY', 'UNDER_REVIEW', 'confirmed', 'rejected', 'REJECTED', 'hold', 'waiting', 'advance_requested', 'advance_verified', 'CONFIRMED_PENDING_ADVANCE', 'ADVANCE_PARTIALLY_PAID', 'ADVANCE_PAID', 'FULLY_PAID', 'cancelled'];
     if (!allowed.includes(status)) {
       return res.status(400).json({ error: 'Invalid status value' });
     }
 
     tx = await db.transaction('write');
 
-    if (status === 'confirmed' || status === 'advance_verified') {
+    if (CONFIRMED_STATUSES.includes(status)) {
       await assertNoBookingConflict(tx, req.params.id);
     }
 
-    await tx.query('UPDATE bookings SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [status, req.params.id]);
-    const updated = await tx.query('SELECT * FROM bookings WHERE id = ?', [req.params.id]);
-    if (!updated.rows || updated.rows.length === 0) {
+    const cur = await tx.query('SELECT * FROM bookings WHERE id = ?', [req.params.id]);
+    if (!cur.rows || cur.rows.length === 0) {
       await tx.rollback();
       return res.status(404).json({ error: 'Booking not found' });
     }
+    const current = cur.rows[0];
 
+    const bookingRef = current.booking_reference || (CONFIRMED_STATUSES.includes(status) ? generateBookingReference(current.hall, current.id, current.check_in) : null);
+
+    await tx.query(
+      `UPDATE bookings SET status = ?, booking_reference = COALESCE(?, booking_reference), updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+      [status, bookingRef, req.params.id]
+    );
+
+    const updated = await tx.query('SELECT * FROM bookings WHERE id = ?', [req.params.id]);
     await tx.commit();
+
+    const bookingRow = updated.rows[0];
+    bookingRow.whatsapp = generateWhatsAppPayloads(bookingRow);
+
     logAudit('booking_status_updated', 'booking', req.params.id, `Status updated to ${status}`, req.admin.username);
-    res.json({ success: true, booking: updated.rows[0] });
+    res.json({ success: true, booking: bookingRow });
   } catch (err) {
     if (tx) {
       try { await tx.rollback(); } catch (_) {}
@@ -809,22 +1387,39 @@ app.post('/api/bookings/:id/payments', requireAuth, async (req, res) => {
     const b = cur.rows[0];
 
     const currentPaid = parseFloat(b.advance_paid) || 0;
-    const newPaid = currentPaid + payAmount;
     const totalAmount = parseFloat(b.total_amount) || 0;
-    const balanceAmount = Math.max(0, totalAmount - newPaid);
+    const currentBalance = Math.max(0, totalAmount - currentPaid);
 
-    let paymentStatus = 'advance_paid';
+    if (payAmount > currentBalance) {
+      await tx.rollback();
+      return res.status(400).json({
+        error: `Payment amount ₹${payAmount} exceeds the outstanding balance of ₹${currentBalance}.`
+      });
+    }
+
+    const newPaid = currentPaid + payAmount;
+    const balanceAmount = Math.max(0, totalAmount - newPaid);
+    const advanceRequired = parseFloat(b.advance_amount) || Math.round(totalAmount * 0.40);
+
+    let paymentStatus = 'partially_paid';
+    let bookingStatus = b.status;
+
     if (newPaid >= totalAmount) {
       paymentStatus = 'fully_paid';
+      bookingStatus = 'FULLY_PAID';
+    } else if (newPaid >= advanceRequired) {
+      paymentStatus = 'advance_paid';
+      bookingStatus = 'ADVANCE_PAID';
     } else if (newPaid > 0) {
-      paymentStatus = newPaid >= (b.advance_amount || totalAmount * 0.4) ? 'advance_paid' : 'partially_paid';
+      paymentStatus = 'partially_paid';
+      bookingStatus = 'ADVANCE_PARTIALLY_PAID';
     }
 
     // Insert into booking_payments log
     await tx.query(
-      `INSERT INTO booking_payments (booking_id, amount, payment_type, payment_method, payment_date, notes)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [req.params.id, payAmount, payment_type, payment_method, payDate, notes?.trim() || null]
+      `INSERT INTO booking_payments (booking_id, amount, payment_type, payment_method, payment_date, notes, created_by)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [req.params.id, payAmount, payment_type, payment_method, payDate, notes?.trim() || null, req.admin.username]
     );
 
     // Update bookings summary
@@ -833,19 +1428,32 @@ app.post('/api/bookings/:id/payments', requireAuth, async (req, res) => {
         advance_paid = ?,
         balance_amount = ?,
         payment_status = ?,
+        status = ?,
         payment_method = ?,
         payment_notes = ?,
         updated_at = CURRENT_TIMESTAMP
        WHERE id = ?`,
-      [newPaid, balanceAmount, paymentStatus, payment_method, notes?.trim() || b.payment_notes, req.params.id]
+      [newPaid, balanceAmount, paymentStatus, bookingStatus, payment_method, notes?.trim() || b.payment_notes, req.params.id]
     );
 
     const updated = await tx.query('SELECT * FROM bookings WHERE id = ?', [req.params.id]);
     await tx.commit();
 
+    const bookingRow = updated.rows[0];
+    bookingRow.whatsapp = generateWhatsAppPayloads(bookingRow);
+
     logAudit('payment_recorded', 'booking', req.params.id, `Recorded ₹${payAmount} via ${payment_method} (${payment_type})`, req.admin.username);
 
-    res.json({ success: true, booking: updated.rows[0], payment: { amount: payAmount, payment_method, payment_date: payDate } });
+    res.json({
+      success: true,
+      booking: bookingRow,
+      payment: {
+        amount: payAmount,
+        payment_method,
+        payment_date: payDate,
+        created_by: req.admin.username
+      }
+    });
   } catch (err) {
     if (tx) {
       try { await tx.rollback(); } catch (_) {}
@@ -887,30 +1495,35 @@ app.patch('/api/bookings/:id/verify-advance', requireAuth, async (req, res) => {
     const total = parseFloat(target.total_amount) || 0;
     const advancePaid = target.advance_amount ? parseFloat(target.advance_amount) : +(total * 0.4).toFixed(2);
     const balanceAmount = Math.max(0, total - advancePaid);
+    const bookingRef = target.booking_reference || generateBookingReference(target.hall, req.params.id, target.check_in);
 
     await tx.query(
       `UPDATE bookings SET 
-        status = 'advance_verified', 
+        status = 'ADVANCE_PAID', 
         payment_status = 'advance_paid', 
         advance_paid = ?, 
         advance_verified = 1,
         balance_amount = ?,
+        booking_reference = ?,
         updated_at = CURRENT_TIMESTAMP
        WHERE id = ?`,
-      [advancePaid, balanceAmount, req.params.id]
+      [advancePaid, balanceAmount, bookingRef, req.params.id]
     );
 
     await tx.query(
-      `INSERT INTO booking_payments (booking_id, amount, payment_type, payment_method, payment_date, notes)
-       VALUES (?, ?, 'advance', 'UPI', CURRENT_DATE, 'Advance verified by admin')`,
-      [req.params.id, advancePaid]
+      `INSERT INTO booking_payments (booking_id, amount, payment_type, payment_method, payment_date, notes, created_by)
+       VALUES (?, ?, 'advance', 'UPI', CURRENT_DATE, 'Advance verified by admin', ?)`,
+      [req.params.id, advancePaid, req.admin.username]
     );
 
     const updated = await tx.query('SELECT * FROM bookings WHERE id = ?', [req.params.id]);
     await tx.commit();
 
+    const bookingRow = updated.rows[0];
+    bookingRow.whatsapp = generateWhatsAppPayloads(bookingRow);
+
     logAudit('advance_verified', 'booking', req.params.id, `Advance verified for ₹${advancePaid}`, req.admin.username);
-    res.json({ success: true, booking: updated.rows[0] });
+    res.json({ success: true, booking: bookingRow });
   } catch (err) {
     if (tx) {
       try { await tx.rollback(); } catch (_) {}
@@ -925,34 +1538,40 @@ app.patch('/api/bookings/:id/verify-advance', requireAuth, async (req, res) => {
 // PATCH /api/bookings/:id/collect-cash (admin only)
 app.patch('/api/bookings/:id/collect-cash', requireAuth, async (req, res) => {
   try {
-    const cur = await db.query('SELECT total_amount, advance_paid FROM bookings WHERE id = ?', [req.params.id]);
+    const cur = await db.query('SELECT total_amount, advance_paid, hall, check_in, booking_reference FROM bookings WHERE id = ?', [req.params.id]);
     if (!cur.rows || cur.rows.length === 0) return res.status(404).json({ error: 'Booking not found' });
     const b = cur.rows[0];
     const total = parseFloat(b.total_amount) || 0;
     const currentPaid = parseFloat(b.advance_paid) || 0;
     const balanceCollected = Math.max(0, total - currentPaid);
+    const bookingRef = b.booking_reference || generateBookingReference(b.hall, req.params.id, b.check_in);
 
     const result = await db.query(
       `UPDATE bookings SET 
-        payment_status = 'fully_paid', 
+        payment_status = 'fully_paid',
+        status = 'FULLY_PAID',
         advance_paid = ?, 
         balance_amount = 0,
         payment_method = 'Cash',
+        booking_reference = ?,
         updated_at = CURRENT_TIMESTAMP 
        WHERE id = ? RETURNING *`,
-      [total, req.params.id]
+      [total, bookingRef, req.params.id]
     );
 
     if (balanceCollected > 0) {
       await db.query(
-        `INSERT INTO booking_payments (booking_id, amount, payment_type, payment_method, payment_date, notes)
-         VALUES (?, ?, 'balance', 'Cash', CURRENT_DATE, 'Remaining balance collected in cash')`,
-        [req.params.id, balanceCollected]
+        `INSERT INTO booking_payments (booking_id, amount, payment_type, payment_method, payment_date, notes, created_by)
+         VALUES (?, ?, 'balance', 'Cash', CURRENT_DATE, 'Remaining balance collected in cash', ?)`,
+        [req.params.id, balanceCollected, req.admin.username]
       );
     }
 
+    const bookingRow = result.rows[0];
+    bookingRow.whatsapp = generateWhatsAppPayloads(bookingRow);
+
     logAudit('balance_collected', 'booking', req.params.id, `Collected full cash payment (₹${balanceCollected})`, req.admin.username);
-    res.json({ success: true, booking: result.rows[0] });
+    res.json({ success: true, booking: bookingRow });
   } catch (err) {
     sendError(res, 500, 'Failed to collect cash', err);
   }
@@ -979,7 +1598,8 @@ app.delete('/api/bookings/:id', requireAuth, async (req, res) => {
 app.get('/api/bookings/availability', async (req, res) => {
   try {
     const result = await db.query(
-      "SELECT check_in as date, slot, status, COALESCE(hall, 'Evan-e-Hakimi') as hall FROM bookings WHERE status IN ('confirmed', 'pending', 'waiting', 'advance_requested', 'advance_verified')"
+      `SELECT check_in as date, slot, status, COALESCE(hall, 'Evan-e-Hakimi') as hall FROM bookings 
+       WHERE status IN ('confirmed', 'pending', 'waiting', 'advance_requested', 'advance_verified', 'NEW_ENQUIRY', 'CONFIRMED_PENDING_ADVANCE', 'ADVANCE_PARTIALLY_PAID', 'ADVANCE_PAID', 'FULLY_PAID')`
     );
 
     const availability = {
@@ -1002,7 +1622,7 @@ app.get('/api/bookings/availability', async (req, res) => {
       const d = r.date && r.date.toISOString ? r.date.toISOString().split('T')[0] : String(r.date).split('T')[0];
       const hallKey = String(r.hall).toLowerCase().includes('qadri') ? 'Qadri Hall' : 'Evan-e-Hakimi';
       const slot = String(r.slot).toLowerCase();
-      const isConfirmed = ['confirmed', 'advance_verified'].includes(r.status);
+      const isConfirmed = CONFIRMED_STATUSES.includes(r.status);
       const markStatus = isConfirmed ? 'confirmed_booked' : 'pending_inquiry';
 
       const hallTarget = availability[hallKey];
@@ -1012,6 +1632,7 @@ app.get('/api/bookings/availability', async (req, res) => {
         if (isConfirmed) {
           applySlotStatus(hallTarget, d, 'morning', 'conflict_blocked');
           applySlotStatus(hallTarget, d, 'evening', 'conflict_blocked');
+          applySlotStatus(hallTarget, d, 'majlis', 'conflict_blocked');
         }
       } else if (slot === 'morning') {
         applySlotStatus(hallTarget, d, 'morning', markStatus);
@@ -1051,7 +1672,7 @@ app.get('/api/bookings/availability', async (req, res) => {
 // GET /api/expenses — List expenses with filters
 app.get('/api/expenses', requireAuth, async (req, res) => {
   try {
-    const { category, payment_method, from, to, search } = req.query;
+    const { category, payment_method, hall, from, to, search } = req.query;
     let query = 'SELECT id as _id, * FROM expenses WHERE 1=1';
     const params = [];
 
@@ -1062,6 +1683,10 @@ app.get('/api/expenses', requireAuth, async (req, res) => {
     if (payment_method && payment_method !== 'all' && payment_method !== '') {
       query += ' AND LOWER(payment_method) = LOWER(?)';
       params.push(payment_method.trim());
+    }
+    if (hall && hall !== 'all' && hall !== '') {
+      query += ' AND (hall = ? OR hall = "Combined / Facility")';
+      params.push(hall.trim());
     }
     if (from && from !== '') {
       query += ' AND date >= ?';
@@ -1123,7 +1748,7 @@ app.get('/api/expenses/summary', requireAuth, async (req, res) => {
 // POST /api/expenses — Add expense
 app.post('/api/expenses', requireAuth, async (req, res) => {
   try {
-    const { description, category, amount, date, payment_method = 'Cash', paid_to, notes, receipt_url, status = 'paid' } = req.body;
+    const { description, category, amount, date, payment_method = 'Cash', paid_to, notes, receipt_url, status = 'paid', hall = 'Evan-e-Hakimi' } = req.body;
 
     if (!category || amount == null || !date) {
       return res.status(400).json({ error: 'Category, amount, and date are required' });
@@ -1137,14 +1762,14 @@ app.post('/api/expenses', requireAuth, async (req, res) => {
     const desc = (description || notes || `${category} expense`).trim();
 
     const result = await db.query(
-      `INSERT INTO expenses (description, category, amount, date, payment_method, paid_to, status, notes, receipt_url, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+      `INSERT INTO expenses (description, category, amount, date, payment_method, paid_to, status, notes, receipt_url, hall, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
        RETURNING id as _id, *`,
-      [desc, category.toLowerCase().trim(), amt, date, payment_method, paid_to?.trim() || null, status, notes?.trim() || null, receipt_url?.trim() || null]
+      [desc, category.toLowerCase().trim(), amt, date, payment_method, paid_to?.trim() || null, status, notes?.trim() || null, receipt_url?.trim() || null, (hall || 'Evan-e-Hakimi').trim()]
     );
 
     const inserted = result.rows[0];
-    logAudit('expense_created', 'expense', inserted._id || inserted.id, `Recorded expense ₹${amt} for ${desc} (${category})`, req.admin.username);
+    logAudit('expense_created', 'expense', inserted._id || inserted.id, `Recorded expense ₹${amt} for ${desc} (${category}, ${hall || 'Evan-e-Hakimi'})`, req.admin.username);
 
     res.json({ success: true, expense: inserted });
   } catch (err) {
@@ -1155,7 +1780,7 @@ app.post('/api/expenses', requireAuth, async (req, res) => {
 // PUT /api/expenses/:id — Update expense
 app.put('/api/expenses/:id', requireAuth, async (req, res) => {
   try {
-    const { description, category, amount, date, payment_method, paid_to, notes, receipt_url, status } = req.body;
+    const { description, category, amount, date, payment_method, paid_to, notes, receipt_url, status, hall } = req.body;
     const amt = parseFloat(amount);
 
     if (isNaN(amt) || amt <= 0) {
@@ -1166,9 +1791,10 @@ app.put('/api/expenses/:id', requireAuth, async (req, res) => {
       `UPDATE expenses SET
         description = ?, category = ?, amount = ?, date = ?, payment_method = ?,
         paid_to = ?, notes = ?, receipt_url = ?, status = COALESCE(?, status),
+        hall = COALESCE(?, hall),
         updated_at = CURRENT_TIMESTAMP
        WHERE id = ? RETURNING id as _id, *`,
-      [description?.trim(), category?.toLowerCase().trim(), amt, date, payment_method, paid_to?.trim() || null, notes?.trim() || null, receipt_url?.trim() || null, status || null, req.params.id]
+      [description?.trim(), category?.toLowerCase().trim(), amt, date, payment_method, paid_to?.trim() || null, notes?.trim() || null, receipt_url?.trim() || null, status || null, hall?.trim() || null, req.params.id]
     );
 
     if (!result.rows || result.rows.length === 0) return res.status(404).json({ error: 'Expense not found' });
@@ -1541,13 +2167,14 @@ app.get('/api/reports/export-bookings.csv', requireAuth, async (req, res) => {
 // GET /api/reports/export-expenses.csv — CSV export of expenses
 app.get('/api/reports/export-expenses.csv', requireAuth, async (req, res) => {
   try {
-    const { from, to, category } = req.query;
+    const { from, to, category, hall } = req.query;
     let query = `SELECT * FROM expenses WHERE 1=1`;
     const params = [];
 
     if (from) { query += ` AND date >= ?`; params.push(from); }
     if (to) { query += ` AND date <= ?`; params.push(to); }
     if (category && category !== 'all') { query += ` AND LOWER(category) = LOWER(?)`; params.push(category); }
+    if (hall && hall !== 'all') { query += ` AND (hall = ? OR hall = "Combined / Facility")`; params.push(hall); }
 
     query += ` ORDER BY date DESC`;
     const result = await db.query(query, params);
@@ -1555,7 +2182,7 @@ app.get('/api/reports/export-expenses.csv', requireAuth, async (req, res) => {
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename="expenses_report_${from || 'all'}_to_${to || 'all'}.csv"`);
 
-    const headers = ['ID', 'Date', 'Description', 'Category', 'Amount (INR)', 'Payment Method', 'Paid To / Vendor', 'Status', 'Notes'];
+    const headers = ['ID', 'Date', 'Description', 'Venue / Hall', 'Category', 'Amount (INR)', 'Payment Method', 'Paid To / Vendor', 'Status', 'Notes'];
     res.write(headers.join(',') + '\n');
 
     (result.rows || []).forEach(e => {
@@ -1563,6 +2190,7 @@ app.get('/api/reports/export-expenses.csv', requireAuth, async (req, res) => {
         e.id,
         e.date,
         `"${(e.description || e.notes || '').replace(/"/g, '""')}"`,
+        `"${e.hall || 'Evan-e-Hakimi'}"`,
         e.category,
         e.amount,
         `"${e.payment_method || 'Cash'}"`,
