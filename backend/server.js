@@ -382,9 +382,9 @@ Catering: ${pkgName}
 
 Total Amount: ₹${total.toLocaleString('en-IN')}
 Advance (40%): ₹${advance.toLocaleString('en-IN')} (Non-refundable)
-Balance (60%): ₹${(total - advance).toLocaleString('en-IN')} (Due 2 days before the event)
+Balance (60%): ₹${(total - advance).toLocaleString('en-IN')} (Due 2–3 days before the event)
 
-Kindly pay the advance to secure your booking.
+Kindly pay the 40% advance of ₹${advance.toLocaleString('en-IN')} within 24 hours to secure your booking slot.
 
 Regards,
 Evan-e-Hakimi & Qadri Hall Management`;
@@ -393,16 +393,16 @@ Evan-e-Hakimi & Qadri Hall Management`;
   const textAdvanceReceived = 
 `*Salaam / Greetings ${name},*
 
-We have received your advance payment of *₹${paid.toLocaleString('en-IN')}* for *${hall}*.
+We have received your 40% advance payment of *₹${paid.toLocaleString('en-IN')}* for *${hall}*.
 
 ✅ *Your booking is now confirmed & secured!*
 • *Booking Ref:* ${ref}
-• *Event Date:* ${dateStr} (${slotName})
+• *Event Date:* ${formattedDate} (${slotName})
 • *Total Amount:* ₹${total.toLocaleString('en-IN')}
-• *Advance Received:* ₹${paid.toLocaleString('en-IN')}
-• *Remaining Balance Due:* ₹${balance.toLocaleString('en-IN')}
+• *Advance Received (40%):* ₹${paid.toLocaleString('en-IN')}
+• *Remaining Balance (60%):* ₹${balance.toLocaleString('en-IN')}
 
-⚠️ *Reminder:* The remaining 60% balance of ₹${balance.toLocaleString('en-IN')} must be cleared at least 2 days before the event date.
+⚠️ *Reminder:* The remaining 60% balance of ₹${balance.toLocaleString('en-IN')} is payable at Hakimi Tower, 2nd Floor, to Aliasgar Challawala, 2–3 days before the function.
 
 Thank you,
 *Evan-e-Hakimi & Qadri Hall Management*`;
@@ -413,9 +413,10 @@ Thank you,
 
 We confirm receipt of the full payment of *₹${total.toLocaleString('en-IN')}* for your event at *${hall}*.
 
-🎉 *Your booking is completely settled!*
+🎉 *Your booking is completely settled & fully paid!*
 • *Booking Ref:* ${ref}
-• *Event Date:* ${dateStr} (${slotName})
+• *Event Date:* ${formattedDate} (${slotName})
+• *Total Paid:* ₹${total.toLocaleString('en-IN')}
 • *Outstanding Balance:* ₹0 (Fully Paid)
 
 We look forward to hosting your gathering. Please feel free to reach out for any setup arrangements.
@@ -438,6 +439,22 @@ We sincerely apologize for any inconvenience. Please reach out to us if you woul
 Regards,
 Evan-e-Hakimi & Qadri Hall Management`;
 
+  // Template 5: 60% Balance Reminder
+  const textBalanceReminder = 
+`Salaam ${name},
+
+Reminder regarding your upcoming booking for ${hall}:
+• Booking Ref: ${ref}
+• Event Date: ${formattedDate} (${slotName})
+• Total Amount: ₹${total.toLocaleString('en-IN')}
+• Advance Paid (40%): ₹${paid.toLocaleString('en-IN')}
+• Remaining Balance (60%): ₹${balance.toLocaleString('en-IN')}
+
+Kindly note that the remaining 60% balance of ₹${balance.toLocaleString('en-IN')} is payable at Hakimi Tower, 2nd Floor, to Aliasgar Challawala, 2–3 days before the function.
+
+Regards,
+Evan-e-Hakimi & Qadri Hall Management`;
+
   const baseUrl = phone ? `https://wa.me/${phone}?text=` : `https://wa.me/?text=`;
 
   return {
@@ -447,11 +464,13 @@ Evan-e-Hakimi & Qadri Hall Management`;
     fullyPaidUrl: baseUrl + encodeURIComponent(textFullyPaid),
     fullPaymentReceiptUrl: baseUrl + encodeURIComponent(textFullyPaid),
     rejectionUrl: baseUrl + encodeURIComponent(textRejection),
+    balanceReminderUrl: baseUrl + encodeURIComponent(textBalanceReminder),
     templates: {
       confirmation: textConfirmation,
       advanceReceived: textAdvanceReceived,
       fullyPaid: textFullyPaid,
-      rejection: textRejection
+      rejection: textRejection,
+      balanceReminder: textBalanceReminder
     }
   };
 }
@@ -1179,8 +1198,81 @@ app.post('/api/bookings/:id/reject', requireAuth, async (req, res) => {
   }
 });
 
-// POST /api/bookings/:id/mark-fully-paid — Mark booking as fully paid and record final settlement
-app.post('/api/bookings/:id/mark-fully-paid', requireAuth, async (req, res) => {
+// POST /api/bookings/:id/receive-advance — Record 40% advance payment and mark ADVANCE_PAID
+app.post(['/api/bookings/:id/receive-advance', '/api/bookings/:id/verify-advance'], requireAuth, async (req, res) => {
+  let tx;
+  try {
+    const bookingId = req.params.id;
+    const { payment_method = 'Cash', notes = '40% advance payment received', payment_date } = req.body;
+
+    tx = await db.transaction('write');
+
+    const cur = await tx.query('SELECT * FROM bookings WHERE id = ?', [bookingId]);
+    if (!cur.rows || cur.rows.length === 0) {
+      await tx.rollback();
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+    const b = cur.rows[0];
+
+    const total = parseFloat(b.total_amount) || 0;
+    const requiredAdvance = b.advance_amount ? parseFloat(b.advance_amount) : Math.round(total * 0.4);
+    const currentPaid = parseFloat(b.advance_paid) || 0;
+    const advanceToRecord = Math.max(0, requiredAdvance - currentPaid);
+    const finalAdvancePaid = currentPaid + advanceToRecord;
+    const remainingBalance = Math.max(0, total - finalAdvancePaid);
+    const payDate = payment_date || new Date().toISOString().split('T')[0];
+    const bookingRef = b.booking_reference || generateBookingReference(b.hall, bookingId, b.check_in);
+
+    if (advanceToRecord > 0) {
+      await tx.query(
+        `INSERT INTO booking_payments (booking_id, amount, payment_type, payment_method, payment_date, notes, created_by)
+         VALUES (?, ?, 'advance', ?, ?, ?, ?)`,
+        [bookingId, advanceToRecord, payment_method, payDate, notes?.trim() || '40% advance payment', req.admin.username]
+      );
+    }
+
+    await tx.query(
+      `UPDATE bookings SET
+        advance_paid = ?,
+        advance_amount = ?,
+        balance_amount = ?,
+        payment_status = 'advance_paid',
+        status = 'ADVANCE_PAID',
+        advance_verified = 1,
+        booking_reference = ?,
+        payment_method = ?,
+        payment_notes = ?,
+        updated_at = CURRENT_TIMESTAMP
+       WHERE id = ?`,
+      [finalAdvancePaid, requiredAdvance, remainingBalance, bookingRef, payment_method, notes?.trim() || b.payment_notes, bookingId]
+    );
+
+    const updated = await tx.query('SELECT * FROM bookings WHERE id = ?', [bookingId]);
+    await tx.commit();
+
+    const bookingRow = updated.rows[0];
+    const whatsapp = generateWhatsAppPayloads(bookingRow);
+
+    logAudit('advance_received', 'booking', bookingId, `Recorded 40% advance of ₹${advanceToRecord} for booking #${bookingId}`, req.admin.username);
+
+    res.json({
+      success: true,
+      message: `40% advance of ₹${advanceToRecord.toLocaleString('en-IN')} recorded for booking #${bookingId}. Status: ADVANCE_PAID.`,
+      booking: {
+        ...bookingRow,
+        whatsapp
+      }
+    });
+  } catch (err) {
+    if (tx) {
+      try { await tx.rollback(); } catch (_) {}
+    }
+    sendError(res, 500, 'Failed to record advance payment', err);
+  }
+});
+
+// POST /api/bookings/:id/receive-balance / mark-fully-paid — Mark booking as fully paid and record final settlement
+app.post(['/api/bookings/:id/receive-balance', '/api/bookings/:id/mark-fully-paid'], requireAuth, async (req, res) => {
   let tx;
   try {
     const bookingId = req.params.id;

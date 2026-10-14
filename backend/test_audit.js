@@ -528,15 +528,36 @@ Catering: Without Jaman
 
 Total Amount: ₹11,000
 Advance (40%): ₹4,400 (Non-refundable)
-Balance (60%): ₹6,600 (Due 2 days before the event)
+Balance (60%): ₹6,600 (Due 2–3 days before the event)
 
-Kindly pay the advance to secure your booking.
+Kindly pay the 40% advance of ₹4,400 within 24 hours to secure your booking slot.
 
 Regards,
 Evan-e-Hakimi & Qadri Hall Management`;
 
   assert.strictEqual(text, expected);
   assert.strictEqual(payloads.confirmationUrl.includes('wa.me/919876543210'), true);
+});
+
+it('WhatsApp 60% balance reminder specifies Hakimi Tower, 2nd Floor, to Aliasgar Challawala, 2–3 days before the function', () => {
+  const server = require('./server');
+  const b = {
+    id: 11,
+    booking_reference: 'EH-2026-0011',
+    customer_name: 'Moiz Dheela',
+    phone: '9876543210',
+    hall: 'Evan-e-Hakimi',
+    check_in: '2026-11-19',
+    slot: 'majlis',
+    total_amount: 11000,
+    advance_paid: 4400,
+    balance_amount: 6600
+  };
+  const payloads = server.generateWhatsAppPayloads(b);
+  const text = payloads.templates.balanceReminder;
+
+  assert.strictEqual(text.includes('Hakimi Tower, 2nd Floor, to Aliasgar Challawala, 2–3 days before the function'), true);
+  assert.strictEqual(payloads.balanceReminderUrl.includes('wa.me/919876543210'), true);
 });
 
 it('slot conflict verification recognizes CONFIRMED_PENDING_ADVANCE, ADVANCE_PAID, and FULLY_PAID as slot-locking', () => {

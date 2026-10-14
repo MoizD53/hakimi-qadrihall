@@ -1477,9 +1477,9 @@
                   <th>Event Date</th>
                   <th>Venue</th>
                   <th>Slot &amp; Timing</th>
-                  <th>Total</th>
-                  <th>Paid</th>
-                  <th>Balance Due</th>
+                  <th>Total Quoted</th>
+                  <th>Advance Paid (40%)</th>
+                  <th>Pending Balance (60%)</th>
                   <th>Status</th>
                   <th>Actions</th>
                 </tr>
@@ -1862,7 +1862,59 @@
     </div>
   </div>
 
+  <!-- ════════ MODAL: MANAGE BOOKING STAGE & PAYMENTS ════════ -->
+  <div class="modal-overlay" id="modalBookingStage">
+    <div class="modal-box" style="max-width:620px;">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title" style="margin:0;font-size:1.05rem;">
+            Booking <span id="stageModalRef" style="color:var(--wheat);">#Ref</span> &bull; <span id="stageModalCustomer">Guest</span>
+          </h3>
+          <div id="stageModalHall" style="margin-top:4px;"></div>
+        </div>
+        <button class="modal-close" onclick="closeModal('modalBookingStage')">&times;</button>
+      </div>
+      <div class="modal-body" style="padding:1.2rem;">
+        <!-- Details Card -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:0.6rem;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.8rem;margin-bottom:1rem;font-size:0.75rem;">
+          <div><span style="opacity:0.6;display:block;font-size:0.65rem;text-transform:uppercase;">Phone</span><span id="stageModalPhone"></span></div>
+          <div><span style="opacity:0.6;display:block;font-size:0.65rem;text-transform:uppercase;">Date</span><strong id="stageModalDate" style="color:#fcd34d;"></strong></div>
+          <div><span style="opacity:0.6;display:block;font-size:0.65rem;text-transform:uppercase;">Slot</span><strong id="stageModalSlot"></strong></div>
+          <div><span style="opacity:0.6;display:block;font-size:0.65rem;text-transform:uppercase;">Package</span><strong id="stageModalPkg"></strong></div>
+          <div><span style="opacity:0.6;display:block;font-size:0.65rem;text-transform:uppercase;">Guests</span><span id="stageModalGuests"></span></div>
+        </div>
 
+        <!-- 3 Financial Tracking Cards -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.6rem;margin-bottom:1rem;">
+          <div style="background:rgba(217,119,6,0.08);border:1px solid rgba(217,119,6,0.25);border-radius:8px;padding:0.7rem;text-align:center;">
+            <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;opacity:0.7;margin-bottom:2px;">Total Quoted</div>
+            <div id="stageTotalAmount" style="font-size:1.1rem;font-weight:700;color:var(--wheat);">₹0</div>
+            <div style="font-size:0.65rem;opacity:0.6;">Full Event</div>
+          </div>
+          <div id="stageAdvanceCard" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.7rem;text-align:center;">
+            <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;opacity:0.7;margin-bottom:2px;">Advance (40%)</div>
+            <div id="stageAdvanceAmount" style="font-size:1.1rem;font-weight:700;color:#fcd34d;">₹0</div>
+            <div id="stageAdvanceStatus" style="margin-top:2px;"></div>
+          </div>
+          <div id="stageBalanceCard" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.7rem;text-align:center;">
+            <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;opacity:0.7;margin-bottom:2px;">Balance (60%)</div>
+            <div id="stageBalanceAmount" style="font-size:1.1rem;font-weight:700;color:var(--cream);">₹0</div>
+            <div id="stageBalanceStatus" style="margin-top:2px;"></div>
+          </div>
+        </div>
+
+        <!-- Dynamic Context-Aware Stage Actions -->
+        <div id="stageActionButtons"></div>
+      </div>
+      <div class="modal-footer" style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <button type="button" class="action-btn" onclick="if(currentStageBooking){ closeModal('modalBookingStage'); openEditBookingModal(currentStageBooking.id); }"><i class="fas fa-edit"></i> Edit</button>
+          <button type="button" class="action-btn del" onclick="if(currentStageBooking){ closeModal('modalBookingStage'); deleteBooking(currentStageBooking.id); }"><i class="fas fa-trash"></i> Cancel</button>
+        </div>
+        <button type="button" class="action-btn" onclick="closeModal('modalBookingStage')">Close</button>
+      </div>
+    </div>
+  </div>
 
   <!-- ════════ MODAL: CREATE / EDIT BOOKING ════════ -->
   <div class="modal-overlay" id="modalBooking">
@@ -2680,7 +2732,16 @@
           dueTbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:1.5rem;color:rgba(245,240,232,0.4);">No urgent overdue balances found.</td></tr>`;
         } else {
           dueTbody.innerHTML = duePayments.map(b => {
-            const bal = Math.max(0, parseFloat(b.total_amount || 0) - parseFloat(b.advancePaid || b.advance_paid || 0));
+            const total = parseFloat(b.total_amount || 0);
+            const advPaid = parseFloat(b.advancePaid || b.advance_paid || 0);
+            const bal = Math.max(0, total - advPaid);
+            const isPendingAdvance = b.status === 'CONFIRMED_PENDING_ADVANCE';
+            const actionBtn = isPendingAdvance
+              ? `<button class="btn-quick gold" style="padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="record40Advance(${b.id})" title="Received 40% Advance"><i class="fas fa-check"></i> Received 40% Advance</button>
+                 <a href="${b.whatsapp?.confirmationUrl || '#'}" target="_blank" class="btn-whatsapp" style="padding:0.25rem 0.55rem;font-size:0.68rem;text-decoration:none;display:inline-flex;align-items:center;gap:3px;" title="WhatsApp Advance Request"><i class="fab fa-whatsapp"></i> Advance Req</a>`
+              : `<button class="btn-quick" style="background:#22c55e;color:#0a1a12;padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="record60Balance(${b.id})" title="Received Remaining 60%"><i class="fas fa-check-double"></i> Received Remaining 60%</button>
+                 <a href="${b.whatsapp?.balanceReminderUrl || '#'}" target="_blank" class="btn-whatsapp" style="padding:0.25rem 0.55rem;font-size:0.68rem;text-decoration:none;display:inline-flex;align-items:center;gap:3px;" title="WhatsApp 60% Reminder"><i class="fab fa-whatsapp"></i> 60% Reminder</a>`;
+
             return `
               <tr>
                 <td><strong>${escapeHtml(b.customer_name || 'Guest')}</strong></td>
@@ -2688,11 +2749,14 @@
                 <td style="color:#fcd34d;font-weight:600;">${b.check_in}</td>
                 <td><span class="badge ${b.hall?.toLowerCase().includes('qadri')?'badge-qadri':'badge-hakimi'}">${escapeHtml(b.hall||'Evan-e-Hakimi')}</span></td>
                 <td>${b.slot}</td>
-                <td>₹${parseFloat(b.total_amount||0).toLocaleString('en-IN')}</td>
-                <td>₹${parseFloat(b.advancePaid||b.advance_paid||0).toLocaleString('en-IN')}</td>
+                <td>₹${total.toLocaleString('en-IN')}</td>
+                <td>₹${advPaid.toLocaleString('en-IN')}</td>
                 <td style="color:#fca5a5;font-weight:700;">₹${bal.toLocaleString('en-IN')}</td>
                 <td>
-                  <button class="action-btn pay" onclick="openBookingDetails(${b.id})"><i class="fas fa-rupee-sign"></i> Manage</button>
+                  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;">
+                    ${actionBtn}
+                    <button class="action-btn pay" onclick="openBookingStage(${b.id})" title="Manage Booking Stage"><i class="fas fa-eye"></i></button>
+                  </div>
                 </td>
               </tr>
             `;
@@ -2785,11 +2849,11 @@
           const sCls = 'slot-' + (b.slot || 'morning');
           const isConf = CONFIRMED_STATUSES.includes(b.status);
           const icon = isConf ? '✓ ' : '⏳ ';
-          const clickFn = isConf ? `openBookingDetails(${b.id})` : `openEnquiryWorkflow(${b.id})`;
+          const clickFn = isConf ? `openBookingStage(${b.id})` : `openEnquiryWorkflow(${b.id})`;
           pillHtml += `
             <div class="slot-pill ${sCls}" 
                  onclick="event.stopPropagation(); ${clickFn};" 
-                 title="${escapeHtml(b.customer_name)} (${b.slot}) &bull; ${formatStatusLabel(b.status)} &bull; Click to view details">
+                 title="${escapeHtml(b.customer_name)} (${b.slot}) &bull; ${formatStatusLabel(b.status)} &bull; Click to view stage details">
               ${icon}${escapeHtml(b.customer_name || 'Booked')} (${b.slot})
             </div>`;
         });
@@ -2829,7 +2893,7 @@
           if (ENQUIRY_STATUSES.includes(b.status)) {
             openEnquiryWorkflow(b.id);
           } else {
-            openBookingDetails(b.id);
+            openBookingStage(b.id);
           }
         } else {
           showToast(`Date ${dateStr} is fully booked (${dayBookings.length} events). Click on an event pill to manage.`);
@@ -2848,7 +2912,7 @@
           if (ENQUIRY_STATUSES.includes(b.status)) {
             openEnquiryWorkflow(b.id);
           } else {
-            openBookingDetails(b.id);
+            openBookingStage(b.id);
           }
         } else {
           openDateQuickBook(hallName, dateStr, nextSlot);
@@ -2913,30 +2977,50 @@
           let actionsHtml = '';
           if (isPending) {
             actionsHtml = `
-              <button class="btn-quick gold" style="padding:0.35rem 0.65rem;font-size:0.7rem;" onclick="openEnquiryWorkflow(${b.id})" title="Accept Enquiry">
+              <button class="btn-quick gold" style="padding:0.3rem 0.6rem;font-size:0.7rem;" onclick="openEnquiryWorkflow(${b.id})" title="Accept Enquiry">
                 <i class="fas fa-check"></i> Accept
               </button>
-              <button class="action-btn del" style="padding:0.35rem 0.65rem;font-size:0.7rem;" onclick="rejectEnquiryPrompt(${b.id})" title="Reject Enquiry">
+              <button class="action-btn del" style="padding:0.3rem 0.6rem;font-size:0.7rem;" onclick="rejectEnquiryPrompt(${b.id})" title="Reject Enquiry">
                 <i class="fas fa-times"></i> Reject
               </button>
             `;
-          } else if (isConfirmed) {
+          } else if (b.status === 'CONFIRMED_PENDING_ADVANCE') {
             actionsHtml = `
-              <a href="${waApprovalUrl}" target="_blank" class="btn-whatsapp" style="padding:0.32rem 0.65rem;font-size:0.68rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;" title="Send WhatsApp Approval Message">
-                <i class="fab fa-whatsapp"></i> Send Approval WhatsApp
+              <button class="btn-quick gold" style="padding:0.28rem 0.55rem;font-size:0.68rem;" onclick="record40Advance(${b.id})" title="Received 40% Advance">
+                <i class="fas fa-check"></i> Received 40% Advance
+              </button>
+              <a href="${waApprovalUrl}" target="_blank" class="btn-whatsapp" style="padding:0.28rem 0.55rem;font-size:0.68rem;text-decoration:none;display:inline-flex;align-items:center;gap:3px;" title="Send WhatsApp 40% Advance Request">
+                <i class="fab fa-whatsapp"></i> Advance Req
               </a>
+              <button class="action-btn" style="padding:0.28rem 0.45rem;font-size:0.68rem;" onclick="openBookingStage(${b.id})" title="Manage Booking"><i class="fas fa-eye"></i></button>
+            `;
+          } else if (b.status === 'ADVANCE_PAID' || b.status === 'ADVANCE_PARTIALLY_PAID') {
+            actionsHtml = `
+              <button class="btn-quick" style="background:#22c55e;color:#0a1a12;padding:0.28rem 0.55rem;font-size:0.68rem;" onclick="record60Balance(${b.id})" title="Received Remaining 60%">
+                <i class="fas fa-check-double"></i> Received Remaining 60%
+              </button>
+              <a href="${b.whatsapp?.balanceReminderUrl || '#'}" target="_blank" class="btn-whatsapp" style="padding:0.28rem 0.55rem;font-size:0.68rem;text-decoration:none;display:inline-flex;align-items:center;gap:3px;" title="Send WhatsApp 60% Reminder">
+                <i class="fab fa-whatsapp"></i> 60% Reminder
+              </a>
+              <button class="action-btn" style="padding:0.28rem 0.45rem;font-size:0.68rem;" onclick="openBookingStage(${b.id})" title="Manage Booking"><i class="fas fa-eye"></i></button>
+            `;
+          } else if (b.status === 'FULLY_PAID') {
+            actionsHtml = `
+              <span class="badge" style="background:rgba(34,197,94,0.18);color:#86efac;border:1px solid rgba(34,197,94,0.4);font-size:0.68rem;padding:3px 6px;">Fully Paid ✓</span>
+              <a href="${b.whatsapp?.fullyPaidUrl || '#'}" target="_blank" class="btn-whatsapp" style="padding:0.28rem 0.55rem;font-size:0.68rem;text-decoration:none;display:inline-flex;align-items:center;gap:3px;" title="Send WhatsApp Full Settlement Receipt">
+                <i class="fab fa-whatsapp"></i> Full Receipt
+              </a>
+              <button class="action-btn" style="padding:0.28rem 0.45rem;font-size:0.68rem;" onclick="openBookingStage(${b.id})" title="Manage Booking"><i class="fas fa-eye"></i></button>
             `;
           } else if (isRejected) {
             actionsHtml = `
-              <a href="${waRejectionUrl}" target="_blank" class="btn-whatsapp-outline" style="padding:0.32rem 0.65rem;font-size:0.68rem;color:#fca5a5;border-color:rgba(239,68,68,0.35);background:rgba(239,68,68,0.08);text-decoration:none;display:inline-flex;align-items:center;gap:4px;" title="Send WhatsApp Regret Message">
+              <a href="${waRejectionUrl}" target="_blank" class="btn-whatsapp-outline" style="padding:0.28rem 0.55rem;font-size:0.68rem;color:#fca5a5;border-color:rgba(239,68,68,0.35);background:rgba(239,68,68,0.08);text-decoration:none;display:inline-flex;align-items:center;gap:3px;" title="Send WhatsApp Regret Message">
                 <i class="fab fa-whatsapp"></i> Send Regret WhatsApp
               </a>
             `;
           } else {
             actionsHtml = `
-              <a href="${waApprovalUrl}" target="_blank" class="btn-whatsapp-outline" style="padding:0.32rem 0.65rem;font-size:0.68rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
-                <i class="fab fa-whatsapp"></i> WhatsApp
-              </a>
+              <button class="action-btn" onclick="openBookingStage(${b.id})">Manage</button>
             `;
           }
 
@@ -3299,11 +3383,209 @@
       }
     }
 
-    /* ════════ BOOKING DETAILS & PAYMENTS (REMOVED - AWAITING NEW FLOW) ════════ */
-    let currentDetailsBooking = null;
+    /* ════════ BOOKING STAGE MANAGEMENT & DIRECT PAYMENT ACTIONS ════════ */
+    let currentStageBooking = null;
 
-    async function openBookingDetails(bookingId) {
-      // Modal removed completely per user request - awaiting new flow
+    async function record40Advance(bookingId) {
+      if (!confirm('Confirm receipt of 40% advance payment for booking #' + bookingId + '?')) return;
+      try {
+        const res = await authFetch(`/api/bookings/${bookingId}/receive-advance`, {
+          method: 'POST',
+          body: { payment_method: 'Cash', notes: '40% advance payment received' }
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast(data.message || '40% advance received successfully!');
+          if (data.booking?.whatsapp?.advanceReceiptUrl) {
+            window.open(data.booking.whatsapp.advanceReceiptUrl, '_blank');
+          }
+          closeModal('modalBookingStage');
+          loadOverview();
+          loadEnquiries();
+          loadBookings();
+          loadCalendarHakimi();
+          loadCalendarQadri();
+        } else {
+          showToast(data.error || 'Failed to record advance', true);
+        }
+      } catch (err) {
+        showToast('Error recording advance: ' + err.message, true);
+      }
+    }
+
+    async function record60Balance(bookingId) {
+      if (!confirm('Confirm receipt of remaining 60% balance payment for booking #' + bookingId + '?')) return;
+      try {
+        const res = await authFetch(`/api/bookings/${bookingId}/receive-balance`, {
+          method: 'POST',
+          body: { payment_method: 'Cash', notes: 'Remaining 60% balance received' }
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast(data.message || 'Remaining 60% balance received! Booking is now fully paid.');
+          if (data.booking?.whatsapp?.fullyPaidUrl) {
+            window.open(data.booking.whatsapp.fullyPaidUrl, '_blank');
+          }
+          closeModal('modalBookingStage');
+          loadOverview();
+          loadEnquiries();
+          loadBookings();
+          loadCalendarHakimi();
+          loadCalendarQadri();
+        } else {
+          showToast(data.error || 'Failed to record balance', true);
+        }
+      } catch (err) {
+        showToast('Error recording balance: ' + err.message, true);
+      }
+    }
+
+    async function openBookingStage(bookingId) {
+      let b = allBookings.find(x => x.id === bookingId) || allEnquiriesList.find(x => x.id === bookingId);
+      if (!b) {
+        try {
+          const res = await authFetch(`/api/bookings/${bookingId}`);
+          b = await res.json();
+        } catch (_) {
+          showToast('Could not load booking details', true);
+          return;
+        }
+      }
+      currentStageBooking = b;
+
+      const total = parseFloat(b.total_amount || 0);
+      const advPaid = parseFloat(b.advancePaid || b.advance_paid || 0);
+      const bal = Math.max(0, total - advPaid);
+      const advReq = b.advance_amount ? parseFloat(b.advance_amount) : Math.round(total * 0.4);
+      const ref = b.booking_reference || `#${b.id}`;
+      const isQadri = (b.hall || '').toLowerCase().includes('qadri');
+      const hallLabel = isQadri ? 'Qadri Hall (3rd Floor)' : 'Evan-e-Hakimi (2nd Floor)';
+      const pkgLabel = (b.package === 'with_jaman' || String(b.package).toLowerCase().includes('with jaman')) ? 'With Jaman' : 'Without Jaman';
+
+      document.getElementById('stageModalRef').textContent = ref;
+      document.getElementById('stageModalCustomer').textContent = b.customer_name || 'Guest';
+      document.getElementById('stageModalHall').innerHTML = `<span class="badge ${isQadri ? 'badge-qadri' : 'badge-hakimi'}">${hallLabel}</span>`;
+      document.getElementById('stageModalPhone').innerHTML = `<a href="tel:${b.phone}" style="color:var(--cream);">${b.phone}</a>`;
+      document.getElementById('stageModalDate').textContent = b.check_in || '—';
+      document.getElementById('stageModalSlot').textContent = b.slot || '—';
+      document.getElementById('stageModalPkg').textContent = pkgLabel;
+      document.getElementById('stageModalGuests').textContent = b.guests ? `${b.guests} guests` : 'Not specified';
+
+      document.getElementById('stageTotalAmount').textContent = '₹' + total.toLocaleString('en-IN');
+      document.getElementById('stageAdvanceAmount').textContent = '₹' + advPaid.toLocaleString('en-IN') + (advPaid < advReq ? ` (Req: ₹${advReq.toLocaleString('en-IN')})` : '');
+      document.getElementById('stageBalanceAmount').textContent = '₹' + bal.toLocaleString('en-IN');
+
+      const advanceCard = document.getElementById('stageAdvanceCard');
+      const balanceCard = document.getElementById('stageBalanceCard');
+      if (advPaid >= advReq) {
+        advanceCard.style.borderColor = 'rgba(34,197,94,0.4)';
+        document.getElementById('stageAdvanceStatus').innerHTML = '<span style="color:#86efac;font-size:0.75rem;"><i class="fas fa-check-circle"></i> 40% Received</span>';
+      } else {
+        advanceCard.style.borderColor = 'rgba(252,211,77,0.4)';
+        document.getElementById('stageAdvanceStatus').innerHTML = '<span style="color:#fcd34d;font-size:0.75rem;"><i class="fas fa-clock"></i> 40% Pending</span>';
+      }
+
+      if (bal === 0) {
+        balanceCard.style.borderColor = 'rgba(34,197,94,0.4)';
+        document.getElementById('stageBalanceStatus').innerHTML = '<span style="color:#86efac;font-size:0.75rem;"><i class="fas fa-check-double"></i> Fully Settled</span>';
+      } else {
+        balanceCard.style.borderColor = 'rgba(239,68,68,0.4)';
+        document.getElementById('stageBalanceStatus').innerHTML = '<span style="color:#fca5a5;font-size:0.75rem;"><i class="fas fa-exclamation-circle"></i> 60% Due</span>';
+      }
+
+      const actionsContainer = document.getElementById('stageActionButtons');
+      const phoneClean = (b.phone || '').replace(/[^0-9]/g, '');
+      const waConfirmUrl = b.whatsapp?.confirmationUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
+      const waAdvReceiptUrl = b.whatsapp?.advanceReceiptUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
+      const waBalReminderUrl = b.whatsapp?.balanceReminderUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
+      const waFullReceiptUrl = b.whatsapp?.fullyPaidUrl || b.whatsapp?.fullPaymentReceiptUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
+
+      if (b.status === 'CONFIRMED_PENDING_ADVANCE') {
+        actionsContainer.innerHTML = `
+          <div style="background:rgba(252,211,77,0.08);border:1px solid rgba(252,211,77,0.3);padding:0.9rem;border-radius:8px;margin-bottom:0.8rem;">
+            <div style="font-size:0.85rem;color:#fcd34d;font-weight:600;margin-bottom:4px;">
+              <i class="fas fa-hourglass-half"></i> Awaiting 40% Advance Payment
+            </div>
+            <div style="font-size:0.75rem;color:var(--cream);opacity:0.85;margin-bottom:0.7rem;">
+              Kindly pay 40% advance (₹${advReq.toLocaleString('en-IN')}) within 24 hours to secure this booking slot.
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn-quick gold" style="font-size:0.82rem;padding:0.45rem 0.9rem;" onclick="record40Advance(${b.id})">
+                <i class="fas fa-check"></i> Received 40% Advance (₹${advReq.toLocaleString('en-IN')})
+              </button>
+              <a href="${waConfirmUrl}" target="_blank" class="btn-whatsapp" style="font-size:0.82rem;padding:0.45rem 0.9rem;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
+                <i class="fab fa-whatsapp"></i> Send 40% Advance Request WhatsApp
+              </a>
+            </div>
+          </div>
+        `;
+      } else if (b.status === 'ADVANCE_PAID' || b.status === 'ADVANCE_PARTIALLY_PAID') {
+        actionsContainer.innerHTML = `
+          <div style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.3);padding:0.9rem;border-radius:8px;margin-bottom:0.8rem;">
+            <div style="font-size:0.85rem;color:#93c5fd;font-weight:600;margin-bottom:4px;">
+              <i class="fas fa-check-circle"></i> 40% Advance Secured &bull; 60% Balance Due
+            </div>
+            <div style="font-size:0.75rem;color:var(--cream);opacity:0.85;margin-bottom:0.7rem;">
+              The remaining 60% balance of <strong>₹${bal.toLocaleString('en-IN')}</strong> is payable at Hakimi Tower, 2nd Floor, to Aliasgar Challawala, 2–3 days before the function.
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn-quick" style="background:#22c55e;color:#0a1a12;font-size:0.82rem;padding:0.45rem 0.9rem;" onclick="record60Balance(${b.id})">
+                <i class="fas fa-check-double"></i> Received Remaining 60% (₹${bal.toLocaleString('en-IN')})
+              </button>
+              <a href="${waBalReminderUrl}" target="_blank" class="btn-whatsapp" style="font-size:0.82rem;padding:0.45rem 0.9rem;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
+                <i class="fab fa-whatsapp"></i> Send 60% Reminder WhatsApp
+              </a>
+              <a href="${waAdvReceiptUrl}" target="_blank" class="btn-whatsapp-outline" style="font-size:0.82rem;padding:0.45rem 0.9rem;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
+                <i class="fab fa-whatsapp"></i> Resend 40% Advance Receipt
+              </a>
+            </div>
+          </div>
+        `;
+      } else if (b.status === 'FULLY_PAID') {
+        actionsContainer.innerHTML = `
+          <div style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.35);padding:0.9rem;border-radius:8px;margin-bottom:0.8rem;">
+            <div style="font-size:0.88rem;color:#86efac;font-weight:700;margin-bottom:4px;">
+              <i class="fas fa-check-double"></i> Booking Fully Paid &amp; Settled (₹${total.toLocaleString('en-IN')})
+            </div>
+            <div style="font-size:0.75rem;color:var(--cream);opacity:0.85;margin-bottom:0.7rem;">
+              All dues cleared. Outstanding balance is ₹0.
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <a href="${waFullReceiptUrl}" target="_blank" class="btn-whatsapp" style="font-size:0.82rem;padding:0.45rem 0.9rem;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
+                <i class="fab fa-whatsapp"></i> Send Full Settlement Receipt WhatsApp
+              </a>
+            </div>
+          </div>
+        `;
+      } else if (ENQUIRY_STATUSES.includes(b.status)) {
+        actionsContainer.innerHTML = `
+          <div style="background:rgba(217,119,6,0.1);border:1px solid rgba(217,119,6,0.3);padding:0.9rem;border-radius:8px;margin-bottom:0.8rem;">
+            <div style="font-size:0.85rem;color:#fbbf24;font-weight:600;margin-bottom:4px;">
+              <i class="fas fa-inbox"></i> Website Enquiry Pending Review
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:0.6rem;">
+              <button class="btn-quick gold" style="font-size:0.82rem;padding:0.45rem 0.9rem;" onclick="closeModal('modalBookingStage'); openEnquiryWorkflow(${b.id});">
+                <i class="fas fa-check"></i> Review &amp; Accept Enquiry
+              </button>
+              <button class="action-btn del" style="font-size:0.82rem;padding:0.45rem 0.9rem;" onclick="closeModal('modalBookingStage'); rejectEnquiryPrompt(${b.id});">
+                <i class="fas fa-times"></i> Reject Enquiry
+              </button>
+            </div>
+          </div>
+        `;
+      } else {
+        actionsContainer.innerHTML = `
+          <div style="padding:0.5rem 0;">
+            <span class="badge badge-${b.status}">${formatStatusLabel(b.status)}</span>
+          </div>
+        `;
+      }
+
+      openModal('modalBookingStage');
+    }
+
+    function openBookingDetails(bookingId) {
+      openBookingStage(bookingId);
     }
 
     function setBookingStatusTab(statusGroup, tabEl) {
@@ -3356,6 +3638,46 @@
 
           const phoneClean = (b.phone || '').replace(/[^0-9]/g, '');
           const waUrl = b.whatsapp?.confirmationUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
+          const waAdvReceiptUrl = b.whatsapp?.advanceReceiptUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
+          const waBalReminderUrl = b.whatsapp?.balanceReminderUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
+          const waFullReceiptUrl = b.whatsapp?.fullyPaidUrl || b.whatsapp?.fullPaymentReceiptUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
+
+          let stageButtons = '';
+          if (b.status === 'CONFIRMED_PENDING_ADVANCE') {
+            stageButtons = `
+              <button class="btn-quick gold" style="padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="record40Advance(${b.id})" title="Received 40% Advance">
+                <i class="fas fa-check"></i> Received 40% Advance
+              </button>
+              <a href="${waUrl}" target="_blank" class="btn-whatsapp" style="padding:0.25rem 0.55rem;font-size:0.68rem;text-decoration:none;display:inline-flex;align-items:center;gap:3px;" title="Send WhatsApp 40% Advance Request">
+                <i class="fab fa-whatsapp"></i> Req
+              </a>
+            `;
+          } else if (b.status === 'ADVANCE_PAID' || b.status === 'ADVANCE_PARTIALLY_PAID') {
+            stageButtons = `
+              <button class="btn-quick" style="background:#22c55e;color:#0a1a12;padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="record60Balance(${b.id})" title="Received Remaining 60%">
+                <i class="fas fa-check-double"></i> Received Remaining 60%
+              </button>
+              <a href="${waBalReminderUrl}" target="_blank" class="btn-whatsapp" style="padding:0.25rem 0.55rem;font-size:0.68rem;text-decoration:none;display:inline-flex;align-items:center;gap:3px;" title="WhatsApp 60% Reminder">
+                <i class="fab fa-whatsapp"></i> 60% Reminder
+              </a>
+            `;
+          } else if (b.status === 'FULLY_PAID') {
+            stageButtons = `
+              <span class="badge" style="background:rgba(34,197,94,0.18);color:#86efac;border:1px solid rgba(34,197,94,0.4);font-size:0.68rem;padding:3px 6px;">Fully Paid ✓</span>
+              <a href="${waFullReceiptUrl}" target="_blank" class="btn-whatsapp" style="padding:0.25rem 0.55rem;font-size:0.68rem;text-decoration:none;display:inline-flex;align-items:center;gap:3px;" title="WhatsApp Settlement Receipt">
+                <i class="fab fa-whatsapp"></i> Receipt
+              </a>
+            `;
+          } else if (ENQUIRY_STATUSES.includes(b.status)) {
+            stageButtons = `
+              <button class="btn-quick gold" style="padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="openEnquiryWorkflow(${b.id})" title="Accept Enquiry">
+                <i class="fas fa-check"></i> Accept
+              </button>
+              <button class="action-btn del" style="padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="rejectEnquiryPrompt(${b.id})" title="Reject Enquiry">
+                <i class="fas fa-times"></i> Reject
+              </button>
+            `;
+          }
 
           return `
             <tr>
@@ -3377,9 +3699,9 @@
                 ${conflictNotice}
               </td>
               <td>
-                <div style="display:flex;gap:4px;flex-wrap:wrap;">
-                  <button class="action-btn pay" onclick="openBookingDetails(${b.id})" title="Booking Details & Payments"><i class="fas fa-file-invoice"></i> Manage</button>
-                  ${ENQUIRY_STATUSES.includes(b.status) ? `<button class="action-btn" onclick="openEnquiryWorkflow(${b.id})" title="Review & Confirm" style="color:var(--wheat);border-color:var(--wheat);"><i class="fas fa-tasks"></i></button>` : ''}
+                <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;">
+                  ${stageButtons}
+                  <button class="action-btn pay" onclick="openBookingStage(${b.id})" title="View Stage Details & Actions"><i class="fas fa-eye"></i></button>
                   <button class="action-btn" onclick="openEditBookingModal(${b.id})" title="Edit Details"><i class="fas fa-edit"></i></button>
                   <button class="action-btn del" onclick="deleteBooking(${b.id})" title="Cancel Booking"><i class="fas fa-trash"></i></button>
                 </div>
