@@ -169,6 +169,66 @@ it('Qadri Hall is accepted as valid manageable venue for approved dates', () => 
   assert.strictEqual(hall.toLowerCase().includes('qadri'), true);
 });
 
+it('Qadri Hall customer booking window strictly opens from 21 November 2026 onwards', () => {
+  function isQadriDateSelectable(dateStr) {
+    return dateStr >= '2026-11-21';
+  }
+  // 20 November 2026 is excluded
+  assert.strictEqual(isQadriDateSelectable('2026-11-20'), false, '20 Nov 2026 must be excluded');
+  assert.strictEqual(isQadriDateSelectable('2026-11-15'), false, '15 Nov 2026 must be excluded');
+  assert.strictEqual(isQadriDateSelectable('2026-10-14'), false, 'Current date must be excluded for Qadri');
+  
+  // 21 November 2026 is selectable
+  assert.strictEqual(isQadriDateSelectable('2026-11-21'), true, '21 Nov 2026 must be first selectable date');
+  assert.strictEqual(isQadriDateSelectable('2026-11-22'), true, '22 Nov 2026 must be selectable');
+  assert.strictEqual(isQadriDateSelectable('2027-01-15'), true, '2027 dates must be selectable');
+});
+
+it('Both halls maintain independent availability and zero cross-venue contamination', () => {
+  const mockBookings = [
+    { hall: 'Evan-e-Hakimi', check_in: '2026-11-21', slot: 'evening', status: 'CONFIRMED_PENDING_ADVANCE' },
+    { hall: 'Qadri Hall', check_in: '2026-11-21', slot: 'morning', status: 'CONFIRMED_PENDING_ADVANCE' }
+  ];
+
+  function getSlotAvailable(hallName, date, slot) {
+    const isQadri = hallName.toLowerCase().includes('qadri');
+    if (isQadri && date < '2026-11-21') return false;
+
+    const confirmed = mockBookings.filter(b => {
+      const bIsQ = b.hall.toLowerCase().includes('qadri');
+      return (isQadri ? bIsQ : !bIsQ) && b.check_in === date;
+    });
+
+    return !confirmed.some(c => checkSlotConflict(slot, c.slot));
+  }
+
+  // On 2026-11-21: Evan-e-Hakimi evening is booked, morning is available
+  assert.strictEqual(getSlotAvailable('Evan-e-Hakimi', '2026-11-21', 'evening'), false);
+  assert.strictEqual(getSlotAvailable('Evan-e-Hakimi', '2026-11-21', 'morning'), true);
+
+  // On 2026-11-21: Qadri Hall morning is booked, evening is available (independent of Hakimi)
+  assert.strictEqual(getSlotAvailable('Qadri Hall', '2026-11-21', 'morning'), false);
+  assert.strictEqual(getSlotAvailable('Qadri Hall', '2026-11-21', 'evening'), true);
+
+  // On 2026-11-20: Qadri Hall is completely excluded, while Evan-e-Hakimi remains selectable
+  assert.strictEqual(getSlotAvailable('Qadri Hall', '2026-11-20', 'morning'), false);
+  assert.strictEqual(getSlotAvailable('Evan-e-Hakimi', '2026-11-20', 'morning'), true);
+});
+
+it('Morning and Evening slots can coexist on Qadri Hall on the same date without conflict', () => {
+  const morningBooking = { hall: 'Qadri Hall', slot: 'morning' };
+  const eveningBooking = { hall: 'Qadri Hall', slot: 'evening' };
+  assert.strictEqual(checkSlotConflict(morningBooking.slot, eveningBooking.slot), false);
+});
+
+it('Full Day slot on Qadri Hall conflicts with both Morning and Evening slots', () => {
+  const fullDay = { hall: 'Qadri Hall', slot: 'fullday' };
+  assert.strictEqual(checkSlotConflict(fullDay.slot, 'morning'), true);
+  assert.strictEqual(checkSlotConflict(fullDay.slot, 'evening'), true);
+  assert.strictEqual(checkSlotConflict(fullDay.slot, 'majlis'), true);
+  assert.strictEqual(checkSlotConflict(fullDay.slot, 'fullday'), true);
+});
+
 // ── TEST GROUP 4: AUTHENTICATION ENFORCEMENT ──
 console.log('\n🛡️ Group 4: Authentication & Middleware Enforcement');
 

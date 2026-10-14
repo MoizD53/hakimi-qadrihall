@@ -2778,7 +2778,7 @@
 
         <div class="term-item">
           <h4>4. Hall Availability</h4>
-          <p>Our venue offers two banquet halls: <strong>Evan-e-Hakimi (2nd Floor)</strong> is open for current bookings, and <strong>Qadri Hall (3rd Floor)</strong> will be available for bookings from 15th Nov 26.</p>
+          <p>Our venue offers two banquet halls: <strong>Evan-e-Hakimi (2nd Floor)</strong> is open for current bookings, and <strong>Qadri Hall (3rd Floor)</strong> is available for bookings from 21st Nov 26.</p>
         </div>
 
         <div class="term-item">
@@ -2885,7 +2885,7 @@
         ✦ 3rd Floor Banquet Venue
       </span>
       <span style="font-size:0.65rem;letter-spacing:1px;text-transform:uppercase;color:#fcd34d;background:#3a2e12;padding:3px 10px;border-radius:20px;border:1px solid #e2b96a;font-weight:600;">
-        Bookings Open 15 Nov 26
+        Bookings Open 21 Nov 26
       </span>
     </div>
 
@@ -2894,7 +2894,7 @@
     </h2>
 
     <p style="color:rgba(245,240,232,0.75);font-size:0.88rem;line-height:1.7;margin-bottom:1.4rem;">
-      Our prestigious upper-level banquet hall is currently receiving its final architectural finishes. Reservations and online bookings will officially open on <strong>15th November 2026</strong>.
+      Our prestigious upper-level banquet hall is ready for reservations. Online booking and calendar slots are officially open for events starting <strong>21st November 2026</strong> onwards.
     </p>
 
     <!-- HIGHLIGHTS GRID -->
@@ -2916,20 +2916,25 @@
     <!-- NOTICE BOX -->
     <div style="background:rgba(201,169,110,0.08);border:1px solid rgba(201,169,110,0.3);border-radius:12px;padding:1rem 1.2rem;margin-bottom:1.6rem;">
       <div style="font-size:0.75rem;font-weight:600;color:var(--wheat);margin-bottom:4px;display:flex;align-items:center;gap:6px;">
-        <i class="fas fa-calendar-alt"></i> Advance Enquiries Open
+        <i class="fas fa-calendar-check"></i> Bookings Available from 21 November 2026
       </div>
       <p style="font-size:0.82rem;color:rgba(245,240,232,0.8);line-height:1.6;margin:0;">
-        Planning a wedding, majlis, or event for late November 2026 onwards? You can connect directly with our management team on WhatsApp or phone for preliminary details.
+        Planning a wedding, majlis, or event from 21 November 2026 onwards? You can book online right now, or connect directly with our management team on WhatsApp.
       </p>
     </div>
 
     <!-- ACTION BUTTONS -->
     <div style="display:flex;flex-direction:column;gap:10px;">
-      <a href="https://wa.me/919033647648?text=Hello%20Management%2C%20I%20would%20like%20to%20enquire%20about%20Qadri%20Hall%20(3rd%20Floor)%20bookings%20opening%20from%2015th%20Nov%202026."
+      <button onclick="closeQadriModal(); selectQadriHall();"
+              class="btn-gold"
+              style="justify-content:center;width:100%;text-align:center;min-height:48px;cursor:pointer;">
+        <i class="fas fa-calendar-check"></i> Book Qadri Hall Online (From 21 Nov 2026)
+      </button>
+      <a href="https://wa.me/919033647648?text=Hello%20Management%2C%20I%20would%20like%20to%20enquire%20about%20Qadri%20Hall%20(3rd%20Floor)%20bookings%20opening%20from%2021st%20Nov%202026."
          target="_blank"
-         class="btn-gold"
-         style="justify-content:center;width:100%;text-align:center;min-height:48px;">
-        <i class="fab fa-whatsapp"></i> Enquire on WhatsApp for Qadri Hall
+         class="btn-ghost"
+         style="justify-content:center;width:100%;text-align:center;min-height:44px;color:#86efac;border-color:rgba(37,211,102,0.4);">
+        <i class="fab fa-whatsapp"></i> Enquire on WhatsApp
       </a>
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
         <a href="tel:+919033647648"
@@ -3128,7 +3133,7 @@
           <i class="fas fa-building" style="margin-right:5px;"></i> 3rd Floor
         </div>
         <div style="position:absolute;top:1rem;right:1rem;background:#3a2e12;border:1px solid #e2b96a;border-radius:30px;padding:5px 14px;font-size:0.68rem;letter-spacing:1px;color:#fcd34d;font-weight:600;text-transform:uppercase;">
-          <i class="fas fa-calendar-alt" style="margin-right:4px;"></i> Available 15th Nov 26
+          <i class="fas fa-calendar-check" style="margin-right:4px;"></i> Available from 21 Nov 26
         </div>
       </div>
       <div style="padding:2rem;flex:1;display:flex;flex-direction:column;justify-content:space-between;">
@@ -3149,15 +3154,20 @@
           </div>
 
           <ul style="list-style:none;margin-bottom:1.8rem;display:flex;flex-direction:column;gap:0.6rem;font-size:0.82rem;color:rgba(245,240,232,0.65);">
-            <li><i class="fas fa-calendar-check" style="color:var(--wheat);margin-right:8px;"></i> <strong>Bookings Opening:</strong> 15th November 2026</li>
+            <li><i class="fas fa-calendar-check" style="color:var(--wheat);margin-right:8px;"></i> <strong>Bookings Open:</strong> From 21st November 2026</li>
             <li><i class="fas fa-check" style="color:var(--wheat);margin-right:8px;"></i> <strong>Slot Options:</strong> Morning, Evening &amp; Full Day</li>
             <li><i class="fas fa-check" style="color:var(--wheat);margin-right:8px;"></i> <strong>Amenities:</strong> Continuous AC, lift access &amp; premium decor</li>
           </ul>
         </div>
 
-        <a href="#contact" onclick="openQadriModal(); return false;" class="btn-ghost" style="justify-content:center;width:100%;text-align:center;border-color:var(--wheat);color:var(--wheat);cursor:pointer;">
-          <i class="fas fa-calendar-alt"></i> Available from 15th Nov 26 &bull; Enquire
-        </a>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button onclick="selectQadriHall();" class="btn-gold" style="flex:1;min-width:160px;justify-content:center;text-align:center;cursor:pointer;">
+            <i class="fas fa-calendar-check"></i> Book Qadri Hall
+          </button>
+          <a href="#contact" onclick="openQadriModal(); return false;" class="btn-ghost" style="flex:1;min-width:130px;justify-content:center;text-align:center;border-color:var(--wheat);color:var(--wheat);cursor:pointer;">
+            <i class="fas fa-info-circle"></i> View Details
+          </a>
+        </div>
       </div>
     </div>
 
@@ -3392,13 +3402,13 @@
                 <div class="wcc-sub">Upper-level hall &bull; Up to 35&ndash;40 Thals (280&ndash;320 guests)</div>
               </div>
             </div>
-            <span class="wcc-badge wcc-badge-soon"><i class="fas fa-calendar-alt"></i> Opens 15 Nov 2026</span>
+            <span class="wcc-badge wcc-badge-active"><i class="fas fa-check-circle"></i> Available from 21 Nov 2026</span>
           </div>
 
           <!-- Qadri Hall Note (Shown when Qadri is selected) -->
           <div id="qadriNoticeBox" style="display:none;background:rgba(252,211,77,0.1);border:1.5px solid #fcd34d;border-radius:10px;padding:1.1rem;margin-top:1.2rem;color:rgba(245,240,232,0.92);font-size:0.95rem;line-height:1.6;">
             <strong style="color:#fcd34d;display:block;margin-bottom:4px;font-size:1.05rem;"><i class="fas fa-info-circle"></i> Qadri Hall Booking Notice</strong>
-            Bookings for Qadri Hall will officially open from <strong>15th November 2026</strong>. For functions before this date, please choose <strong>Evan-e-Hakimi (2nd Floor)</strong>, or tap below to enquire with our manager directly on WhatsApp.
+            Bookings for Qadri Hall (3rd Floor) are open for events starting <strong>21st November 2026</strong>. (20 November 2026 and earlier dates are unavailable). For functions before this date, please choose <strong>Evan-e-Hakimi (2nd Floor)</strong>, or tap below to enquire with our manager directly on WhatsApp.
             <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;">
               <button type="button" onclick="selectHall('Evan-e-Hakimi')" style="background:var(--wheat);color:#120d06;border:none;padding:0.6rem 1.2rem;border-radius:8px;font-weight:600;font-size:0.9rem;cursor:pointer;">
                 <i class="fas fa-check"></i> Switch to Evan-e-Hakimi
@@ -4087,6 +4097,19 @@ function selectHakimiHall() {
   }
 }
 
+function selectQadriHall() {
+  if (typeof selectHall === 'function') {
+    selectHall('Qadri Hall');
+  }
+  if (typeof goToStep === 'function') {
+    goToStep(2);
+  }
+  const wizard = document.querySelector('.wizard-card');
+  if (wizard) {
+    wizard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
 // Wire up terms checkbox, guard backdrop & scroll freeze
 (function initTermsGuards() {
   function setup() {
@@ -4448,8 +4471,8 @@ function validateAndGo(fromStep, toStep) {
         return;
       }
       const hall = document.getElementById('selHall')?.value;
-      if (hall === 'Qadri Hall' && date < '2026-11-15') {
-        showWizAlert('Qadri Hall is available for events starting 15 November 2026. Please pick a date on or after 15 Nov 2026, or switch to Evan-e-Hakimi.');
+      if (hall.toLowerCase().includes('qadri') && date < '2026-11-21') {
+        showWizAlert('Qadri Hall is available for events starting 21 November 2026. 20 November 2026 and earlier dates are unavailable. Please pick a date on or after 21 Nov 2026, or switch to Evan-e-Hakimi.');
         return;
       }
       const occasion = document.getElementById('bOccasion')?.value;
@@ -4467,6 +4490,12 @@ function validateAndGo(fromStep, toStep) {
     // Validate Step 3
     if (fromStep <= 3 && toStep > 3) {
       const slot = document.getElementById('selSlot')?.value || 'morning';
+      const cap = slot.charAt(0).toUpperCase() + slot.slice(1);
+      const card = document.getElementById('slotChoice' + cap);
+      if (card && card.classList.contains('slot-disabled')) {
+        showWizAlert('The selected slot (' + slot + ') is unavailable for this date. Please choose an available slot.');
+        return;
+      }
       if (slot === 'majlis') {
         const customTiming = document.getElementById('majlisCustomTiming')?.value.trim();
         if (!customTiming) {
@@ -4502,20 +4531,48 @@ function selectHall(hallName) {
   const hakimiCard = document.getElementById('venueCardHakimi');
   const qadriCard = document.getElementById('venueCardQadri');
   const qadriNotice = document.getElementById('qadriNoticeBox');
+  const isQadri = hallName.toLowerCase().includes('qadri');
 
-  if (hallName === 'Qadri Hall') {
+  if (isQadri) {
     if (qadriCard) qadriCard.classList.add('selected');
     if (hakimiCard) hakimiCard.classList.remove('selected');
     if (qadriNotice) qadriNotice.style.display = 'block';
+
+    const nativeInput = document.getElementById('nativeDateInput');
+    if (nativeInput) nativeInput.min = '2026-11-21';
+
+    // Jump calendar to Nov 2026 if viewing earlier
+    if (calCurrentYear < 2026 || (calCurrentYear === 2026 && calCurrentMonth < 10)) {
+      calCurrentYear = 2026;
+      calCurrentMonth = 10;
+    }
+
+    // Reset date if prior to 21 Nov 2026
+    const curDate = document.getElementById('bDate')?.value;
+    if (curDate && curDate < '2026-11-21') {
+      const dateInput = document.getElementById('bDate');
+      if (dateInput) dateInput.value = '';
+      if (nativeInput) nativeInput.value = '';
+      const labelEl = document.getElementById('wizDateLabel');
+      if (labelEl) {
+        labelEl.innerHTML = `<i class="fas fa-calendar-alt" style="color:var(--wheat);margin-right:8px;"></i> Tap here to select your date (from 21 Nov 2026)`;
+      }
+    }
   } else {
     if (hakimiCard) hakimiCard.classList.add('selected');
     if (qadriCard) qadriCard.classList.remove('selected');
     if (qadriNotice) qadriNotice.style.display = 'none';
+
+    const nativeInput = document.getElementById('nativeDateInput');
+    const todayStr = new Date().toISOString().split('T')[0];
+    if (nativeInput) nativeInput.min = todayStr;
   }
 
-  const curDate = document.getElementById('bDate')?.value;
-  if (curDate) {
-    fetchSlotAvailability(curDate, hallName);
+  renderWizardCalendar();
+
+  const activeDate = document.getElementById('bDate')?.value;
+  if (activeDate) {
+    fetchSlotAvailability(activeDate, hallName);
   }
 }
 
@@ -4553,6 +4610,8 @@ function renderWizardCalendar() {
   const firstDay = new Date(calCurrentYear, calCurrentMonth, 1).getDay();
   const daysInMonth = new Date(calCurrentYear, calCurrentMonth + 1, 0).getDate();
   const selectedDateStr = document.getElementById('bDate')?.value || '';
+  const currentHall = document.getElementById('selHall')?.value || 'Evan-e-Hakimi';
+  const isQadri = currentHall.toLowerCase().includes('qadri');
 
   for (let i = 0; i < firstDay; i++) {
     const emptyCell = document.createElement('div');
@@ -4570,8 +4629,17 @@ function renderWizardCalendar() {
     cell.className = 'cal-day';
     cell.textContent = d;
 
-    if (dateObj < today) {
+    const isPast = dateObj < today;
+    const isQadriExcluded = isQadri && (dateStr < '2026-11-21');
+
+    if (isPast || isQadriExcluded) {
       cell.classList.add('past');
+      cell.classList.add('disabled');
+      if (isQadriExcluded) {
+        cell.title = 'Qadri Hall bookings open starting 21 November 2026. 20 Nov and earlier dates are unavailable.';
+        cell.style.opacity = '0.35';
+        cell.style.cursor = 'not-allowed';
+      }
     } else {
       if (dateObj.getTime() === today.getTime()) cell.classList.add('today');
       cell.classList.add('selectable');
@@ -4585,6 +4653,12 @@ function renderWizardCalendar() {
 }
 
 function setSelectedDate(dateStr) {
+  const hall = document.getElementById('selHall')?.value || 'Evan-e-Hakimi';
+  if (hall.toLowerCase().includes('qadri') && dateStr < '2026-11-21') {
+    showWizAlert('Qadri Hall is available for events starting 21 November 2026. 20 November 2026 and earlier dates are unavailable. Please pick a date on or after 21 Nov 2026, or switch to Evan-e-Hakimi.');
+    return;
+  }
+
   const dateInput = document.getElementById('bDate');
   if (dateInput) dateInput.value = dateStr;
 
@@ -4615,12 +4689,18 @@ function setSelectedDate(dateStr) {
 
   updateWizardPriceDisplay();
 
-  const hall = document.getElementById('selHall')?.value || 'Evan-e-Hakimi';
   fetchSlotAvailability(dateStr, hall);
 }
 
 function handleNativeDateChange(val) {
   if (!val) return;
+  const hall = document.getElementById('selHall')?.value || 'Evan-e-Hakimi';
+  if (hall.toLowerCase().includes('qadri') && val < '2026-11-21') {
+    showWizAlert('Qadri Hall is available for events starting 21 November 2026. 20 November 2026 and earlier dates are unavailable. Please pick a date on or after 21 Nov 2026, or switch to Evan-e-Hakimi.');
+    const nativeInput = document.getElementById('nativeDateInput');
+    if (nativeInput) nativeInput.value = '';
+    return;
+  }
   setSelectedDate(val);
 }
 
@@ -4631,6 +4711,13 @@ function handleOccasionChange(val) {
 
 /* ── STEP 3: TIMING & CATERING SELECTION ── */
 function selectSlotTiming(slotKey) {
+  const cap = slotKey.charAt(0).toUpperCase() + slotKey.slice(1);
+  const card = document.getElementById('slotChoice' + cap);
+  if (card && card.classList.contains('slot-disabled')) {
+    showWizAlert('The selected slot is unavailable for this date. Please choose an available slot.');
+    return;
+  }
+
   const slotInput = document.getElementById('selSlot');
   if (slotInput) slotInput.value = slotKey;
 
@@ -4790,7 +4877,7 @@ async function fetchSlotAvailability(dateStr, hall) {
     const res = await fetch(`${API_BASE_URL}/api/bookings/availability?date=${dateStr}&hall=${encodeURIComponent(h)}`);
     if (!res.ok) return;
     const data = await res.json();
-    const slots = data.slots || {};
+    const slots = data.slots || data.targetHallSlots || {};
 
     ['morning', 'evening', 'fullday', 'majlis'].forEach(slotKey => {
       const cap = slotKey.charAt(0).toUpperCase() + slotKey.slice(1);
@@ -4799,14 +4886,24 @@ async function fetchSlotAvailability(dateStr, hall) {
       if (!card) return;
 
       const badge = card.querySelector('.wcc-badge');
-      if (slotData && (slotData.status === 'confirmed_booked' || slotData.status === 'conflict_blocked')) {
+      const isUnavailable = slotData && (
+        slotData.available === false ||
+        slotData.status === 'confirmed_booked' || 
+        slotData.status === 'conflict_blocked' ||
+        slotData.status === 'ALREADY_BOOKED' ||
+        slotData.status === 'CONFLICT_BLOCKED' ||
+        slotData.status === 'UNAVAILABLE_DATE'
+      );
+
+      if (isUnavailable) {
         card.classList.add('slot-disabled');
         card.style.opacity = '0.55';
         card.style.cursor = 'not-allowed';
         if (badge) {
           badge.style.background = 'rgba(239,68,68,0.2)';
           badge.style.color = '#f87171';
-          badge.innerHTML = '<i class="fas fa-ban"></i> Booked';
+          const labelText = slotData.label || (slotData.status === 'conflict_blocked' || slotData.status === 'CONFLICT_BLOCKED' ? 'Conflict' : 'Unavailable');
+          badge.innerHTML = `<i class="fas fa-ban"></i> ${labelText}`;
         }
       } else {
         card.classList.remove('slot-disabled');

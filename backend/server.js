@@ -512,6 +512,12 @@ async function assertNoBookingConflict(tx, bookingId, overrideDate, overrideHall
   const targetHall = (overrideHall || target.hall || 'Evan-e-Hakimi').trim().toLowerCase().includes('qadri') ? 'Qadri Hall' : 'Evan-e-Hakimi';
   const targetSlot = String(overrideSlot || target.slot || 'morning').toLowerCase().trim();
 
+  if (targetHall === 'Qadri Hall' && targetDate < '2026-11-21') {
+    const err = new Error('Qadri Hall is available for events starting 21 November 2026. 20 November 2026 and earlier dates are not available.');
+    err.status = 400;
+    throw err;
+  }
+
   // Query existing confirmed bookings inside the write transaction for the SAME hall
   const existingConfirmed = await tx.query(
     `SELECT id, customer_name, slot, status, hall, booking_reference FROM bookings 
@@ -735,6 +741,15 @@ app.get('/api/bookings/check-availability', async (req, res) => {
 
     const slotBreakdown = (hallName) => {
       const isQadriTarget = hallName.toLowerCase().includes('qadri');
+      if (isQadriTarget && cleanDate < '2026-11-21') {
+        return {
+          morning: { available: false, status: 'UNAVAILABLE_DATE', label: 'Opens 21 Nov 2026', booking: null },
+          evening: { available: false, status: 'UNAVAILABLE_DATE', label: 'Opens 21 Nov 2026', booking: null },
+          fullday: { available: false, status: 'UNAVAILABLE_DATE', label: 'Opens 21 Nov 2026', booking: null },
+          majlis:  { available: false, status: 'UNAVAILABLE_DATE', label: 'Opens 21 Nov 2026', booking: null }
+        };
+      }
+
       const hBookings = bookingsOnDate.filter(b => {
         const isQ = (b.hall || 'Evan-e-Hakimi').toLowerCase().includes('qadri');
         return isQadriTarget ? isQ : !isQ;
@@ -779,7 +794,10 @@ app.get('/api/bookings/check-availability', async (req, res) => {
     let slotStatus = 'AVAILABLE';
     let conflictBooking = null;
 
-    if (checkSlot) {
+    if (cleanHall === 'Qadri Hall' && cleanDate < '2026-11-21') {
+      isAvailable = false;
+      slotStatus = 'UNAVAILABLE_DATE';
+    } else if (checkSlot) {
       const slotInfo = targetHallSlots[checkSlot];
       if (slotInfo) {
         isAvailable = slotInfo.available;
@@ -797,6 +815,7 @@ app.get('/api/bookings/check-availability', async (req, res) => {
       status: slotStatus,
       conflictBooking,
       targetHallSlots,
+      slots: targetHallSlots,
       bothHalls: {
         [cleanHall]: targetHallSlots,
         [otherHallName]: otherHallSlots
@@ -886,6 +905,10 @@ app.post('/api/bookings', async (req, res) => {
       return res.status(400).json({ error: 'Customer name, phone, event date, and slot are required' });
     }
 
+    if (cleanHall === 'Qadri Hall' && eventDate < '2026-11-21') {
+      return res.status(400).json({ error: 'Qadri Hall is available for events starting 21 November 2026. 20 November 2026 and earlier dates are not available.' });
+    }
+
     if (!/^[0-9]{10}$/.test(String(phone).replace(/[\s\-\+]/g, '').slice(-10))) {
       return res.status(400).json({ error: 'Phone number must be a valid 10-digit Indian mobile number' });
     }
@@ -921,10 +944,8 @@ app.post('/api/bookings', async (req, res) => {
 
     tx = await db.transaction('write');
 
-    // If booking is created directly as confirmed, enforce conflict rules inside transaction
-    if (isDirectConfirm) {
-      await assertNoBookingConflict(tx, null, eventDate, cleanHall, eventSlot);
-    }
+    // Recheck availability against existing confirmed bookings inside transaction
+    await assertNoBookingConflict(tx, null, eventDate, cleanHall, eventSlot);
 
     const result = await tx.query(
       `INSERT INTO bookings (
@@ -1652,12 +1673,56 @@ app.get('/api/bookings/availability', async (req, res) => {
       }
     });
 
+    const queryDate = req.query.date || req.query.event_date || req.query.check_in;
+    const queryHall = req.query.hall || 'Evan-e-Hakimi';
+    const cleanHall = String(queryHall).toLowerCase().includes('qadri') ? 'Qadri Hall' : 'Evan-e-Hakimi';
+    const cleanDate = queryDate ? String(queryDate).split('T')[0].trim() : null;
+
+    let slots = undefined;
+    if (cleanDate) {
+      if (cleanHall === 'Qadri Hall' && cleanDate < '2026-11-21') {
+        slots = {
+          morning: { status: 'conflict_blocked', available: false, label: 'Opens 21 Nov 2026' },
+          evening: { status: 'conflict_blocked', available: false, label: 'Opens 21 Nov 2026' },
+          fullday: { status: 'conflict_blocked', available: false, label: 'Opens 21 Nov 2026' },
+          majlis:  { status: 'conflict_blocked', available: false, label: 'Opens 21 Nov 2026' }
+        };
+      } else {
+        const dObj = (availability[cleanHall] && availability[cleanHall][cleanDate]) || {};
+        slots = {
+          morning: { 
+            status: dObj.morning || 'available', 
+            available: !dObj.morning || dObj.morning === 'pending_inquiry',
+            label: dObj.morning === 'confirmed_booked' ? 'Booked' : (dObj.morning === 'conflict_blocked' ? 'Conflict' : 'Available')
+          },
+          evening: { 
+            status: dObj.evening || 'available', 
+            available: !dObj.evening || dObj.evening === 'pending_inquiry',
+            label: dObj.evening === 'confirmed_booked' ? 'Booked' : (dObj.evening === 'conflict_blocked' ? 'Conflict' : 'Available')
+          },
+          fullday: { 
+            status: dObj.fullday || 'available', 
+            available: !dObj.fullday || dObj.fullday === 'pending_inquiry',
+            label: dObj.fullday === 'confirmed_booked' ? 'Booked' : (dObj.fullday === 'conflict_blocked' ? 'Conflict' : 'Available')
+          },
+          majlis: { 
+            status: dObj.majlis || 'available', 
+            available: !dObj.majlis || dObj.majlis === 'pending_inquiry',
+            label: dObj.majlis === 'confirmed_booked' ? 'Booked' : (dObj.majlis === 'conflict_blocked' ? 'Conflict' : 'Available')
+          }
+        };
+      }
+    }
+
     res.json({ 
       success: true, 
+      date: cleanDate || undefined,
+      hall: cleanHall,
+      slots,
       availability,
       hallStatus: {
         'Evan-e-Hakimi': { status: 'available', floor: '2nd Floor', capacity: '35–40 Thals (approx. 280–320 guests)' },
-        'Qadri Hall': { status: 'available', floor: '3rd Floor', capacity: '25–30 Thals (approved dates)' }
+        'Qadri Hall': { status: 'available', floor: '3rd Floor', capacity: '25–30 Thals (open from 21 Nov 2026)' }
       }
     });
   } catch (err) {
