@@ -270,17 +270,39 @@
     .slot-fullday{background:rgba(74,222,128,0.12);color:#86efac;border:1px solid rgba(74,222,128,0.3);}
     .slot-majlis{background:rgba(216,180,254,0.12);color:#e9d5ff;border:1px solid rgba(216,180,254,0.3);}
 
-    /* ── INLINE STAGE PANEL DIRECTLY ABOVE CALENDAR ── */
+    /* ── COLLAPSIBLE STAGE DRAWER DIRECTLY ABOVE CALENDAR ── */
     .cal-stage-panel {
-      padding: 1.1rem 1.4rem 0.2rem 1.4rem;
+      padding: 0.85rem 1.4rem 0.2rem 1.4rem;
+    }
+    .cal-drawer-bar {
+      background: rgba(22, 16, 10, 0.92);
+      border: 1px solid rgba(201, 169, 110, 0.3);
+      border-radius: 10px;
+      padding: 0.55rem 0.95rem;
+      margin-bottom: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+      transition: all 0.2s ease;
+    }
+    .cal-drawer-bar:hover {
+      border-color: rgba(201, 169, 110, 0.5);
     }
     .cal-stage-card {
-      background: rgba(22, 16, 10, 0.85);
+      background: rgba(22, 16, 10, 0.96);
       border: 1px solid rgba(201, 169, 110, 0.35);
       border-radius: 12px;
       padding: 1.15rem 1.25rem;
       margin-bottom: 1.1rem;
       box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+      animation: slideDownFade 0.2s ease-out;
+    }
+    @keyframes slideDownFade {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     .slot-pill.active-stage-pill {
       outline: 2px solid var(--wheat);
@@ -2649,6 +2671,15 @@
       hakimi: null,
       qadri: null
     };
+    let calStageDrawerOpen = {
+      hakimi: false,
+      qadri: false
+    };
+
+    function toggleCalendarDrawer(hallKey) {
+      calStageDrawerOpen[hallKey] = !calStageDrawerOpen[hallKey];
+      renderCalendarStagePanel(hallKey);
+    }
 
     function loadCalendarHakimi() { return renderCalendar('hakimi'); }
     function loadCalendarQadri() { return renderCalendar('qadri'); }
@@ -2846,14 +2877,18 @@
         if (calState[hallKey].month < 0) { calState[hallKey].month = 11; calState[hallKey].year--; }
       }
       selectedCalendarBooking[hallKey] = null;
+      calStageDrawerOpen[hallKey] = false;
       renderCalendar(hallKey);
     }
 
-    function selectCalendarBooking(hallKey, bookingId) {
+    function selectCalendarBooking(hallKey, bookingId, autoExpand = true) {
       selectedCalendarBooking[hallKey] = bookingId;
+      if (autoExpand) {
+        calStageDrawerOpen[hallKey] = true;
+      }
       renderCalendar(hallKey);
       const targetStage = document.getElementById(hallKey === 'hakimi' ? 'calHakimiStagePanel' : 'calQadriStagePanel');
-      if (targetStage) {
+      if (targetStage && autoExpand) {
         targetStage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
     }
@@ -2886,12 +2921,12 @@
       if (monthBookings.length === 0) {
         selectedCalendarBooking[hallKey] = null;
         targetStage.innerHTML = `
-          <div style="background:rgba(255,255,255,0.02);border:1px dashed rgba(245,240,232,0.15);border-radius:10px;padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:1rem;">
+          <div style="background:rgba(255,255,255,0.02);border:1px dashed rgba(245,240,232,0.15);border-radius:10px;padding:0.75rem 1.1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:0.85rem;">
             <div style="font-size:0.82rem;color:rgba(245,240,232,0.7);display:flex;align-items:center;gap:8px;">
-              <i class="far fa-calendar-check" style="color:var(--wheat);font-size:1.1rem;"></i>
-              <span>No events scheduled in <strong>${monthNames[st.month]} ${st.year}</strong> for ${hallName}. Click any date on the calendar below to add a booking.</span>
+              <i class="far fa-calendar-check" style="color:var(--wheat);"></i>
+              <span>No events scheduled in <strong>${monthNames[st.month]} ${st.year}</strong> for ${hallName}. Click any date below to add a booking.</span>
             </div>
-            <button class="btn-quick gold" style="font-size:0.75rem;padding:0.35rem 0.8rem;" onclick="openNewBookingModal('${hallName}')">
+            <button class="btn-quick gold" style="font-size:0.75rem;padding:0.3rem 0.75rem;" onclick="openNewBookingModal('${hallName}')">
               <i class="fas fa-plus"></i> Quick Book
             </button>
           </div>
@@ -2925,6 +2960,82 @@
       const waBalReminderUrl = b.whatsapp?.balanceReminderUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
       const waFullReceiptUrl = b.whatsapp?.fullyPaidUrl || b.whatsapp?.fullPaymentReceiptUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
 
+      const isDrawerOpen = calStageDrawerOpen[hallKey] === true;
+
+      // Customer dropdown options
+      const customerDropdownOptions = monthBookings.map(mb => {
+        const dayNum = parseInt(mb.check_in.split('-')[2], 10);
+        const isSel = mb.id === b.id;
+        const sIcon = CONFIRMED_STATUSES.includes(mb.status) ? '✓' : '⏳';
+        return `<option value="${mb.id}" ${isSel ? 'selected' : ''}>${sIcon} ${dayNum} ${monthNames[st.month].slice(0,3)} • ${escapeHtml(mb.customer_name || 'Guest')} (${mb.slot})</option>`;
+      }).join('');
+
+      // Quick action button for the minimized bar
+      let quickMiniBtn = '';
+      if (b.status === 'CONFIRMED_PENDING_ADVANCE') {
+        quickMiniBtn = `
+          <button class="btn-quick gold" style="font-size:0.75rem;padding:0.28rem 0.65rem;" onclick="record40Advance(${b.id})" title="Receive 40% Advance">
+            <i class="fas fa-check"></i> Received 40% (₹${advReq.toLocaleString('en-IN')})
+          </button>
+          <a href="${waConfirmUrl}" target="_blank" class="btn-whatsapp" style="font-size:0.75rem;padding:0.28rem 0.65rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;" title="Send WhatsApp Advance Request">
+            <i class="fab fa-whatsapp"></i> WhatsApp Req
+          </a>
+        `;
+      } else if (b.status === 'ADVANCE_PAID' || b.status === 'ADVANCE_PARTIALLY_PAID') {
+        quickMiniBtn = `
+          <button class="btn-quick" style="background:#22c55e;color:#0a1a12;font-size:0.75rem;padding:0.28rem 0.65rem;" onclick="record60Balance(${b.id})" title="Receive Remaining 60%">
+            <i class="fas fa-check-double"></i> Received 60% (₹${bal.toLocaleString('en-IN')})
+          </button>
+          <a href="${waBalReminderUrl}" target="_blank" class="btn-whatsapp" style="font-size:0.75rem;padding:0.28rem 0.65rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;" title="Send WhatsApp 60% Reminder">
+            <i class="fab fa-whatsapp"></i> Remind 60%
+          </a>
+        `;
+      } else if (b.status === 'FULLY_PAID') {
+        quickMiniBtn = `
+          <span style="color:#86efac;font-size:0.75rem;font-weight:600;"><i class="fas fa-check-double"></i> Fully Paid</span>
+          <a href="${waFullReceiptUrl}" target="_blank" class="btn-whatsapp" style="font-size:0.75rem;padding:0.28rem 0.65rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;" title="Send WhatsApp Receipt">
+            <i class="fab fa-whatsapp"></i> Receipt
+          </a>
+        `;
+      }
+
+      // ── MINIMIZED DRAWER BAR (COMPACT MODE) ──
+      if (!isDrawerOpen) {
+        targetStage.innerHTML = `
+          <div class="cal-drawer-bar">
+            <!-- Left Info & Selector -->
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+              <span class="badge ${isQadri ? 'badge-qadri' : 'badge-hakimi'}" style="font-size:0.68rem;padding:3px 8px;">${hallLabel}</span>
+              ${monthBookings.length > 1 ? `
+                <select onchange="selectCalendarBooking('${hallKey}', parseInt(this.value, 10), false)" style="background:#140e08;border:1px solid rgba(201,169,110,0.3);color:var(--wheat);padding:0.3rem 0.6rem;border-radius:6px;font-size:0.75rem;cursor:pointer;max-width:280px;">
+                  ${customerDropdownOptions}
+                </select>
+              ` : `
+                <span style="font-size:0.82rem;font-weight:600;color:var(--cream);"><strong style="color:var(--wheat);">${ref}</strong> &bull; <strong style="color:#fff;text-transform:uppercase;">${escapeHtml(b.customer_name || 'Guest')}</strong> (${b.slot})</span>
+              `}
+              <span class="badge badge-${b.status}" style="font-size:0.68rem;">${formatStatusLabel(b.status)}</span>
+              <div style="font-size:0.75rem;color:rgba(245,240,232,0.7);display:inline-flex;align-items:center;gap:6px;">
+                <span>Total: <strong style="color:var(--wheat);">₹${total.toLocaleString('en-IN')}</strong></span>
+                <span style="opacity:0.4;">|</span>
+                <span>40% Adv: <strong style="color:${isAdvReceived ? '#86efac' : '#fcd34d'};">₹${advPaid.toLocaleString('en-IN')}</strong></span>
+                <span style="opacity:0.4;">|</span>
+                <span>60% Bal: <strong style="color:${isFullySettled ? '#86efac' : '#fca5a5'};">₹${bal.toLocaleString('en-IN')}</strong></span>
+              </div>
+            </div>
+
+            <!-- Right Quick Actions & Expand Toggle -->
+            <div style="display:flex;align-items:center;gap:6px;">
+              ${quickMiniBtn}
+              <button type="button" class="action-btn" onclick="toggleCalendarDrawer('${hallKey}')" style="font-size:0.75rem;padding:0.32rem 0.75rem;display:inline-flex;align-items:center;gap:5px;border-color:rgba(201,169,110,0.35);color:var(--wheat);" title="Expand full stage details">
+                <i class="fas fa-chevron-down"></i> Expand Details
+              </button>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      // ── EXPANDED DRAWER CARD (DETAILED MODE) ──
       let actionBoxHtml = '';
       if (b.status === 'CONFIRMED_PENDING_ADVANCE') {
         actionBoxHtml = `
@@ -3001,49 +3112,43 @@
         `;
       }
 
-      // Event switcher pills if multiple bookings in this month
-      let switcherHtml = '';
-      if (monthBookings.length > 1) {
-        switcherHtml = `
-          <div style="display:flex;align-items:center;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:0.8rem;">
-            <span style="font-size:0.72rem;color:rgba(245,240,232,0.5);text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;font-weight:600;">
-              <i class="fas fa-calendar-check" style="color:var(--wheat);"></i> ${monthBookings.length} Events in ${monthNames[st.month]}:
-            </span>
-            ${monthBookings.map(mb => {
-              const isSel = mb.id === b.id;
-              const sIcon = CONFIRMED_STATUSES.includes(mb.status) ? '✓' : '⏳';
-              const dayNum = parseInt(mb.check_in.split('-')[2], 10);
-              return `
-                <button class="stage-nav-pill ${isSel ? 'active' : ''}" onclick="selectCalendarBooking('${hallKey}', ${mb.id})" style="padding:0.3rem 0.75rem;border-radius:20px;font-size:0.75rem;border:${isSel ? '1px solid var(--wheat)' : '1px solid rgba(255,255,255,0.1)'};background:${isSel ? 'rgba(217,119,6,0.22)' : 'rgba(255,255,255,0.04)'};color:${isSel ? 'var(--wheat)' : 'var(--cream)'};cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;font-weight:${isSel ? '600' : '400'};">
-                  <span>${sIcon} <strong>${dayNum} ${monthNames[st.month].slice(0,3)}</strong>: ${escapeHtml(mb.customer_name || 'Guest')} (${mb.slot})</span>
-                </button>
-              `;
-            }).join('')}
-          </div>
-        `;
-      }
-
       targetStage.innerHTML = `
-        ${switcherHtml}
         <div class="cal-stage-card">
-          <!-- Header -->
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:1rem;padding-bottom:0.75rem;border-bottom:1px solid rgba(255,255,255,0.08);">
-            <div>
-              <div style="font-size:1.05rem;font-weight:700;color:var(--cream);display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                <span>Booking <span style="color:var(--wheat);">${ref}</span></span>
-                <span style="opacity:0.4;">&bull;</span>
-                <span style="color:#fff;text-transform:uppercase;">${escapeHtml(b.customer_name || 'Guest')}</span>
-              </div>
-              <div style="display:flex;gap:6px;align-items:center;margin-top:5px;flex-wrap:wrap;">
-                <span class="badge ${isQadri ? 'badge-qadri' : 'badge-hakimi'}">${hallLabel}</span>
-                <span class="badge badge-${b.status}">${formatStatusLabel(b.status)}</span>
-              </div>
+          <!-- Top Row: Customer Dropdown Selector & Collapse Toggle -->
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:1rem;padding-bottom:0.75rem;border-bottom:1px solid rgba(255,255,255,0.08);">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              ${monthBookings.length > 1 ? `
+                <span style="font-size:0.72rem;color:rgba(245,240,232,0.6);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;"><i class="fas fa-calendar-alt" style="color:var(--wheat);"></i> Customer (${monthBookings.findIndex(x=>x.id===b.id)+1} of ${monthBookings.length}):</span>
+                <select onchange="selectCalendarBooking('${hallKey}', parseInt(this.value, 10), true)" style="background:#140e08;border:1px solid rgba(201,169,110,0.3);color:var(--wheat);padding:0.3rem 0.6rem;border-radius:6px;font-size:0.75rem;cursor:pointer;max-width:320px;">
+                  ${customerDropdownOptions}
+                </select>
+              ` : `
+                <div style="font-size:1.05rem;font-weight:700;color:var(--cream);display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                  <span>Booking <span style="color:var(--wheat);">${ref}</span></span>
+                  <span style="opacity:0.4;">&bull;</span>
+                  <span style="color:#fff;text-transform:uppercase;">${escapeHtml(b.customer_name || 'Guest')}</span>
+                </div>
+              `}
+              <span class="badge ${isQadri ? 'badge-qadri' : 'badge-hakimi'}">${hallLabel}</span>
+              <span class="badge badge-${b.status}">${formatStatusLabel(b.status)}</span>
             </div>
             <div style="display:flex;gap:6px;align-items:center;">
               <button type="button" class="action-btn" style="font-size:0.75rem;padding:0.35rem 0.75rem;" onclick="openEditBookingModal(${b.id})"><i class="fas fa-edit"></i> Edit</button>
               <button type="button" class="action-btn del" style="font-size:0.75rem;padding:0.35rem 0.75rem;" onclick="deleteBooking(${b.id})"><i class="fas fa-trash"></i> Cancel</button>
+              <button type="button" class="action-btn" onclick="toggleCalendarDrawer('${hallKey}')" style="font-size:0.75rem;padding:0.35rem 0.75rem;background:rgba(255,255,255,0.04);border-color:rgba(201,169,110,0.35);color:var(--wheat);" title="Collapse Drawer">
+                <i class="fas fa-chevron-up"></i> Collapse
+              </button>
             </div>
           </div>
+
+          <!-- If multiple customers, show the customer header below the dropdown -->
+          ${monthBookings.length > 1 ? `
+            <div style="margin-bottom:0.9rem;display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:700;color:var(--cream);">
+              <span>Booking <span style="color:var(--wheat);">${ref}</span></span>
+              <span style="opacity:0.4;">&bull;</span>
+              <span style="color:#fff;text-transform:uppercase;">${escapeHtml(b.customer_name || 'Guest')}</span>
+            </div>
+          ` : ''}
 
           <!-- Details Row -->
           <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:0.6rem;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.8rem;margin-bottom:1rem;font-size:0.75rem;">
@@ -3130,7 +3235,7 @@
           const isSelected = b.id === selectedCalendarBooking[hallKey];
           pillHtml += `
             <div class="slot-pill ${sCls} ${isSelected ? 'active-stage-pill' : ''}" 
-                 onclick="event.stopPropagation(); selectCalendarBooking('${hallKey}', ${b.id});" 
+                 onclick="event.stopPropagation(); selectCalendarBooking('${hallKey}', ${b.id}, true);" 
                  title="${escapeHtml(b.customer_name)} (${b.slot}) &bull; ${formatStatusLabel(b.status)} &bull; Click to view stage details">
               ${icon}${escapeHtml(b.customer_name || 'Booked')} (${b.slot})
             </div>`;
@@ -3162,8 +3267,8 @@
         return;
       }
 
-      // Day has bookings -> select the first booking and display directly in the stage card above!
-      selectCalendarBooking(hallKey, dayBookings[0].id);
+      // Day has bookings -> select the first booking and auto-expand the stage drawer above!
+      selectCalendarBooking(hallKey, dayBookings[0].id, true);
     }
 
     function openDateQuickBook(hallName, dateStr, preferredSlot = 'morning') {
