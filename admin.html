@@ -2351,6 +2351,20 @@
       document.body.style.display = 'block';
     }
 
+    const VALID_NAV_TABS = ['overview', 'enquiries', 'calendar-hakimi', 'calendar-qadri', 'bookings', 'expenses', 'staff', 'reports'];
+
+    function getInitialTab() {
+      const hash = (window.location.hash || '').replace(/^#/, '').trim();
+      if (VALID_NAV_TABS.includes(hash)) return hash;
+
+      try {
+        const saved = localStorage.getItem('mjc_admin_active_tab');
+        if (VALID_NAV_TABS.includes(saved)) return saved;
+      } catch (_) {}
+
+      return 'overview';
+    }
+
     function showDashboard() {
       const auth = document.getElementById('adminAuthScreen');
       const app = document.getElementById('adminDashboardApp');
@@ -2358,7 +2372,8 @@
       if (app) app.style.display = 'flex';
       document.body.style.display = 'flex';
       if (typeof updateLiveIndiaClock === 'function') updateLiveIndiaClock();
-      loadOverview();
+      const initialTab = getInitialTab();
+      switchNav(initialTab, false);
     }
 
     // Protect dashboard on load
@@ -2470,9 +2485,15 @@
     function adminLogout() {
       localStorage.removeItem('mjc_admin');
       localStorage.removeItem('mjc_admin_token');
+      localStorage.removeItem('mjc_admin_active_tab');
       sessionStorage.removeItem('mjc_admin');
       sessionStorage.removeItem('mjc_admin_token');
       authToken = null;
+      try {
+        if (window.location.hash) {
+          history.replaceState(null, '', window.location.pathname);
+        }
+      } catch (_) {}
       showLoginScreen();
     }
 
@@ -2554,8 +2575,26 @@
       'reports': { title: 'Financial Reports & Analytics', sub: 'Net cash movement &bull; quoted vs collected &bull; CSV exports' }
     };
 
-    function switchNav(pageKey) {
+    function switchNav(pageKey, updateUrl = true) {
+      if (!VALID_NAV_TABS.includes(pageKey)) pageKey = 'overview';
       currentNavKey = pageKey;
+
+      try {
+        localStorage.setItem('mjc_admin_active_tab', pageKey);
+      } catch (_) {}
+
+      if (updateUrl) {
+        try {
+          if (pageKey === 'overview') {
+            if (window.location.hash) {
+              history.replaceState(null, '', window.location.pathname);
+            }
+          } else {
+            history.replaceState(null, '', '#' + pageKey);
+          }
+        } catch (_) {}
+      }
+
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
       const activeNav = Array.from(document.querySelectorAll('.nav-item')).find(el => el.getAttribute('onclick') && el.getAttribute('onclick').includes(pageKey));
       if (activeNav) activeNav.classList.add('active');
@@ -2587,6 +2626,13 @@
       if (pageKey === 'staff') { loadStaff(); loadSalaryPayments(); }
       if (pageKey === 'reports') generateReports();
     }
+
+    window.addEventListener('hashchange', () => {
+      const tab = getInitialTab();
+      if (tab !== currentNavKey) {
+        switchNav(tab, false);
+      }
+    });
 
     /* ════════ DATA STATE ════════ */
     let allBookings = [];
