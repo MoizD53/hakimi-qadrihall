@@ -1389,47 +1389,6 @@
 
       <!-- ════════ PAGE 2: EVAN-E-HAKIMI CALENDAR ════════ -->
       <section class="page" id="page-calendar-hakimi">
-        <div class="card" style="margin-bottom:1.5rem;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.9rem;flex-wrap:wrap;gap:0.75rem;">
-            <div>
-              <h3 style="font-family:'Cinzel',serif;font-size:1.05rem;color:var(--wheat);margin:0;letter-spacing:0.5px;">
-                <i class="fas fa-list-ul" style="margin-right:6px;color:var(--wheat);"></i> Evan-e-Hakimi &bull; Bookings &amp; Events List
-              </h3>
-              <div style="font-size:0.72rem;color:rgba(245,240,232,0.5);margin-top:2px;">Hall 1 &bull; 2nd Floor &bull; Scheduled reservations, confirmed bookings &amp; enquiries</div>
-            </div>
-            <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
-              <input type="text" id="searchCalHakimi" class="filter-input search-input" style="font-size:0.75rem;padding:0.4rem 0.8rem;min-width:200px;" placeholder="Search customer, phone, notes..." oninput="renderCalTable('hakimi')">
-              <select id="filterCalSlotHakimi" class="filter-select" style="font-size:0.75rem;padding:0.4rem 0.6rem;" onchange="renderCalTable('hakimi')">
-                <option value="">All Slots</option>
-                <option value="morning">Morning</option>
-                <option value="evening">Evening</option>
-                <option value="fullday">Full Day</option>
-                <option value="majlis">Only Majlis</option>
-              </select>
-              <button class="btn-quick gold" style="padding:0.4rem 0.8rem;font-size:0.75rem;" onclick="openNewBookingModal()"><i class="fas fa-plus"></i> New Booking</button>
-            </div>
-          </div>
-          <div class="tbl-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Customer</th>
-                  <th>Phone</th>
-                  <th>Event Date</th>
-                  <th>Hall</th>
-                  <th>Slot &amp; Timing</th>
-                  <th>Special Notes</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="tblCalHakimiBody">
-                <tr><td colspan="8" style="text-align:center;padding:1.5rem;color:rgba(245,240,232,0.4);">Loading bookings...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
         <div class="card">
           <div class="cal-header">
             <div>
@@ -1452,47 +1411,6 @@
 
       <!-- ════════ PAGE 3: QADRI HALL CALENDAR ════════ -->
       <section class="page" id="page-calendar-qadri">
-        <div class="card" style="margin-bottom:1.5rem;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.9rem;flex-wrap:wrap;gap:0.75rem;">
-            <div>
-              <h3 style="font-family:'Cinzel',serif;font-size:1.05rem;color:var(--wheat);margin:0;letter-spacing:0.5px;">
-                <i class="fas fa-list-ul" style="margin-right:6px;color:var(--wheat);"></i> Qadri Hall &bull; Bookings &amp; Events List
-              </h3>
-              <div style="font-size:0.72rem;color:rgba(245,240,232,0.5);margin-top:2px;">Hall 2 &bull; 3rd Floor &bull; Scheduled reservations, confirmed bookings &amp; enquiries</div>
-            </div>
-            <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
-              <input type="text" id="searchCalQadri" class="filter-input search-input" style="font-size:0.75rem;padding:0.4rem 0.8rem;min-width:200px;" placeholder="Search customer, phone, notes..." oninput="renderCalTable('qadri')">
-              <select id="filterCalSlotQadri" class="filter-select" style="font-size:0.75rem;padding:0.4rem 0.6rem;" onchange="renderCalTable('qadri')">
-                <option value="">All Slots</option>
-                <option value="morning">Morning</option>
-                <option value="evening">Evening</option>
-                <option value="fullday">Full Day</option>
-                <option value="majlis">Only Majlis</option>
-              </select>
-              <button class="btn-quick gold" style="padding:0.4rem 0.8rem;font-size:0.75rem;" onclick="openNewBookingModal()"><i class="fas fa-plus"></i> New Booking</button>
-            </div>
-          </div>
-          <div class="tbl-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Customer</th>
-                  <th>Phone</th>
-                  <th>Event Date</th>
-                  <th>Hall</th>
-                  <th>Slot &amp; Timing</th>
-                  <th>Special Notes</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="tblCalQadriBody">
-                <tr><td colspan="8" style="text-align:center;padding:1.5rem;color:rgba(245,240,232,0.4);">Loading bookings...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
         <div class="card">
           <div class="cal-header">
             <div>
@@ -1944,114 +1862,7 @@
     </div>
   </div>
 
-  <!-- ════════ MODAL: BOOKING DETAILS & PAYMENTS WORKFLOW ════════ -->
-  <div class="modal-overlay" id="modalBookingDetails">
-    <div class="modal-box workflow-box">
-      <div class="modal-header">
-        <h3 class="modal-title" id="bkDetailsTitle">Booking Details &amp; Payments</h3>
-        <button class="modal-close" onclick="closeModal('modalBookingDetails')">&times;</button>
-      </div>
-      <div class="modal-body">
-        <input type="hidden" id="bkDetailsId">
 
-        <!-- Booking Overview Card -->
-        <div id="bkOverviewContent" class="workflow-summary-box">
-          <!-- Rendered by JS -->
-        </div>
-
-        <!-- WhatsApp Quick Action Buttons -->
-        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1.2rem;">
-          <a id="waBtnConfirmation" href="#" target="_blank" class="btn-whatsapp-outline" title="Booking Confirmation & 40% Advance Request">
-            <i class="fab fa-whatsapp"></i> Confirm &amp; Request Advance
-          </a>
-          <a id="waBtnAdvance" href="#" target="_blank" class="btn-whatsapp-outline" title="Advance Received Receipt">
-            <i class="fab fa-whatsapp"></i> Advance Receipt
-          </a>
-          <a id="waBtnFullyPaid" href="#" target="_blank" class="btn-whatsapp-outline" title="Full Settlement Receipt">
-            <i class="fab fa-whatsapp"></i> Fully Paid Receipt
-          </a>
-          <a id="waBtnRejection" href="#" target="_blank" class="btn-whatsapp-outline" title="Rejection / Cancellation Notice" style="color:#fca5a5 !important;border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.08);">
-            <i class="fab fa-whatsapp"></i> Rejection Notice
-          </a>
-        </div>
-
-        <!-- Payment History Table -->
-        <div class="card" style="margin-bottom:1.2rem;">
-          <div class="card-header" style="justify-content:space-between;padding:0.75rem 1rem;">
-            <span class="card-title" style="font-size:0.8rem;"><i class="fas fa-history"></i> Payment History &amp; Installments</span>
-            <button type="button" class="btn-quick" id="btnMarkFullyPaidDirect" onclick="triggerMarkFullyPaid()" style="font-size:0.68rem;padding:0.3rem 0.65rem;">
-              <i class="fas fa-check-double"></i> Mark as Fully Paid
-            </button>
-          </div>
-          <div class="tbl-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Amount</th>
-                  <th>Type</th>
-                  <th>Method</th>
-                  <th>Recorded By</th>
-                  <th>Notes</th>
-                </tr>
-              </thead>
-              <tbody id="tblBkPaymentsHistory">
-                <tr><td colspan="6" style="text-align:center;padding:1rem;color:rgba(245,240,232,0.3);">No payments recorded yet.</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Record Payment Form -->
-        <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(201,169,110,0.2);border-radius:8px;padding:1rem;">
-          <div style="font-size:0.72rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--wheat);margin-bottom:0.75rem;font-weight:600;">
-            <i class="fas fa-plus-circle"></i> Record Payment Installment
-          </div>
-          <form id="formRecordPaymentDetail" onsubmit="handlePaymentFromDetails(event)">
-            <div class="form-row">
-              <div class="form-group">
-                <label for="payDetAmount">Amount to Record (₹) *</label>
-                <input type="number" id="payDetAmount" class="form-ctrl" required min="1">
-              </div>
-              <div class="form-group">
-                <label for="payDetType">Payment Type *</label>
-                <select id="payDetType" class="form-ctrl" required>
-                  <option value="advance">40% Advance Deposit</option>
-                  <option value="balance">Remaining Balance</option>
-                  <option value="full">Full Settlement</option>
-                </select>
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label for="payDetMethod">Payment Method *</label>
-                <select id="payDetMethod" class="form-ctrl" required>
-                  <option value="UPI">UPI (GPay / PhonePe / Paytm)</option>
-                  <option value="Cash">Cash</option>
-                  <option value="Bank Transfer">Bank Transfer (NEFT/IMPS)</option>
-                  <option value="Cheque">Cheque</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="payDetDate">Payment Date *</label>
-                <input type="date" id="payDetDate" class="form-ctrl" required>
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="payDetNotes">Reference / Transaction Details</label>
-              <input type="text" id="payDetNotes" class="form-ctrl" placeholder="e.g. UPI Ref / Cheque No / Cash receipt details">
-            </div>
-            <button type="submit" class="btn-quick gold" style="width:100%;justify-content:center;min-height:38px;">
-              <i class="fas fa-save"></i> Save Payment &amp; Update Booking
-            </button>
-          </form>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="action-btn" onclick="closeModal('modalBookingDetails')">Close</button>
-      </div>
-    </div>
-  </div>
 
   <!-- ════════ MODAL: CREATE / EDIT BOOKING ════════ -->
   <div class="modal-overlay" id="modalBooking">
@@ -2909,9 +2720,6 @@
             `;
           }).join('');
         }
-
-        renderCalTable('hakimi');
-        renderCalTable('qadri');
       } catch (err) {
         console.error('Failed to load overview:', err);
       }
@@ -2945,8 +2753,6 @@
         const res = await authFetch('/api/bookings');
         allBookings = await res.json();
       }
-
-      renderCalTable(hallKey);
 
       // Map bookings for this hall and month
       const firstDayOfMonth = new Date(st.year, st.month, 1).getDay();
@@ -3061,105 +2867,6 @@
         document.getElementById('bSlot').value = preferredSlot;
       }
       recalculatePriceHint();
-    }
-
-    function renderCalTable(hallKey) {
-      const isHakimi = hallKey === 'hakimi';
-      const searchInputId = isHakimi ? 'searchCalHakimi' : 'searchCalQadri';
-      const slotSelectId = isHakimi ? 'filterCalSlotHakimi' : 'filterCalSlotQadri';
-      const tbodyId = isHakimi ? 'tblCalHakimiBody' : 'tblCalQadriBody';
-
-      const search = (document.getElementById(searchInputId)?.value || '').toLowerCase().trim();
-      const slotFilter = document.getElementById(slotSelectId)?.value || '';
-      const tbody = document.getElementById(tbodyId);
-      if (!tbody) return;
-
-      const filtered = allBookings.filter(b => {
-        const bHall = (b.hall || 'Evan-e-Hakimi').toLowerCase();
-        const matchHall = isHakimi ? (!bHall.includes('qadri')) : (bHall.includes('qadri'));
-        if (!matchHall) return false;
-
-        if (slotFilter && b.slot !== slotFilter) return false;
-
-        if (search) {
-          const hay = `${b.customer_name || ''} ${b.phone || ''} ${b.check_in || ''} ${b.notes || ''} ${b.occasion || ''} ${b.booking_reference || ''}`.toLowerCase();
-          if (!hay.includes(search)) return false;
-        }
-
-        return true;
-      });
-
-      // Sort by check_in date ascending
-      filtered.sort((a, b) => (a.check_in || '').localeCompare(b.check_in || ''));
-
-      if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;color:rgba(245,240,232,0.4);">No bookings found matching filters.</td></tr>`;
-        return;
-      }
-
-      tbody.innerHTML = filtered.map(b => {
-        const isQ = (b.hall || '').toLowerCase().includes('qadri');
-        const isPending = ENQUIRY_STATUSES.includes(b.status);
-        const isConfirmed = CONFIRMED_STATUSES.includes(b.status);
-        const isRejected = REJECTED_STATUSES.includes(b.status);
-        const phoneClean = (b.phone || '').replace(/[^0-9]/g, '');
-        const waApprovalUrl = b.whatsapp?.confirmationUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
-        const waRejectionUrl = b.whatsapp?.rejectionUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
-
-        let slotTiming = b.slot || 'Morning';
-        if (b.slot === 'morning') slotTiming = 'Morning (10:30 AM – 2:30 PM)';
-        else if (b.slot === 'evening') slotTiming = 'Evening (6:30 PM – 10:30 PM)';
-        else if (b.slot === 'fullday') slotTiming = 'Full Day (10:00 AM – 10:00 PM)';
-        else if (b.slot === 'majlis') slotTiming = 'Only Majlis (Flexible)';
-
-        let actionsHtml = '';
-        if (isPending) {
-          actionsHtml = `
-            <button class="btn-quick gold" style="padding:0.32rem 0.65rem;font-size:0.7rem;" onclick="openEnquiryWorkflow(${b.id})" title="Accept Enquiry">
-              <i class="fas fa-check"></i> Accept
-            </button>
-            <button class="action-btn del" style="padding:0.32rem 0.65rem;font-size:0.7rem;" onclick="rejectEnquiryPrompt(${b.id})" title="Reject Enquiry">
-              <i class="fas fa-times"></i> Reject
-            </button>
-          `;
-        } else {
-          actionsHtml = `
-            <button class="action-btn pay" style="padding:0.3rem 0.6rem;font-size:0.68rem;" onclick="openBookingDetails(${b.id})" title="View / Manage Booking">
-              <i class="fas fa-eye"></i> Manage
-            </button>
-            ${isConfirmed ? `
-              <a href="${waApprovalUrl}" target="_blank" class="btn-whatsapp" style="padding:0.28rem 0.6rem;font-size:0.68rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;" title="Send Ready WhatsApp Approval">
-                <i class="fab fa-whatsapp"></i> WhatsApp
-              </a>
-            ` : ''}
-            ${isRejected ? `
-              <a href="${waRejectionUrl}" target="_blank" class="btn-whatsapp-outline" style="padding:0.28rem 0.6rem;font-size:0.68rem;color:#fca5a5;border-color:rgba(239,68,68,0.35);background:rgba(239,68,68,0.08);text-decoration:none;display:inline-flex;align-items:center;gap:4px;" title="Send Ready WhatsApp Regret">
-                <i class="fab fa-whatsapp"></i> Regret
-              </a>
-            ` : ''}
-          `;
-        }
-
-        return `
-          <tr>
-            <td><strong>${escapeHtml(b.customer_name || 'Guest')}</strong></td>
-            <td><a href="tel:${b.phone}" style="color:var(--cream);text-decoration:none;">${b.phone}</a></td>
-            <td style="color:#fcd34d;font-weight:600;">${b.check_in || '—'}</td>
-            <td><span class="badge ${isQ?'badge-qadri':'badge-hakimi'}">${escapeHtml(b.hall || (isQ ? 'Qadri Hall' : 'Evan-e-Hakimi'))}</span></td>
-            <td>${slotTiming}</td>
-            <td style="font-size:0.75rem;max-width:180px;white-space:normal;" title="${escapeHtml(b.notes||b.occasion||'')}">${escapeHtml(b.notes || b.occasion || '—')}</td>
-            <td>
-              <span class="badge badge-${b.status}">${formatStatusLabel(b.status)}</span>
-              ${b.rejection_reason ? `<div style="font-size:0.6rem;color:#fca5a5;margin-top:2px;">${escapeHtml(b.rejection_reason)}</div>` : ''}
-            </td>
-            <td>
-              <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;">
-                ${actionsHtml}
-              </div>
-            </td>
-          </tr>
-        `;
-      }).join('');
     }
 
     /* ════════ NEW ENQUIRIES WORKFLOW ════════ */
@@ -3592,146 +3299,11 @@
       }
     }
 
-    /* ════════ BOOKING DETAILS & PAYMENTS MODAL ════════ */
+    /* ════════ BOOKING DETAILS & PAYMENTS (REMOVED - AWAITING NEW FLOW) ════════ */
     let currentDetailsBooking = null;
 
     async function openBookingDetails(bookingId) {
-      try {
-        const res = await authFetch(`/api/bookings/${bookingId}`);
-        const b = await res.json();
-        currentDetailsBooking = b;
-
-        document.getElementById('bkDetailsId').value = b.id;
-        const ref = b.booking_reference || `#${b.id}`;
-        document.getElementById('bkDetailsTitle').innerHTML = `Booking Management &bull; <span style="color:var(--wheat);">${ref}</span>`;
-
-        const total = parseFloat(b.total_amount || 0);
-        const paid = parseFloat(b.advancePaid || b.advance_paid || 0);
-        const bal = Math.max(0, total - paid);
-        const isQadri = (b.hall || '').toLowerCase().includes('qadri');
-
-        // Overview Summary
-        document.getElementById('bkOverviewContent').innerHTML = `
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.6rem;">
-            <div>
-              <strong style="font-size:1rem;color:var(--cream);">${escapeHtml(b.customer_name || 'Guest')}</strong>
-              <div style="font-size:0.75rem;color:rgba(245,240,232,0.6);">Phone: <a href="tel:${b.phone}" style="color:var(--wheat);">${b.phone}</a> &bull; Occasion: ${escapeHtml(b.occasion || '—')}</div>
-            </div>
-            <div>
-              <span class="badge ${isQadri?'badge-qadri':'badge-hakimi'}">${escapeHtml(b.hall || 'Evan-e-Hakimi')}</span>
-              <span class="badge badge-${b.status}">${formatStatusLabel(b.status)}</span>
-              <span class="badge badge-${b.paymentStatus || b.payment_status || 'not_paid'}">${b.paymentStatus || b.payment_status || 'not_paid'}</span>
-            </div>
-          </div>
-          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:0.6rem;background:rgba(0,0,0,0.3);padding:0.75rem;border-radius:6px;margin-top:0.5rem;">
-            <div><span style="font-size:0.65rem;color:rgba(245,240,232,0.4);display:block;">DATE &amp; SLOT</span><strong>${b.check_in}</strong> (${b.slot})</div>
-            <div><span style="font-size:0.65rem;color:rgba(245,240,232,0.4);display:block;">QUOTED TOTAL</span><strong style="color:var(--wheat);">₹${total.toLocaleString('en-IN')}</strong></div>
-            <div><span style="font-size:0.65rem;color:rgba(245,240,232,0.4);display:block;">TOTAL COLLECTED</span><strong style="color:#86efac;">₹${paid.toLocaleString('en-IN')}</strong></div>
-            <div><span style="font-size:0.65rem;color:rgba(245,240,232,0.4);display:block;">OUTSTANDING BALANCE</span><strong style="color:${bal>0?'#fca5a5':'#86efac'};">₹${bal.toLocaleString('en-IN')}</strong></div>
-          </div>
-        `;
-
-        // Configure WhatsApp action links
-        const wa = b.whatsapp || {};
-        document.getElementById('waBtnConfirmation').href = wa.confirmationUrl || '#';
-        document.getElementById('waBtnAdvance').href = wa.advanceReceiptUrl || '#';
-        document.getElementById('waBtnFullyPaid').href = wa.fullyPaidUrl || '#';
-        document.getElementById('waBtnRejection').href = wa.rejectionUrl || '#';
-
-        // Payment history table
-        const pTable = document.getElementById('tblBkPaymentsHistory');
-        const payments = b.payments || [];
-        if (payments.length === 0) {
-          pTable.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:1rem;color:rgba(245,240,232,0.4);">No payment installments recorded yet.</td></tr>`;
-        } else {
-          pTable.innerHTML = payments.map(p => `
-            <tr>
-              <td><strong>${p.payment_date || (p.created_at ? p.created_at.split('T')[0] : '—')}</strong></td>
-              <td style="color:#86efac;font-weight:700;">₹${parseFloat(p.amount || 0).toLocaleString('en-IN')}</td>
-              <td><span class="badge badge-advance" style="font-size:0.55rem;">${p.payment_type || 'installment'}</span></td>
-              <td>${p.payment_method || 'UPI'}</td>
-              <td style="font-size:0.7rem;color:var(--wheat);">${p.created_by || 'admin'}</td>
-              <td style="font-size:0.7rem;">${escapeHtml(p.notes || '—')}</td>
-            </tr>
-          `).join('');
-        }
-
-        // Configure payment form pre-fills
-        document.getElementById('payDetAmount').value = bal > 0 ? bal : (total * 0.4);
-        document.getElementById('payDetAmount').max = bal > 0 ? bal : total;
-        document.getElementById('payDetType').value = bal === 0 ? 'full' : (paid > 0 ? 'balance' : 'advance');
-        document.getElementById('payDetDate').valueAsDate = new Date();
-        document.getElementById('payDetNotes').value = '';
-
-        // If balance is 0, disable mark fully paid button
-        const fullBtn = document.getElementById('btnMarkFullyPaidDirect');
-        if (bal === 0) {
-          fullBtn.disabled = true;
-          fullBtn.style.opacity = '0.5';
-          fullBtn.innerHTML = '<i class="fas fa-check"></i> Already Fully Paid';
-        } else {
-          fullBtn.disabled = false;
-          fullBtn.style.opacity = '1';
-          fullBtn.innerHTML = '<i class="fas fa-check-double"></i> Mark as Fully Paid';
-        }
-
-        openModal('modalBookingDetails');
-      } catch (err) {
-        showToast('Failed to open booking details: ' + err.message, true);
-      }
-    }
-
-    async function handlePaymentFromDetails(e) {
-      e.preventDefault();
-      const id = document.getElementById('bkDetailsId').value;
-      const amt = parseFloat(document.getElementById('payDetAmount').value);
-      const type = document.getElementById('payDetType').value;
-      const method = document.getElementById('payDetMethod').value;
-      const date = document.getElementById('payDetDate').value;
-      const notes = document.getElementById('payDetNotes').value;
-
-      try {
-        const res = await authFetch(`/api/bookings/${id}/payments`, {
-          method: 'POST',
-          body: { amount: amt, payment_type: type, payment_method: method, payment_date: date, notes }
-        });
-        const data = await res.json();
-        if (res.ok && data.success) {
-          showToast(`Recorded payment of ₹${amt.toLocaleString('en-IN')}`);
-          openBookingDetails(id);
-          loadBookings();
-          loadOverview();
-        } else {
-          showToast(data.error || 'Failed to record payment', true);
-        }
-      } catch (err) {
-        showToast('Payment error: ' + err.message, true);
-      }
-    }
-
-    async function triggerMarkFullyPaid() {
-      const id = document.getElementById('bkDetailsId').value;
-      if (!confirm(`Mark Booking #${id} as Fully Paid? This will settle remaining balance to ₹0 and generate WhatsApp settlement receipt.`)) {
-        return;
-      }
-
-      try {
-        const res = await authFetch(`/api/bookings/${id}/mark-fully-paid`, {
-          method: 'POST',
-          body: { payment_method: 'Cash', notes: 'Marked fully paid by admin' }
-        });
-        const data = await res.json();
-        if (res.ok && data.success) {
-          showToast(`Booking #${id} marked as fully paid!`);
-          openBookingDetails(id);
-          loadBookings();
-          loadOverview();
-        } else {
-          showToast(data.error || 'Failed to mark fully paid', true);
-        }
-      } catch (err) {
-        showToast('Error: ' + err.message, true);
-      }
+      // Modal removed completely per user request - awaiting new flow
     }
 
     function setBookingStatusTab(statusGroup, tabEl) {
@@ -3815,9 +3387,6 @@
             </tr>
           `;
         }).join('');
-
-        renderCalTable('hakimi');
-        renderCalTable('qadri');
       } catch (err) {
         console.error('Failed to load bookings:', err);
       }
