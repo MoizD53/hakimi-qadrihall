@@ -466,7 +466,7 @@ it('admin.html bookings table starts with Customer column and completely exclude
   const html = fs.readFileSync(adminPath, 'utf8');
   assert.strictEqual(html.includes('<th>Booking Ref</th>'), false);
   assert.strictEqual(html.includes('<th>Customer</th>'), true);
-  assert.strictEqual(html.includes('colspan="13"'), true);
+  assert.strictEqual(html.includes('colspan="10"'), true);
 });
 
 // ── TEST GROUP 10: COMPLETE BOOKING WORKFLOW & WHATSAPP ACTIONS ──

@@ -1186,10 +1186,6 @@
     </nav>
 
     <div class="sidebar-footer">
-      <div class="user-pill">
-        <i class="fas fa-user-shield"></i>
-        <span>Admin: <strong id="adminUserDisplay" style="color:var(--wheat);">admin</strong></span>
-      </div>
       <button class="btn-logout" onclick="adminLogout()">
         <i class="fas fa-sign-out-alt"></i> Sign Out
       </button>
@@ -1274,7 +1270,6 @@
             <table>
               <thead>
                 <tr>
-                  <th>Enquiry ID</th>
                   <th>Customer Name</th>
                   <th>Phone / WhatsApp</th>
                   <th>Requested Date</th>
@@ -1286,7 +1281,7 @@
                 </tr>
               </thead>
               <tbody id="tblRecentEnquiries">
-                <tr><td colspan="9" style="text-align:center;padding:1.5rem;color:rgba(245,240,232,0.3);">No pending enquiries awaiting review.</td></tr>
+                <tr><td colspan="8" style="text-align:center;padding:1.5rem;color:rgba(245,240,232,0.3);">No pending enquiries awaiting review.</td></tr>
               </tbody>
             </table>
           </div>
@@ -1302,7 +1297,6 @@
             <table>
               <thead>
                 <tr>
-                  <th>ID</th>
                   <th>Customer</th>
                   <th>Phone</th>
                   <th>Event Date</th>
@@ -1315,7 +1309,7 @@
                 </tr>
               </thead>
               <tbody id="tblDuePayments">
-                <tr><td colspan="10" style="text-align:center;padding:1.5rem;color:rgba(245,240,232,0.3);">No urgent overdue balances found.</td></tr>
+                <tr><td colspan="9" style="text-align:center;padding:1.5rem;color:rgba(245,240,232,0.3);">No urgent overdue balances found.</td></tr>
               </tbody>
             </table>
           </div>
@@ -1371,22 +1365,18 @@
             <table>
               <thead>
                 <tr>
-                  <th>ID</th>
                   <th>Customer</th>
                   <th>WhatsApp / Phone</th>
                   <th>Event Date</th>
-                  <th>Requested Venue</th>
+                  <th>Hall</th>
                   <th>Slot &amp; Timing</th>
-                  <th>Catering</th>
-                  <th>Guests</th>
                   <th>Special Notes</th>
-                  <th>Submitted</th>
                   <th>Status</th>
-                  <th>Workflow Actions</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody id="tblEnquiriesBody">
-                <tr><td colspan="12" style="text-align:center;padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Loading enquiries...</td></tr>
+                <tr><td colspan="8" style="text-align:center;padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Loading enquiries...</td></tr>
               </tbody>
             </table>
           </div>
@@ -1483,18 +1473,15 @@
                   <th>Event Date</th>
                   <th>Venue</th>
                   <th>Slot &amp; Timing</th>
-                  <th>Catering</th>
-                  <th>Guests</th>
-                  <th>Total Quoted</th>
+                  <th>Total</th>
                   <th>Paid</th>
                   <th>Balance Due</th>
-                  <th>Booking Status</th>
-                  <th>Payment Status</th>
+                  <th>Status</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody id="tblBookingsBody">
-                <tr><td colspan="13" style="text-align:center;padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Loading bookings...</td></tr>
+                <tr><td colspan="10" style="text-align:center;padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Loading bookings...</td></tr>
               </tbody>
             </table>
           </div>
@@ -1657,21 +1644,25 @@
 
       <!-- ════════ PAGE 7: REPORTS & ANALYTICS ════════ -->
       <section class="page" id="page-reports">
-        <div class="filter-toolbar">
-          <button class="cal-nav-btn" onclick="setReportPreset('this_month')">This Month</button>
-          <button class="cal-nav-btn" onclick="setReportPreset('last_month')">Last Month</button>
-          <button class="cal-nav-btn" onclick="setReportPreset('last_3_months')">Last 3 Months</button>
-          <button class="cal-nav-btn" onclick="setReportPreset('this_year')">This Year</button>
-          <input type="date" id="repFromDate" class="filter-input" title="From Date">
-          <input type="date" id="repToDate" class="filter-input" title="To Date">
-          <select id="repHall" class="filter-select">
-            <option value="all">All Halls</option>
-            <option value="Evan-e-Hakimi">Evan-e-Hakimi</option>
-            <option value="Qadri Hall">Qadri Hall</option>
-          </select>
-          <button class="btn-quick gold" onclick="generateReports()"><i class="fas fa-sync-alt"></i> Run Report</button>
-          <button class="btn-quick" onclick="exportBookingsCSV()"><i class="fas fa-file-csv"></i> Export Bookings CSV</button>
-          <button class="btn-quick" onclick="exportExpensesCSV()"><i class="fas fa-file-csv"></i> Export Expenses CSV</button>
+        <div class="filter-toolbar" style="flex-direction:column;align-items:stretch;gap:0.75rem;">
+          <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+            <button class="cal-nav-btn" onclick="setReportPreset('this_month')">This Month</button>
+            <button class="cal-nav-btn" onclick="setReportPreset('last_month')">Last Month</button>
+            <button class="cal-nav-btn" onclick="setReportPreset('last_3_months')">Last 3 Months</button>
+            <button class="cal-nav-btn" onclick="setReportPreset('this_year')">This Year</button>
+            <input type="date" id="repFromDate" class="filter-input" title="From Date">
+            <input type="date" id="repToDate" class="filter-input" title="To Date">
+            <select id="repHall" class="filter-select">
+              <option value="all">All Halls</option>
+              <option value="Evan-e-Hakimi">Evan-e-Hakimi</option>
+              <option value="Qadri Hall">Qadri Hall</option>
+            </select>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;padding-top:0.5rem;border-top:1px solid rgba(201,169,110,0.12);">
+            <button class="btn-quick gold" onclick="generateReports()"><i class="fas fa-sync-alt"></i> Run Report</button>
+            <button class="btn-quick" onclick="exportBookingsCSV()"><i class="fas fa-file-csv"></i> Export Bookings CSV</button>
+            <button class="btn-quick" onclick="exportExpensesCSV()"><i class="fas fa-file-csv"></i> Export Expenses CSV</button>
+          </div>
         </div>
 
         <div class="stats-grid">
@@ -2710,14 +2701,13 @@
         const recentTbody = document.getElementById('tblRecentEnquiries');
         if (recentTbody) {
           if (pendingEnquiries.length === 0) {
-            recentTbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:1.5rem;color:rgba(245,240,232,0.4);">No pending enquiries awaiting review.</td></tr>`;
+            recentTbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:1.5rem;color:rgba(245,240,232,0.4);">No pending enquiries awaiting review.</td></tr>`;
           } else {
             recentTbody.innerHTML = pendingEnquiries.slice(0, 5).map(b => {
               const phoneClean = (b.phone || '').replace(/[^0-9]/g, '');
               const waUrl = b.whatsapp?.confirmationUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
               return `
                 <tr>
-                  <td><strong>#${b.id}</strong></td>
                   <td><strong>${escapeHtml(b.customer_name || 'Guest')}</strong></td>
                   <td>
                     <div style="display:flex;align-items:center;gap:6px;">
@@ -2749,13 +2739,12 @@
         // Render Due Payments table
         const dueTbody = document.getElementById('tblDuePayments');
         if (duePayments.length === 0) {
-          dueTbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:1.5rem;color:rgba(245,240,232,0.4);">No urgent overdue balances found.</td></tr>`;
+          dueTbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:1.5rem;color:rgba(245,240,232,0.4);">No urgent overdue balances found.</td></tr>`;
         } else {
           dueTbody.innerHTML = duePayments.map(b => {
             const bal = Math.max(0, parseFloat(b.total_amount || 0) - parseFloat(b.advancePaid || b.advance_paid || 0));
             return `
               <tr>
-                <td><strong>#${b.id}</strong></td>
                 <td><strong>${escapeHtml(b.customer_name || 'Guest')}</strong></td>
                 <td><a href="tel:${b.phone}" style="color:var(--cream);text-decoration:none;">${b.phone}</a></td>
                 <td style="color:#fcd34d;font-weight:600;">${b.check_in}</td>
@@ -2907,7 +2896,7 @@
 
         const tbody = document.getElementById('tblEnquiriesBody');
         if (allEnquiriesList.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;padding:2rem;color:rgba(245,240,232,0.4);">No enquiries found matching filters.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;color:rgba(245,240,232,0.4);">No enquiries found matching filters.</td></tr>`;
           return;
         }
 
@@ -2916,11 +2905,9 @@
           const isPending = ENQUIRY_STATUSES.includes(b.status);
           const phoneClean = (b.phone || '').replace(/[^0-9]/g, '');
           const waUrl = b.whatsapp?.confirmationUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
-          const submittedAt = b.created_at ? new Date(b.created_at).toLocaleDateString('en-IN', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : '—';
 
           return `
             <tr>
-              <td><strong>#${b.id}</strong></td>
               <td><strong>${escapeHtml(b.customer_name || 'Guest')}</strong></td>
               <td>
                 <div style="display:flex;align-items:center;gap:6px;">
@@ -2931,10 +2918,7 @@
               <td style="color:#fcd34d;font-weight:600;">${b.check_in || '—'}</td>
               <td><span class="badge ${isQadri?'badge-qadri':'badge-hakimi'}">${escapeHtml(b.hall||'Evan-e-Hakimi')}</span></td>
               <td>${b.slot}</td>
-              <td style="font-size:0.7rem;">${b.package==='with_jaman'?'With Jaman':'Without Jaman'}</td>
-              <td>${b.guests || '—'}</td>
-              <td style="font-size:0.7rem;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(b.notes||b.occasion||'')}">${escapeHtml(b.notes || b.occasion || '—')}</td>
-              <td style="font-size:0.68rem;color:rgba(245,240,232,0.45);">${submittedAt}</td>
+              <td style="font-size:0.75rem;max-width:180px;white-space:normal;" title="${escapeHtml(b.notes||b.occasion||'')}">${escapeHtml(b.notes || b.occasion || '—')}</td>
               <td>
                 <span class="badge badge-${b.status}">${formatStatusLabel(b.status)}</span>
                 ${b.rejection_reason ? `<div style="font-size:0.6rem;color:#fca5a5;margin-top:2px;">${escapeHtml(b.rejection_reason)}</div>` : ''}
@@ -3457,7 +3441,7 @@
 
         const tbody = document.getElementById('tblBookingsBody');
         if (allBookings.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="13" style="text-align:center;padding:2rem;color:rgba(245,240,232,0.4);">No bookings found matching filters.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:2rem;color:rgba(245,240,232,0.4);">No bookings found matching filters.</td></tr>`;
           return;
         }
 
@@ -3487,8 +3471,6 @@
               <td><strong>${b.check_in}</strong></td>
               <td><span class="badge ${isQadri?'badge-qadri':'badge-hakimi'}">${escapeHtml(b.hall || 'Evan-e-Hakimi')}</span></td>
               <td>${b.slot}</td>
-              <td style="font-size:0.7rem;">${b.package==='with_jaman'?'With Jaman':'Hall Only'}</td>
-              <td>${b.guests || '—'}</td>
               <td><strong>₹${total.toLocaleString('en-IN')}</strong></td>
               <td>₹${advPaid.toLocaleString('en-IN')}</td>
               <td style="color:${balance>0?'#fca5a5':'#86efac'};font-weight:600;">₹${balance.toLocaleString('en-IN')}</td>
@@ -3496,7 +3478,6 @@
                 <span class="badge badge-${b.status}">${formatStatusLabel(b.status)}</span>
                 ${conflictNotice}
               </td>
-              <td><span class="badge badge-${b.paymentStatus || b.payment_status || 'not_paid'}">${b.paymentStatus || b.payment_status || 'not_paid'}</span></td>
               <td>
                 <div style="display:flex;gap:4px;flex-wrap:wrap;">
                   <button class="action-btn pay" onclick="openBookingDetails(${b.id})" title="Booking Details & Payments"><i class="fas fa-file-invoice"></i> Manage</button>
