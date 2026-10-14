@@ -1275,13 +1275,13 @@
               <thead>
                 <tr>
                   <th>Customer Name</th>
-                  <th>Phone / WhatsApp</th>
+                  <th>Phone</th>
                   <th>Requested Date</th>
                   <th>Requested Venue</th>
                   <th>Slot &amp; Timing</th>
                   <th>Catering</th>
                   <th>Occasion</th>
-                  <th>Workflow Actions</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody id="tblRecentEnquiries">
@@ -1370,7 +1370,7 @@
               <thead>
                 <tr>
                   <th>Customer</th>
-                  <th>WhatsApp / Phone</th>
+                  <th>Phone</th>
                   <th>Event Date</th>
                   <th>Hall</th>
                   <th>Slot &amp; Timing</th>
@@ -2759,12 +2759,7 @@
               return `
                 <tr>
                   <td><strong>${escapeHtml(b.customer_name || 'Guest')}</strong></td>
-                  <td>
-                    <div style="display:flex;align-items:center;gap:6px;">
-                      <a href="tel:${b.phone}" style="color:var(--cream);text-decoration:none;">${b.phone}</a>
-                      <a href="${waUrl}" target="_blank" class="btn-whatsapp-outline" style="padding:2px 6px;font-size:0.65rem;" title="Open WhatsApp Chat"><i class="fab fa-whatsapp"></i></a>
-                    </div>
-                  </td>
+                  <td><a href="tel:${b.phone}" style="color:var(--cream);text-decoration:none;">${b.phone}</a></td>
                   <td style="color:#fcd34d;font-weight:600;">${b.check_in || '—'}</td>
                   <td><span class="badge ${b.hall?.toLowerCase().includes('qadri')?'badge-qadri':'badge-hakimi'}">${escapeHtml(b.hall||'Evan-e-Hakimi')}</span></td>
                   <td>${b.slot}</td>
@@ -2953,18 +2948,46 @@
         tbody.innerHTML = allEnquiriesList.map(b => {
           const isQadri = (b.hall || '').toLowerCase().includes('qadri');
           const isPending = ENQUIRY_STATUSES.includes(b.status);
+          const isConfirmed = CONFIRMED_STATUSES.includes(b.status);
+          const isRejected = REJECTED_STATUSES.includes(b.status);
           const phoneClean = (b.phone || '').replace(/[^0-9]/g, '');
-          const waUrl = b.whatsapp?.confirmationUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
+          const waApprovalUrl = b.whatsapp?.confirmationUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
+          const waRejectionUrl = b.whatsapp?.rejectionUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
+
+          let actionsHtml = '';
+          if (isPending) {
+            actionsHtml = `
+              <button class="btn-quick gold" style="padding:0.35rem 0.65rem;font-size:0.7rem;" onclick="openEnquiryWorkflow(${b.id})" title="Accept Enquiry">
+                <i class="fas fa-check"></i> Accept
+              </button>
+              <button class="action-btn del" style="padding:0.35rem 0.65rem;font-size:0.7rem;" onclick="rejectEnquiryPrompt(${b.id})" title="Reject Enquiry">
+                <i class="fas fa-times"></i> Reject
+              </button>
+            `;
+          } else if (isConfirmed) {
+            actionsHtml = `
+              <a href="${waApprovalUrl}" target="_blank" class="btn-whatsapp" style="padding:0.32rem 0.65rem;font-size:0.68rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;" title="Send WhatsApp Approval Message">
+                <i class="fab fa-whatsapp"></i> Send Approval WhatsApp
+              </a>
+            `;
+          } else if (isRejected) {
+            actionsHtml = `
+              <a href="${waRejectionUrl}" target="_blank" class="btn-whatsapp-outline" style="padding:0.32rem 0.65rem;font-size:0.68rem;color:#fca5a5;border-color:rgba(239,68,68,0.35);background:rgba(239,68,68,0.08);text-decoration:none;display:inline-flex;align-items:center;gap:4px;" title="Send WhatsApp Regret Message">
+                <i class="fab fa-whatsapp"></i> Send Regret WhatsApp
+              </a>
+            `;
+          } else {
+            actionsHtml = `
+              <a href="${waApprovalUrl}" target="_blank" class="btn-whatsapp-outline" style="padding:0.32rem 0.65rem;font-size:0.68rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
+                <i class="fab fa-whatsapp"></i> WhatsApp
+              </a>
+            `;
+          }
 
           return `
             <tr>
               <td><strong>${escapeHtml(b.customer_name || 'Guest')}</strong></td>
-              <td>
-                <div style="display:flex;align-items:center;gap:6px;">
-                  <a href="tel:${b.phone}" style="color:var(--cream);text-decoration:none;">${b.phone}</a>
-                  <a href="${waUrl}" target="_blank" class="btn-whatsapp-outline" style="padding:2px 6px;font-size:0.65rem;" title="Chat via WhatsApp"><i class="fab fa-whatsapp"></i></a>
-                </div>
-              </td>
+              <td><a href="tel:${b.phone}" style="color:var(--cream);text-decoration:none;">${b.phone}</a></td>
               <td style="color:#fcd34d;font-weight:600;">${b.check_in || '—'}</td>
               <td><span class="badge ${isQadri?'badge-qadri':'badge-hakimi'}">${escapeHtml(b.hall||'Evan-e-Hakimi')}</span></td>
               <td>${b.slot}</td>
@@ -2975,12 +2998,7 @@
               </td>
               <td>
                 <div style="display:flex;gap:4px;flex-wrap:wrap;">
-                  <button class="btn-quick gold" style="padding:0.35rem 0.65rem;font-size:0.7rem;" onclick="openEnquiryWorkflow(${b.id})" title="Accept Enquiry">
-                    <i class="fas fa-check"></i> Accept
-                  </button>
-                  <button class="action-btn del" style="padding:0.35rem 0.65rem;font-size:0.7rem;" onclick="rejectEnquiryPrompt(${b.id})" title="Reject Enquiry">
-                    <i class="fas fa-times"></i> Reject
-                  </button>
+                  ${actionsHtml}
                 </div>
               </td>
             </tr>
@@ -3225,7 +3243,11 @@
 
           const waLink = document.getElementById('btnWfWhatsApp');
           waLink.href = data.booking.whatsapp?.confirmationUrl || '#';
-          waLink.innerHTML = `<i class="fab fa-whatsapp" style="font-size:1.1rem;"></i> Send Booking Confirmation & 40% Advance Request`;
+          waLink.innerHTML = `<i class="fab fa-whatsapp" style="font-size:1.1rem;"></i> Send Ready Approval Message via WhatsApp`;
+
+          if (data.booking.whatsapp?.confirmationUrl) {
+            window.open(data.booking.whatsapp.confirmationUrl, '_blank');
+          }
 
           loadOverview();
           loadEnquiries();
@@ -3277,7 +3299,11 @@
           waLink.className = 'btn-whatsapp-outline';
           waLink.style.borderColor = '#ef4444';
           waLink.style.color = '#fca5a5';
-          waLink.innerHTML = `<i class="fab fa-whatsapp"></i> Send Rejection Notice via WhatsApp`;
+          waLink.innerHTML = `<i class="fab fa-whatsapp"></i> Send Ready Regret Message via WhatsApp`;
+
+          if (data.booking.whatsapp?.rejectionUrl) {
+            window.open(data.booking.whatsapp.rejectionUrl, '_blank');
+          }
 
           loadOverview();
           loadEnquiries();

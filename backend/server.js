@@ -426,17 +426,17 @@ Warm regards,
   // Template 4: Rejection Notification
   const reason = b.rejection_reason || 'Requested slot or date is already booked or unavailable';
   const textRejection = 
-`*Salaam / Greetings ${name},*
+`Salaam ${name},
 
-Regarding your booking enquiry for *${hall}* on *${dateStr}* (${slotName}):
+Regarding your booking enquiry for ${hall} on ${formattedDate} (${slotName}):
 
 We regret to inform you that we are unable to accommodate this reservation at this time.
-*Reason:* ${reason}
+Reason: ${reason}
 
 We sincerely apologize for any inconvenience. Please reach out to us if you would like to explore alternative dates or hall options.
 
-Warm regards,
-*Evan-e-Hakimi & Qadri Hall Management*`;
+Regards,
+Evan-e-Hakimi & Qadri Hall Management`;
 
   const baseUrl = phone ? `https://wa.me/${phone}?text=` : `https://wa.me/?text=`;
 
