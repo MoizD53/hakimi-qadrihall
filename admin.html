@@ -1478,7 +1478,6 @@
             <table>
               <thead>
                 <tr>
-                  <th>Booking Ref</th>
                   <th>Customer</th>
                   <th>WhatsApp / Phone</th>
                   <th>Event Date</th>
@@ -1495,7 +1494,7 @@
                 </tr>
               </thead>
               <tbody id="tblBookingsBody">
-                <tr><td colspan="14" style="text-align:center;padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Loading bookings...</td></tr>
+                <tr><td colspan="13" style="text-align:center;padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Loading bookings...</td></tr>
               </tbody>
             </table>
           </div>
@@ -3458,7 +3457,7 @@
 
         const tbody = document.getElementById('tblBookingsBody');
         if (allBookings.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="14" style="text-align:center;padding:2rem;color:rgba(245,240,232,0.4);">No bookings found matching filters.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="13" style="text-align:center;padding:2rem;color:rgba(245,240,232,0.4);">No bookings found matching filters.</td></tr>`;
           return;
         }
 
@@ -3478,10 +3477,6 @@
 
           return `
             <tr>
-              <td>
-                <strong style="color:var(--wheat);">${escapeHtml(bookingRef)}</strong>
-                <div style="font-size:0.65rem;color:rgba(245,240,232,0.4);">ID: #${b.id}</div>
-              </td>
               <td><strong>${escapeHtml(b.customer_name || 'Guest')}</strong></td>
               <td>
                 <div style="display:flex;align-items:center;gap:6px;">

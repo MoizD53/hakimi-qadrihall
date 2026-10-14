@@ -331,12 +331,28 @@ function generateBookingReference(hall, id, dateStr) {
   return `${prefix}-${year}-${paddedId}`;
 }
 
+function formatEventDate(dateStr) {
+  if (!dateStr) return 'Event Date';
+  const clean = String(dateStr).split('T')[0].trim();
+  const parts = clean.split('-');
+  if (parts.length === 3) {
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const day = parseInt(parts[2], 10);
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    if (!isNaN(day) && !isNaN(month) && month >= 0 && month < 12 && !isNaN(year)) {
+      return `${day} ${months[month]} ${year}`;
+    }
+  }
+  return clean;
+}
+
 function formatSlotName(slot) {
   const s = String(slot || '').toLowerCase();
-  if (s === 'morning') return 'Morning (10:30 AM – 2:30 PM)';
-  if (s === 'evening') return 'Evening (6:30 PM – 10:30 PM)';
-  if (s === 'fullday') return 'Full Day (10:00 AM – 10:00 PM)';
-  if (s === 'majlis') return 'Only Majlis (Custom Timings)';
+  if (s.includes('majlis')) return 'Majlis Only (Custom Timings)';
+  if (s === 'morning' || s.includes('morning')) return 'Morning (10:30 AM – 2:30 PM)';
+  if (s === 'evening' || s.includes('evening')) return 'Evening (6:30 PM – 10:30 PM)';
+  if (s === 'fullday' || s.includes('full')) return 'Full Day (10:00 AM – 10:00 PM)';
   return slot || 'Morning';
 }
 
@@ -346,8 +362,9 @@ function generateWhatsAppPayloads(b) {
   const ref = b.booking_reference || generateBookingReference(b.hall, b.id, b.check_in);
   const hall = b.hall || 'Evan-e-Hakimi';
   const dateStr = b.check_in ? String(b.check_in).split('T')[0] : 'Event Date';
+  const formattedDate = formatEventDate(b.check_in);
   const slotName = formatSlotName(b.slot);
-  const pkgName = b.package === 'with_jaman' ? 'With Jaman' : (b.package === 'without_jaman' ? 'Without Jaman' : (b.package || 'Standard'));
+  const pkgName = (b.package === 'with_jaman' || String(b.package).toLowerCase().includes('with jaman')) ? 'With Jaman' : 'Without Jaman';
   const total = Math.round(parseFloat(b.total_amount || 0));
   const advance = Math.round(parseFloat(b.advance_amount || total * 0.4));
   const paid = Math.round(parseFloat(b.advance_paid || b.advancePaid || 0));
@@ -355,25 +372,22 @@ function generateWhatsAppPayloads(b) {
 
   // Template 1: Confirmation & 40% Advance Request
   const textConfirmation = 
-`*Salaam / Greetings ${name},*
+`Salaam ${name},
 
-We are pleased to inform you that your booking for *${hall}* has been *approved & reserved*.
+Your booking for ${hall} has been approved.
 
-📋 *Booking Details:*
-• *Reference:* ${ref}
-• *Date:* ${dateStr}
-• *Slot:* ${slotName}
-• *Catering:* ${pkgName}
+Date: ${formattedDate}
+Slot: ${slotName}
+Catering: ${pkgName}
 
-💰 *Payment Terms:*
-• *Total Quoted Amount:* ₹${total.toLocaleString('en-IN')}
-• *40% Advance Required:* ₹${advance.toLocaleString('en-IN')} *(Non-refundable to secure date)*
-• *Remaining 60% Balance:* ₹${(total - advance).toLocaleString('en-IN')} *(Due at least 2 days prior to the event)*
+Total Amount: ₹${total.toLocaleString('en-IN')}
+Advance (40%): ₹${advance.toLocaleString('en-IN')} (Non-refundable)
+Balance (60%): ₹${(total - advance).toLocaleString('en-IN')} (Due 2 days before the event)
 
-Kindly transfer the 40% advance to confirm your slot reservation.
+Kindly pay the advance to secure your booking.
 
-Warm regards,
-*Evan-e-Hakimi & Qadri Hall Management*`;
+Regards,
+Evan-e-Hakimi & Qadri Hall Management`;
 
   // Template 2: Advance Payment Received & Booking Secured
   const textAdvanceReceived = 
@@ -2312,4 +2326,7 @@ if (require.main === module) {
 }
 
 // Export Express app for Vercel Serverless Function
+app.generateWhatsAppPayloads = generateWhatsAppPayloads;
+app.formatEventDate = formatEventDate;
+app.formatSlotName = formatSlotName;
 module.exports = app;
