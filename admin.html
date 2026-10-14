@@ -3025,7 +3025,7 @@
       currentWorkflowBooking = b;
 
       document.getElementById('wfBookingId').value = b.id;
-      document.getElementById('workflowModalTitle').textContent = `Review Enquiry #${b.id} &bull; ${b.customer_name}`;
+      document.getElementById('workflowModalTitle').innerHTML = `Review Enquiry #${b.id} &bull; ${escapeHtml(b.customer_name || 'Guest')}`;
 
       // Populate customer summary header
       const phoneClean = (b.phone || '').replace(/[^0-9]/g, '');
