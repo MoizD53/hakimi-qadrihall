@@ -1923,6 +1923,58 @@
     </div>
   </div>
 
+  <!-- ════════ MODAL: REUSABLE PREMIUM CONFIRMATION / ACTION ════════ -->
+  <div class="modal-overlay" id="modalConfirmAction" style="z-index: 10050;" onclick="if(event.target === this) closeConfirmModal(false);">
+    <div class="modal-box" style="max-width: 480px; border-color: rgba(201, 169, 110, 0.45); box-shadow: 0 25px 60px rgba(0,0,0,0.85); background: #18110a;">
+      <div class="modal-header" style="border-bottom: 1px solid rgba(201, 169, 110, 0.15);">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div id="confirmModalIconWrap" style="width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:1.05rem; background: rgba(201,169,110,0.12); color: var(--wheat); border: 1px solid rgba(201,169,110,0.3);">
+            <i id="confirmModalIcon" class="fas fa-question-circle"></i>
+          </div>
+          <h3 class="modal-title" id="confirmModalTitle" style="margin:0; font-size:1.08rem; color: var(--wheat);">Confirm Action</h3>
+        </div>
+        <button class="modal-close" id="confirmModalCloseBtn" onclick="closeConfirmModal(false)">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 1.3rem 1.4rem;">
+        <div id="confirmModalMsg" style="font-size: 0.88rem; color: var(--cream); line-height: 1.55; margin-bottom: 1rem;">
+          Are you sure you want to proceed?
+        </div>
+
+        <!-- Structured Details Card (Customer, Date, Venue, Amount) -->
+        <div id="confirmModalDetails" style="display:none; background: rgba(255,255,255,0.03); border: 1px solid rgba(201,169,110,0.22); border-radius: 9px; padding: 0.9rem; margin-bottom: 1rem;">
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; font-size: 0.78rem;">
+            <div id="confirmRowCustomer" style="display:none;">
+              <span style="opacity:0.6; display:block; font-size:0.65rem; text-transform:uppercase; letter-spacing:0.5px;">Customer</span>
+              <strong id="confirmModalCustomer" style="color:#fff;">Guest</strong>
+            </div>
+            <div id="confirmRowDate" style="display:none;">
+              <span style="opacity:0.6; display:block; font-size:0.65rem; text-transform:uppercase; letter-spacing:0.5px;">Booking Date</span>
+              <strong id="confirmModalDate" style="color:#fcd34d;">—</strong>
+            </div>
+            <div id="confirmRowHall" style="display:none;">
+              <span style="opacity:0.6; display:block; font-size:0.65rem; text-transform:uppercase; letter-spacing:0.5px;">Venue / Slot</span>
+              <strong id="confirmModalHall" style="color:var(--wheat);">Evan-e-Hakimi</strong>
+            </div>
+            <div id="confirmRowAmount" style="display:none;">
+              <span style="opacity:0.6; display:block; font-size:0.65rem; text-transform:uppercase; letter-spacing:0.5px;" id="confirmModalAmountLabel">Amount Being Recorded</span>
+              <strong id="confirmModalAmount" style="font-size:1.15rem; color:#86efac;">₹0</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Input Wrap for Prompt Replacements (e.g. Rejection Reason) -->
+        <div id="confirmModalInputWrap" style="display:none; margin-bottom: 1rem;">
+          <label id="confirmModalInputLabel" style="display:block; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px; opacity:0.8; margin-bottom:5px; color:var(--wheat);">Reason</label>
+          <textarea id="confirmModalInput" class="form-ctrl" rows="3" style="width:100%; box-sizing:border-box; font-size:0.82rem; background:#120c08; border-color:rgba(201,169,110,0.3); color:var(--cream); border-radius:6px; padding:0.6rem;"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer" style="padding: 0.9rem 1.4rem; display:flex; justify-content:flex-end; gap:8px;">
+        <button type="button" class="action-btn" id="confirmModalCancelBtn" onclick="closeConfirmModal(false)" style="padding: 0.45rem 1rem; font-size: 0.82rem;">Cancel</button>
+        <button type="button" class="btn-quick gold" id="confirmModalSubmitBtn" onclick="handleConfirmModalSubmit()" style="padding: 0.45rem 1.15rem; font-size: 0.82rem; font-weight:600;">Confirm</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ════════ MODAL: MANAGE BOOKING STAGE & PAYMENTS ════════ -->
   <div class="modal-overlay" id="modalBookingStage">
     <div class="modal-box" style="max-width:620px;">
@@ -2516,6 +2568,185 @@
       setTimeout(() => { t.style.display = 'none'; }, 3500);
     }
 
+    /* ════════ DATE FORMATTER: DD/Month in letters/YYYY ════════ */
+    function formatDisplayDate(dateStr) {
+      if (!dateStr) return '—';
+      const m = String(dateStr).match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+      if (!m) return dateStr;
+      const yr = m[1];
+      const moNum = parseInt(m[2], 10);
+      const day = String(parseInt(m[3], 10)).padStart(2, '0');
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const moStr = monthNames[moNum - 1] || m[2];
+      return `${day}/${moStr}/${yr}`;
+    }
+
+    /* ════════ REUSABLE PREMIUM CONFIRMATION MODAL SYSTEM ════════ */
+    let confirmModalResolver = null;
+    let confirmModalOptions = null;
+    let isConfirmModalProcessing = false;
+
+    function showConfirmModal(opts = {}) {
+      return new Promise((resolve) => {
+        confirmModalResolver = resolve;
+        confirmModalOptions = opts;
+        isConfirmModalProcessing = false;
+
+        const modal = document.getElementById('modalConfirmAction');
+        const titleEl = document.getElementById('confirmModalTitle');
+        const msgEl = document.getElementById('confirmModalMsg');
+        const iconEl = document.getElementById('confirmModalIcon');
+        const iconWrap = document.getElementById('confirmModalIconWrap');
+        const submitBtn = document.getElementById('confirmModalSubmitBtn');
+        const cancelBtn = document.getElementById('confirmModalCancelBtn');
+        const closeBtn = document.getElementById('confirmModalCloseBtn');
+
+        const detailsWrap = document.getElementById('confirmModalDetails');
+        const rowCust = document.getElementById('confirmRowCustomer');
+        const rowDate = document.getElementById('confirmRowDate');
+        const rowHall = document.getElementById('confirmRowHall');
+        const rowAmt = document.getElementById('confirmRowAmount');
+        const custEl = document.getElementById('confirmModalCustomer');
+        const dateEl = document.getElementById('confirmModalDate');
+        const hallEl = document.getElementById('confirmModalHall');
+        const amtEl = document.getElementById('confirmModalAmount');
+        const amtLabel = document.getElementById('confirmModalAmountLabel');
+
+        const inputWrap = document.getElementById('confirmModalInputWrap');
+        const inputEl = document.getElementById('confirmModalInput');
+        const inputLabel = document.getElementById('confirmModalInputLabel');
+
+        titleEl.textContent = opts.title || 'Confirm Action';
+        msgEl.innerHTML = opts.message || 'Are you sure you want to proceed?';
+        iconEl.className = opts.icon || 'fas fa-question-circle';
+
+        if (opts.danger) {
+          iconWrap.style.background = 'rgba(239, 68, 68, 0.15)';
+          iconWrap.style.borderColor = 'rgba(239, 68, 68, 0.35)';
+          iconWrap.style.color = '#ef4444';
+          submitBtn.className = 'action-btn del';
+          submitBtn.style.background = '#dc2626';
+          submitBtn.style.color = '#fff';
+        } else if (opts.success) {
+          iconWrap.style.background = 'rgba(34, 197, 94, 0.15)';
+          iconWrap.style.borderColor = 'rgba(34, 197, 94, 0.35)';
+          iconWrap.style.color = '#86efac';
+          submitBtn.className = 'btn-quick';
+          submitBtn.style.background = '#22c55e';
+          submitBtn.style.color = '#0a1a12';
+        } else {
+          iconWrap.style.background = 'rgba(201, 169, 110, 0.12)';
+          iconWrap.style.borderColor = 'rgba(201, 169, 110, 0.3)';
+          iconWrap.style.color = 'var(--wheat)';
+          submitBtn.className = 'btn-quick gold';
+          submitBtn.style.background = '';
+          submitBtn.style.color = '';
+        }
+
+        cancelBtn.textContent = opts.cancelText || 'Cancel';
+        submitBtn.innerHTML = opts.confirmText || 'Confirm';
+        submitBtn.disabled = false;
+        cancelBtn.disabled = false;
+        closeBtn.disabled = false;
+
+        let hasDetails = false;
+        if (opts.customer) {
+          rowCust.style.display = 'block';
+          custEl.textContent = opts.customer;
+          hasDetails = true;
+        } else {
+          rowCust.style.display = 'none';
+        }
+
+        if (opts.date) {
+          rowDate.style.display = 'block';
+          dateEl.textContent = formatDisplayDate(opts.date);
+          hasDetails = true;
+        } else {
+          rowDate.style.display = 'none';
+        }
+
+        if (opts.hall) {
+          rowHall.style.display = 'block';
+          hallEl.textContent = opts.hall + (opts.slot ? ` (${opts.slot})` : '');
+          hasDetails = true;
+        } else {
+          rowHall.style.display = 'none';
+        }
+
+        if (opts.amount != null) {
+          rowAmt.style.display = 'block';
+          amtLabel.textContent = opts.amountLabel || 'Amount Being Recorded';
+          amtEl.textContent = typeof opts.amount === 'number' ? '₹' + opts.amount.toLocaleString('en-IN') : String(opts.amount);
+          if (opts.amountColor) amtEl.style.color = opts.amountColor;
+          else amtEl.style.color = '#86efac';
+          hasDetails = true;
+        } else {
+          rowAmt.style.display = 'none';
+        }
+        detailsWrap.style.display = hasDetails ? 'block' : 'none';
+
+        if (opts.hasInput) {
+          inputWrap.style.display = 'block';
+          inputLabel.textContent = opts.inputLabel || 'Reason / Details';
+          inputEl.value = opts.inputValue || '';
+          inputEl.placeholder = opts.inputPlaceholder || 'Enter details...';
+          setTimeout(() => inputEl.focus(), 100);
+        } else {
+          inputWrap.style.display = 'none';
+        }
+
+        modal.classList.add('open');
+      });
+    }
+
+    async function handleConfirmModalSubmit() {
+      if (isConfirmModalProcessing) return;
+      const submitBtn = document.getElementById('confirmModalSubmitBtn');
+      const cancelBtn = document.getElementById('confirmModalCancelBtn');
+      const closeBtn = document.getElementById('confirmModalCloseBtn');
+      const inputEl = document.getElementById('confirmModalInput');
+      const inputValue = confirmModalOptions?.hasInput ? inputEl.value : true;
+
+      if (confirmModalOptions?.hasInput && confirmModalOptions?.required && !inputEl.value.trim()) {
+        showToast(confirmModalOptions.requiredMsg || 'Please fill in the required field', true);
+        inputEl.focus();
+        return;
+      }
+
+      if (typeof confirmModalOptions?.onConfirm === 'function') {
+        isConfirmModalProcessing = true;
+        submitBtn.disabled = true;
+        cancelBtn.disabled = true;
+        closeBtn.disabled = true;
+        const originalHtml = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + (confirmModalOptions.confirmLoadingText || 'Processing...');
+        try {
+          await confirmModalOptions.onConfirm(inputValue);
+          closeConfirmModal(inputValue);
+        } catch (err) {
+          isConfirmModalProcessing = false;
+          submitBtn.disabled = false;
+          cancelBtn.disabled = false;
+          closeBtn.disabled = false;
+          submitBtn.innerHTML = originalHtml;
+        }
+      } else {
+        closeConfirmModal(inputValue);
+      }
+    }
+
+    function closeConfirmModal(result = false) {
+      if (isConfirmModalProcessing) return;
+      const modal = document.getElementById('modalConfirmAction');
+      modal.classList.remove('open');
+      if (confirmModalResolver) {
+        const res = confirmModalResolver;
+        confirmModalResolver = null;
+        res(result);
+      }
+    }
+
     function toggleSidebar() {
       document.getElementById('sidebar').classList.toggle('open');
       document.getElementById('sidebarOverlay').classList.toggle('open');
@@ -2783,7 +3014,7 @@
                 <tr>
                   <td><strong>${escapeHtml(b.customer_name || 'Guest')}</strong></td>
                   <td><a href="tel:${b.phone}" style="color:var(--cream);text-decoration:none;">${b.phone}</a></td>
-                  <td style="color:#fcd34d;font-weight:600;">${b.check_in || '—'}</td>
+                  <td style="color:#fcd34d;font-weight:600;white-space:nowrap;">${formatDisplayDate(b.check_in)}</td>
                   <td><span class="badge ${b.hall?.toLowerCase().includes('qadri')?'badge-qadri':'badge-hakimi'}">${escapeHtml(b.hall||'Evan-e-Hakimi')}</span></td>
                   <td>${b.slot}</td>
                   <td style="font-size:0.7rem;">${b.package==='with_jaman'?'With Jaman':'Hall Only'}</td>
@@ -2824,7 +3055,7 @@
               <tr>
                 <td><strong>${escapeHtml(b.customer_name || 'Guest')}</strong></td>
                 <td><a href="tel:${b.phone}" style="color:var(--cream);text-decoration:none;">${b.phone}</a></td>
-                <td style="color:#fcd34d;font-weight:600;">${b.check_in}</td>
+                <td style="color:#fcd34d;font-weight:600;white-space:nowrap;">${formatDisplayDate(b.check_in)}</td>
                 <td><span class="badge ${b.hall?.toLowerCase().includes('qadri')?'badge-qadri':'badge-hakimi'}">${escapeHtml(b.hall||'Evan-e-Hakimi')}</span></td>
                 <td>${b.slot}</td>
                 <td>₹${total.toLocaleString('en-IN')}</td>
@@ -2849,7 +3080,7 @@
           upTbody.innerHTML = upcomingEvents.map(b => {
             return `
               <tr>
-                <td><strong>${b.check_in}</strong></td>
+                <td style="white-space:nowrap;"><strong>${formatDisplayDate(b.check_in)}</strong></td>
                 <td><span class="badge ${b.hall?.toLowerCase().includes('qadri')?'badge-qadri':'badge-hakimi'}">${escapeHtml(b.hall||'Evan-e-Hakimi')}</span></td>
                 <td>${b.slot}</td>
                 <td><strong>${escapeHtml(b.customer_name||'Guest')}</strong></td>
@@ -2965,10 +3196,9 @@
 
       // Customer dropdown options
       const customerDropdownOptions = monthBookings.map(mb => {
-        const dayNum = parseInt(mb.check_in.split('-')[2], 10);
         const isSel = mb.id === b.id;
         const sIcon = CONFIRMED_STATUSES.includes(mb.status) ? '✓' : '⏳';
-        return `<option value="${mb.id}" ${isSel ? 'selected' : ''}>${sIcon} ${dayNum} ${monthNames[st.month].slice(0,3)} • ${escapeHtml(mb.customer_name || 'Guest')} (${mb.slot})</option>`;
+        return `<option value="${mb.id}" ${isSel ? 'selected' : ''}>${sIcon} ${formatDisplayDate(mb.check_in)} • ${escapeHtml(mb.customer_name || 'Guest')} (${mb.slot})</option>`;
       }).join('');
 
       // Quick action button for the minimized bar
@@ -3150,7 +3380,7 @@
           <!-- Details Row -->
           <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:0.6rem;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.8rem;margin-bottom:1rem;font-size:0.75rem;">
             <div><span style="opacity:0.6;display:block;font-size:0.65rem;text-transform:uppercase;">Phone</span><a href="tel:${b.phone}" style="color:var(--cream);text-decoration:none;">${escapeHtml(b.phone || '—')}</a></div>
-            <div><span style="opacity:0.6;display:block;font-size:0.65rem;text-transform:uppercase;">Date</span><strong style="color:#fcd34d;">${b.check_in || '—'}</strong></div>
+            <div><span style="opacity:0.6;display:block;font-size:0.65rem;text-transform:uppercase;">Date</span><strong style="color:#fcd34d;">${formatDisplayDate(b.check_in)}</strong></div>
             <div><span style="opacity:0.6;display:block;font-size:0.65rem;text-transform:uppercase;">Slot</span><strong style="text-transform:capitalize;">${b.slot || '—'}</strong></div>
             <div><span style="opacity:0.6;display:block;font-size:0.65rem;text-transform:uppercase;">Pantry</span><strong>${pkgLabel}</strong></div>
             <div><span style="opacity:0.6;display:block;font-size:0.65rem;text-transform:uppercase;">Guests</span><span>${b.guests ? `${b.guests} guests` : 'Not specified'}</span></div>
@@ -3373,7 +3603,7 @@
             <tr>
               <td><strong>${escapeHtml(b.customer_name || 'Guest')}</strong></td>
               <td><a href="tel:${b.phone}" style="color:var(--cream);text-decoration:none;">${b.phone}</a></td>
-              <td style="color:#fcd34d;font-weight:600;">${b.check_in || '—'}</td>
+              <td style="color:#fcd34d;font-weight:600;white-space:nowrap;">${formatDisplayDate(b.check_in)}</td>
               <td><span class="badge ${isQadri?'badge-qadri':'badge-hakimi'}">${escapeHtml(b.hall||'Evan-e-Hakimi')}</span></td>
               <td>${b.slot}</td>
               <td style="font-size:0.75rem;max-width:180px;white-space:normal;" title="${escapeHtml(b.notes||b.occasion||'')}">${escapeHtml(b.notes || b.occasion || '—')}</td>
@@ -3577,9 +3807,19 @@
       const notes = document.getElementById('wfNotes').value;
 
       if (!isWfSlotAvailable) {
-        if (!confirm('The selected slot indicates a potential conflict. Do you still wish to attempt server-side verification and confirmation?')) {
-          return;
-        }
+        const confirmed = await showConfirmModal({
+          title: 'Potential Slot Conflict Warning',
+          icon: 'fas fa-exclamation-triangle',
+          danger: true,
+          message: 'The selected slot indicates a potential conflict with an existing reservation. Do you still wish to attempt server-side verification and confirmation?',
+          customer: document.getElementById('wfCustomer').value || 'Guest',
+          date: date,
+          hall: hall,
+          slot: slot,
+          confirmText: 'Verify & Confirm Anyway',
+          cancelText: 'Cancel'
+        });
+        if (!confirmed) return;
       }
 
       const btn = document.getElementById('btnWfConfirm');
@@ -3651,13 +3891,35 @@
 
     async function executeWorkflowReject() {
       const bookingId = document.getElementById('wfBookingId').value;
-      const reason = prompt('Please enter rejection reason (sent in customer WhatsApp message):', 'Requested slot or date is already booked or unavailable');
-      if (reason === null) return;
+      const custName = document.getElementById('wfCustomer').value || 'Guest';
+      const hall = document.getElementById('wfHall').value;
+      const date = document.getElementById('wfDate').value;
+      const slot = document.getElementById('wfSlot').value;
+
+      const reason = await showConfirmModal({
+        title: 'Reject Booking Enquiry',
+        icon: 'fas fa-ban',
+        danger: true,
+        message: 'Enter rejection reason (will be formatted into customer WhatsApp notification message):',
+        customer: custName,
+        date: date,
+        hall: hall,
+        slot: slot,
+        hasInput: true,
+        inputLabel: 'Rejection Reason',
+        inputValue: 'Requested slot or date is already booked or unavailable',
+        inputPlaceholder: 'Please enter reason...',
+        confirmText: '<i class="fas fa-times"></i> Reject Enquiry',
+        cancelText: 'Keep Enquiry'
+      });
+      if (reason === null || reason === false) return;
+      const cleanReason = String(reason).trim();
+      if (!cleanReason) return;
 
       try {
         const res = await authFetch(`/api/bookings/${bookingId}/reject`, {
           method: 'POST',
-          body: { reason: reason.trim() }
+          body: { reason: cleanReason }
         });
         const data = await res.json();
 
@@ -3675,7 +3937,7 @@
               <i class="fas fa-ban"></i> Enquiry Marked as Rejected
             </div>
             <div style="font-size:0.75rem;color:var(--cream);font-weight:400;">
-              Reason: <em>"${escapeHtml(reason)}"</em> &bull; Slot freed
+              Reason: <em>"${escapeHtml(cleanReason)}"</em> &bull; Slot freed
             </div>
           `;
 
@@ -3702,13 +3964,33 @@
     }
 
     async function rejectEnquiryPrompt(bookingId) {
-      const reason = prompt('Please enter rejection reason (e.g. Slot already booked):', 'Requested date or slot is unavailable');
-      if (reason === null) return;
+      let b = allEnquiriesList.find(x => x.id === bookingId) || allBookings.find(x => x.id === bookingId);
+      const custName = b?.customer_name || 'Guest';
+
+      const reason = await showConfirmModal({
+        title: 'Reject Booking Enquiry',
+        icon: 'fas fa-ban',
+        danger: true,
+        message: `Reject enquiry #${bookingId} for <strong>${escapeHtml(custName)}</strong>? Enter the reason to send via WhatsApp:`,
+        customer: custName,
+        date: b?.check_in,
+        hall: b?.hall,
+        slot: b?.slot,
+        hasInput: true,
+        inputLabel: 'Rejection Reason',
+        inputValue: 'Requested date or slot is unavailable',
+        inputPlaceholder: 'Reason for rejection...',
+        confirmText: '<i class="fas fa-times"></i> Reject Enquiry',
+        cancelText: 'Cancel'
+      });
+      if (reason === null || reason === false) return;
+      const cleanReason = String(reason).trim();
+      if (!cleanReason) return;
 
       try {
         const res = await authFetch(`/api/bookings/${bookingId}/reject`, {
           method: 'POST',
-          body: { reason: reason.trim() }
+          body: { reason: cleanReason }
         });
         const data = await res.json();
 
@@ -3732,59 +4014,113 @@
     let currentStageBooking = null;
 
     async function record40Advance(bookingId) {
-      if (!confirm('Confirm receipt of 40% advance payment for booking #' + bookingId + '?')) return;
-      try {
-        const res = await authFetch(`/api/bookings/${bookingId}/receive-advance`, {
-          method: 'POST',
-          body: { payment_method: 'Cash', notes: '40% advance payment received' }
-        });
-        const data = await res.json();
-        if (res.ok && data.success) {
-          showToast(data.message || '40% advance received successfully!');
-          if (data.booking?.whatsapp?.advanceReceiptUrl) {
-            window.open(data.booking.whatsapp.advanceReceiptUrl, '_blank');
-          }
-          closeModal('modalBookingStage');
-          allBookings = [];
-          loadOverview();
-          loadEnquiries();
-          loadBookings();
-          loadCalendarHakimi();
-          loadCalendarQadri();
-        } else {
-          showToast(data.error || 'Failed to record advance', true);
-        }
-      } catch (err) {
-        showToast('Error recording advance: ' + err.message, true);
+      let b = allBookings.find(x => x.id === bookingId) || allEnquiriesList.find(x => x.id === bookingId);
+      if (!b) {
+        try {
+          const res = await authFetch(`/api/bookings/${bookingId}`);
+          b = await res.json();
+        } catch (_) {}
       }
+
+      const custName = b?.customer_name || 'Guest';
+      const checkInDate = b?.check_in || '';
+      const hallName = (b?.hall || '').toLowerCase().includes('qadri') ? 'Qadri Hall (3rd Floor)' : 'Evan-e-Hakimi (2nd Floor)';
+      const total = parseFloat(b?.total_amount || 0);
+      const advReq = b?.advance_amount ? parseFloat(b.advance_amount) : Math.round(total * 0.4);
+
+      showConfirmModal({
+        title: 'Confirm 40% Advance Payment',
+        icon: 'fas fa-hand-holding-usd',
+        message: `Record receipt of 40% advance payment for <strong>${escapeHtml(custName)}</strong>? This will lock in the slot and update booking status to <strong>Advance Paid</strong>.`,
+        customer: custName,
+        date: checkInDate,
+        hall: hallName,
+        slot: b?.slot,
+        amount: advReq,
+        amountLabel: '40% Advance Being Recorded',
+        confirmText: '<i class="fas fa-check"></i> Confirm Advance Payment',
+        confirmLoadingText: 'Recording Advance...',
+        cancelText: 'Cancel',
+        onConfirm: async () => {
+          const res = await authFetch(`/api/bookings/${bookingId}/receive-advance`, {
+            method: 'POST',
+            body: { payment_method: 'Cash', notes: '40% advance payment received' }
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            showToast(data.message || '40% advance received successfully!');
+            if (data.booking?.whatsapp?.advanceReceiptUrl) {
+              window.open(data.booking.whatsapp.advanceReceiptUrl, '_blank');
+            }
+            closeModal('modalBookingStage');
+            allBookings = [];
+            loadOverview();
+            loadEnquiries();
+            loadBookings();
+            loadCalendarHakimi();
+            loadCalendarQadri();
+          } else {
+            showToast(data.error || 'Failed to record advance', true);
+            throw new Error(data.error || 'Failed to record advance');
+          }
+        }
+      });
     }
 
     async function record60Balance(bookingId) {
-      if (!confirm('Confirm receipt of remaining 60% balance payment for booking #' + bookingId + '?')) return;
-      try {
-        const res = await authFetch(`/api/bookings/${bookingId}/receive-balance`, {
-          method: 'POST',
-          body: { payment_method: 'Cash', notes: 'Remaining 60% balance received' }
-        });
-        const data = await res.json();
-        if (res.ok && data.success) {
-          showToast(data.message || 'Remaining 60% balance received! Booking is now fully paid.');
-          if (data.booking?.whatsapp?.fullyPaidUrl) {
-            window.open(data.booking.whatsapp.fullyPaidUrl, '_blank');
-          }
-          closeModal('modalBookingStage');
-          allBookings = [];
-          loadOverview();
-          loadEnquiries();
-          loadBookings();
-          loadCalendarHakimi();
-          loadCalendarQadri();
-        } else {
-          showToast(data.error || 'Failed to record balance', true);
-        }
-      } catch (err) {
-        showToast('Error recording balance: ' + err.message, true);
+      let b = allBookings.find(x => x.id === bookingId) || allEnquiriesList.find(x => x.id === bookingId);
+      if (!b) {
+        try {
+          const res = await authFetch(`/api/bookings/${bookingId}`);
+          b = await res.json();
+        } catch (_) {}
       }
+
+      const custName = b?.customer_name || 'Guest';
+      const checkInDate = b?.check_in || '';
+      const hallName = (b?.hall || '').toLowerCase().includes('qadri') ? 'Qadri Hall (3rd Floor)' : 'Evan-e-Hakimi (2nd Floor)';
+      const total = parseFloat(b?.total_amount || 0);
+      const advPaid = parseFloat(b?.advancePaid || b?.advance_paid || 0);
+      const bal = Math.max(0, total - advPaid);
+
+      showConfirmModal({
+        title: 'Confirm Final Payment',
+        icon: 'fas fa-check-double',
+        success: true,
+        message: `Record receipt of the remaining 60% balance payment for <strong>${escapeHtml(custName)}</strong>? This will mark the booking as <strong>Fully Paid</strong>.`,
+        customer: custName,
+        date: checkInDate,
+        hall: hallName,
+        slot: b?.slot,
+        amount: bal,
+        amountLabel: 'Amount Being Recorded',
+        confirmText: '<i class="fas fa-check-double"></i> Confirm Payment',
+        confirmLoadingText: 'Recording Payment...',
+        cancelText: 'Cancel',
+        onConfirm: async () => {
+          const res = await authFetch(`/api/bookings/${bookingId}/receive-balance`, {
+            method: 'POST',
+            body: { payment_method: 'Cash', notes: 'Remaining 60% balance received' }
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            showToast(data.message || 'Remaining 60% balance received! Booking is now fully paid.');
+            if (data.booking?.whatsapp?.fullyPaidUrl) {
+              window.open(data.booking.whatsapp.fullyPaidUrl, '_blank');
+            }
+            closeModal('modalBookingStage');
+            allBookings = [];
+            loadOverview();
+            loadEnquiries();
+            loadBookings();
+            loadCalendarHakimi();
+            loadCalendarQadri();
+          } else {
+            showToast(data.error || 'Failed to record balance', true);
+            throw new Error(data.error || 'Failed to record balance');
+          }
+        }
+      });
     }
 
     async function openBookingStage(bookingId) {
@@ -3813,7 +4149,7 @@
       document.getElementById('stageModalCustomer').textContent = b.customer_name || 'Guest';
       document.getElementById('stageModalHall').innerHTML = `<span class="badge ${isQadri ? 'badge-qadri' : 'badge-hakimi'}">${hallLabel}</span>`;
       document.getElementById('stageModalPhone').innerHTML = `<a href="tel:${b.phone}" style="color:var(--cream);">${b.phone}</a>`;
-      document.getElementById('stageModalDate').textContent = b.check_in || '—';
+      document.getElementById('stageModalDate').textContent = formatDisplayDate(b.check_in);
       document.getElementById('stageModalSlot').textContent = b.slot || '—';
       document.getElementById('stageModalPkg').textContent = pkgLabel;
       document.getElementById('stageModalGuests').textContent = b.guests ? `${b.guests} guests` : 'Not specified';
@@ -4035,7 +4371,7 @@
                   <a href="${waUrl}" target="_blank" class="btn-whatsapp-outline" style="padding:2px 6px;font-size:0.65rem;" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
                 </div>
               </td>
-              <td><strong>${b.check_in}</strong></td>
+              <td style="white-space:nowrap;"><strong>${formatDisplayDate(b.check_in)}</strong></td>
               <td><span class="badge ${isQadri?'badge-qadri':'badge-hakimi'}">${escapeHtml(b.hall || 'Evan-e-Hakimi')}</span></td>
               <td>${b.slot}</td>
               <td><strong>₹${total.toLocaleString('en-IN')}</strong></td>
@@ -4165,7 +4501,20 @@
     }
 
     async function updateBookingStatus(id, newStatus) {
-      if (!confirm(`Are you sure you want to mark booking #${id} as ${newStatus}?`)) return;
+      const b = allBookings.find(x => x.id === id);
+      const confirmed = await showConfirmModal({
+        title: 'Update Booking Status',
+        icon: 'fas fa-exchange-alt',
+        message: `Are you sure you want to change status of booking <strong>#${id}</strong> to <strong>${escapeHtml(formatStatusLabel(newStatus))}</strong>?`,
+        customer: b?.customer_name,
+        date: b?.check_in,
+        hall: b?.hall,
+        slot: b?.slot,
+        confirmText: 'Update Status',
+        cancelText: 'Cancel'
+      });
+      if (!confirmed) return;
+
       try {
         const res = await authFetch(`/api/bookings/${id}/status`, {
           method: 'PATCH',
@@ -4173,7 +4522,7 @@
         });
         const data = await res.json();
         if (res.ok) {
-          showToast(`Booking #${id} updated to ${newStatus}`);
+          showToast(`Booking #${id} updated to ${formatStatusLabel(newStatus)}`);
           allBookings = [];
           loadBookings();
           loadOverview();
@@ -4188,23 +4537,35 @@
     }
 
     async function deleteBooking(id) {
-      if (!confirm(`Permanently delete booking #${id}? This action will be audited.`)) return;
-      try {
-        const res = await authFetch(`/api/bookings/${id}`, { method: 'DELETE' });
-        if (res.ok) {
-          showToast(`Booking #${id} deleted`);
-          closeModal('modalBookingStage');
-          allBookings = [];
-          loadBookings();
-          loadOverview();
-          loadCalendarHakimi();
-          loadCalendarQadri();
-        } else {
-          showToast('Failed to delete booking', true);
+      const b = allBookings.find(x => x.id === id);
+      showConfirmModal({
+        title: 'Delete Booking Record',
+        icon: 'fas fa-trash-alt',
+        danger: true,
+        message: `Permanently delete booking <strong>#${id}</strong>${b?.customer_name ? ` for <strong>${escapeHtml(b.customer_name)}</strong>` : ''}? This action cannot be undone and will be logged in audit history.`,
+        customer: b?.customer_name,
+        date: b?.check_in,
+        hall: b?.hall,
+        slot: b?.slot,
+        confirmText: '<i class="fas fa-trash-alt"></i> Delete Permanently',
+        confirmLoadingText: 'Deleting...',
+        cancelText: 'Cancel',
+        onConfirm: async () => {
+          const res = await authFetch(`/api/bookings/${id}`, { method: 'DELETE' });
+          if (res.ok) {
+            showToast(`Booking #${id} deleted`);
+            closeModal('modalBookingStage');
+            allBookings = [];
+            loadBookings();
+            loadOverview();
+            loadCalendarHakimi();
+            loadCalendarQadri();
+          } else {
+            showToast('Failed to delete booking', true);
+            throw new Error('Failed to delete booking');
+          }
         }
-      } catch (err) {
-        showToast('Error: ' + err.message, true);
-      }
+      });
     }
 
     /* ════════ PAYMENT RECORDING MODAL ════════ */
@@ -4219,7 +4580,7 @@
 
       document.getElementById('payBookingInfo').innerHTML = `
         <div><strong>Booking:</strong> #${b.id} &bull; ${escapeHtml(b.customer_name)} &bull; ${escapeHtml(b.hall)}</div>
-        <div><strong>Date:</strong> ${b.check_in} (${b.slot})</div>
+        <div><strong>Date:</strong> ${formatDisplayDate(b.check_in)} (${b.slot})</div>
         <div><strong>Total Quoted:</strong> ₹${total.toLocaleString('en-IN')} | <strong>Already Paid:</strong> ₹${paid.toLocaleString('en-IN')}</div>
         <div style="color:${bal>0?'#fca5a5':'#86efac'};font-weight:700;">Remaining Balance Due: ₹${bal.toLocaleString('en-IN')}</div>
       `;
@@ -4315,7 +4676,7 @@
           }
           return `
           <tr>
-            <td><strong>${e.date}</strong></td>
+            <td style="white-space:nowrap;"><strong>${formatDisplayDate(e.date)}</strong></td>
             <td><strong>${escapeHtml(e.description || e.notes || 'Expense')}</strong></td>
             <td>${hallBadge}</td>
             <td><span class="badge" style="background:rgba(201,169,110,0.1);color:var(--wheat);">${escapeHtml(e.category)}</span></td>
@@ -4396,19 +4757,31 @@
     }
 
     async function deleteExpense(id) {
-      if (!confirm(`Are you sure you want to delete this expense record (#${id})? This action will be audited.`)) return;
-      try {
-        const res = await authFetch(`/api/expenses/${id}`, { method: 'DELETE' });
-        if (res.ok) {
-          showToast('Expense deleted');
-          loadExpenses();
-          loadOverview();
-        } else {
-          showToast('Failed to delete expense', true);
+      const exp = allExpenses.find(x => (x.id || x._id) == id);
+      showConfirmModal({
+        title: 'Delete Expense Record',
+        icon: 'fas fa-receipt',
+        danger: true,
+        message: `Are you sure you want to delete this expense record <strong>#${id}</strong>${exp?.description ? ` (${escapeHtml(exp.description)})` : ''}? This action will be audited.`,
+        amount: exp ? parseFloat(exp.amount || 0) : null,
+        amountLabel: 'Expense Amount',
+        amountColor: '#fca5a5',
+        date: exp?.date,
+        confirmText: '<i class="fas fa-trash-alt"></i> Delete Expense',
+        confirmLoadingText: 'Deleting...',
+        cancelText: 'Cancel',
+        onConfirm: async () => {
+          const res = await authFetch(`/api/expenses/${id}`, { method: 'DELETE' });
+          if (res.ok) {
+            showToast('Expense record deleted successfully');
+            loadExpenses();
+            loadOverview();
+          } else {
+            showToast('Failed to delete expense', true);
+            throw new Error('Failed to delete expense');
+          }
         }
-      } catch (err) {
-        showToast('Error: ' + err.message, true);
-      }
+      });
     }
 
     /* ════════ 6. STAFF & PAYROLL MANAGEMENT ════════ */
@@ -4555,18 +4928,26 @@
     }
 
     async function deleteStaff(id) {
-      if (!confirm(`Are you sure you want to remove this staff profile (#${id})?`)) return;
-      try {
-        const res = await authFetch(`/api/staff/${id}`, { method: 'DELETE' });
-        if (res.ok) {
-          showToast('Staff profile removed');
-          loadStaff();
-        } else {
-          showToast('Failed to delete staff', true);
+      const s = allStaff.find(x => (x.id || x._id) == id);
+      showConfirmModal({
+        title: 'Remove Staff Member',
+        icon: 'fas fa-user-minus',
+        danger: true,
+        message: `Are you sure you want to remove staff member <strong>${escapeHtml(s?.name || '#' + id)}</strong>${s?.role ? ` (${escapeHtml(s.role)})` : ''}?`,
+        confirmText: '<i class="fas fa-user-minus"></i> Remove Staff Member',
+        confirmLoadingText: 'Removing...',
+        cancelText: 'Cancel',
+        onConfirm: async () => {
+          const res = await authFetch(`/api/staff/${id}`, { method: 'DELETE' });
+          if (res.ok) {
+            showToast('Staff profile removed successfully');
+            loadStaff();
+          } else {
+            showToast('Failed to delete staff', true);
+            throw new Error('Failed to delete staff');
+          }
         }
-      } catch (err) {
-        showToast('Error: ' + err.message, true);
-      }
+      });
     }
 
     function openSalaryPayModal(id) {
