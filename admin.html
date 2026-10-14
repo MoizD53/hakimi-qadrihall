@@ -2772,11 +2772,11 @@
                   <td>${escapeHtml(b.occasion || '—')}</td>
                   <td>
                     <div style="display:flex;gap:4px;flex-wrap:wrap;">
-                      <button class="action-btn pay" onclick="openEnquiryWorkflow(${b.id})" title="Review Enquiry & Check Availability" style="color:var(--wheat);border-color:var(--wheat);">
-                        <i class="fas fa-search"></i> Review
+                      <button class="btn-quick gold" style="padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="openEnquiryWorkflow(${b.id})" title="Accept Enquiry">
+                        <i class="fas fa-check"></i> Accept
                       </button>
-                      <button class="action-btn del" onclick="rejectEnquiryPrompt(${b.id})" title="Reject Enquiry">
-                        <i class="fas fa-times"></i>
+                      <button class="action-btn del" style="padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="rejectEnquiryPrompt(${b.id})" title="Reject Enquiry">
+                        <i class="fas fa-times"></i> Reject
                       </button>
                     </div>
                   </td>
@@ -2975,11 +2975,12 @@
               </td>
               <td>
                 <div style="display:flex;gap:4px;flex-wrap:wrap;">
-                  <button class="btn-quick gold" style="padding:0.35rem 0.65rem;font-size:0.7rem;" onclick="openEnquiryWorkflow(${b.id})">
-                    <i class="fas fa-tasks"></i> Review &amp; Select Hall
+                  <button class="btn-quick gold" style="padding:0.35rem 0.65rem;font-size:0.7rem;" onclick="openEnquiryWorkflow(${b.id})" title="Accept Enquiry">
+                    <i class="fas fa-check"></i> Accept
                   </button>
-                  <a href="${waUrl}" target="_blank" class="action-btn" title="Open WhatsApp"><i class="fab fa-whatsapp"></i></a>
-                  ${isPending ? `<button class="action-btn del" onclick="rejectEnquiryPrompt(${b.id})" title="Reject Enquiry"><i class="fas fa-times"></i> Reject</button>` : ''}
+                  <button class="action-btn del" style="padding:0.35rem 0.65rem;font-size:0.7rem;" onclick="rejectEnquiryPrompt(${b.id})" title="Reject Enquiry">
+                    <i class="fas fa-times"></i> Reject
+                  </button>
                 </div>
               </td>
             </tr>
