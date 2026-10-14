@@ -3698,8 +3698,8 @@
                 <span class="wrb-val" id="revSlot">Morning (10:30 AM &ndash; 2:30 PM)</span>
               </div>
               <div class="wrb-item">
-                <span class="wrb-label">Catering / Dining:</span>
-                <span class="wrb-val" id="revPackage">With Jaman (Dining &amp; Thals Included)</span>
+                <span class="wrb-label">Pantry:</span>
+                <span class="wrb-val" id="revPackage">Available</span>
               </div>
               <div class="wrb-item">
                 <span class="wrb-label">Contact Person:</span>
@@ -4825,9 +4825,9 @@ function populateReviewSummary() {
   };
 
   const pkgLabels = {
-    'without_jaman': 'Without Jaman (Hall Only)',
-    'with_jaman': 'With Jaman (Dining & Thals Included)',
-    'full_day': 'With Jaman (Dining & Thals Included)'
+    'without_jaman': 'Available',
+    'with_jaman': 'Available',
+    'full_day': 'Available'
   };
 
   const price = getSlotPackagePrice(slot, pkg, dateStr);
@@ -4850,7 +4850,7 @@ function populateReviewSummary() {
   if (revSlot) revSlot.textContent = slotLabels[slot] || slot;
 
   const revPkg = document.getElementById('revPackage');
-  if (revPkg) revPkg.textContent = (slot === 'majlis') ? 'Without Jaman (Hall Only)' : 'With Jaman (Dining & Thals Included)';
+  if (revPkg) revPkg.textContent = 'Available';
 
   const revName = document.getElementById('revName');
   if (revName) revName.textContent = name;
@@ -5207,7 +5207,7 @@ window.addEventListener('DOMContentLoaded', () => {
       : slot === 'majlis'
       ? `Only Majlis (${customTiming})`
       : 'Full Day (10:00 AM – 10:00 PM)';
-    const pkgLabel = (slot === 'majlis') ? 'Without Jaman (Hall Only)' : 'With Jaman (Dining & Thals Included)';
+    const pkgLabel = 'Available';
     const formattedDate = new Date(date).toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
     // Prepare payload
@@ -5263,7 +5263,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
         const balance = price - advance;
         const guestsText = (guestNum && guestNum > 0) ? `${guestNum} Guests / Thals` : 'Not specified';
-        const waText = encodeURIComponent(`Hello Management, I have submitted a booking enquiry for Evan-e-Hakimi (2nd Floor).\n\nDetails:\n• Name: ${name}\n• Phone: ${phone}\n• Date: ${date} (${formattedDate})\n• Slot: ${slotLabel}\n• Catering: ${pkgLabel}${customTiming ? `\n• Custom Majlis Timing: ${customTiming}` : ''}\n• Total Price: ₹${price.toLocaleString('en-IN')}\n• Advance (40%): ₹${advance.toLocaleString('en-IN')}\n• Remaining Balance (60%): ₹${balance.toLocaleString('en-IN')} (due at least 2 days before event date)\n• Occasion: ${occasion}\n• Approx Guests: ${guestsText}`);
+        const waText = encodeURIComponent(`Hello Management, I have submitted a booking enquiry for Evan-e-Hakimi (2nd Floor).\n\nDetails:\n• Name: ${name}\n• Phone: ${phone}\n• Date: ${date} (${formattedDate})\n• Slot: ${slotLabel}\n• Pantry: ${pkgLabel}${customTiming ? `\n• Custom Majlis Timing: ${customTiming}` : ''}\n• Total Price: ₹${price.toLocaleString('en-IN')}\n• Advance (40%): ₹${advance.toLocaleString('en-IN')}\n• Remaining Balance (60%): ₹${balance.toLocaleString('en-IN')} (due at least 2 days before event date)\n• Occasion: ${occasion}\n• Approx Guests: ${guestsText}`);
         const waUrl = `https://wa.me/919033647648?text=${waText}`;
 
         // Show premium systematic popup message
@@ -5277,7 +5277,7 @@ window.addEventListener('DOMContentLoaded', () => {
               <div><strong>Venue:</strong> Evan-e-Hakimi (2nd Floor)</div>
               <div><strong>Date:</strong> ${date} (${formattedDate})</div>
               <div><strong>Slot & Timing:</strong> ${slotLabel}</div>
-              <div><strong>Catering:</strong> ${pkgLabel}</div>
+              <div><strong>Pantry:</strong> ${pkgLabel}</div>
               <div><strong>Approx. Guests:</strong> ${guestsText}</div>
               <div><strong>Estimated Total:</strong> ₹${price.toLocaleString('en-IN')}</div>
               <div style="color:#86efac;"><strong>40% Advance:</strong> ₹${advance.toLocaleString('en-IN')} (upon manager approval)</div>

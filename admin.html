@@ -1880,7 +1880,7 @@
           <div><span style="opacity:0.6;display:block;font-size:0.65rem;text-transform:uppercase;">Phone</span><span id="stageModalPhone"></span></div>
           <div><span style="opacity:0.6;display:block;font-size:0.65rem;text-transform:uppercase;">Date</span><strong id="stageModalDate" style="color:#fcd34d;"></strong></div>
           <div><span style="opacity:0.6;display:block;font-size:0.65rem;text-transform:uppercase;">Slot</span><strong id="stageModalSlot"></strong></div>
-          <div><span style="opacity:0.6;display:block;font-size:0.65rem;text-transform:uppercase;">Package</span><strong id="stageModalPkg"></strong></div>
+          <div><span style="opacity:0.6;display:block;font-size:0.65rem;text-transform:uppercase;">Pantry</span><strong id="stageModalPkg">Available</strong></div>
           <div><span style="opacity:0.6;display:block;font-size:0.65rem;text-transform:uppercase;">Guests</span><span id="stageModalGuests"></span></div>
         </div>
 
@@ -3460,7 +3460,7 @@
       const ref = b.booking_reference || `#${b.id}`;
       const isQadri = (b.hall || '').toLowerCase().includes('qadri');
       const hallLabel = isQadri ? 'Qadri Hall (3rd Floor)' : 'Evan-e-Hakimi (2nd Floor)';
-      const pkgLabel = (b.package === 'with_jaman' || String(b.package).toLowerCase().includes('with jaman')) ? 'With Jaman' : 'Without Jaman';
+      const pkgLabel = 'Available';
 
       document.getElementById('stageModalRef').textContent = ref;
       document.getElementById('stageModalCustomer').textContent = b.customer_name || 'Guest';
