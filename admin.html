@@ -1929,7 +1929,8 @@
       <div class="modal-header">
         <div>
           <h3 class="modal-title" style="margin:0;font-size:1.05rem;">
-            Booking <span id="stageModalRef" style="color:var(--wheat);">#Ref</span> &bull; <span id="stageModalCustomer">Guest</span>
+            <span id="stageModalCustomer">Guest</span>
+            <span id="stageModalRef" style="display:none;"></span>
           </h3>
           <div id="stageModalHall" style="margin-top:4px;"></div>
         </div>
@@ -3011,7 +3012,7 @@
                   ${customerDropdownOptions}
                 </select>
               ` : `
-                <span style="font-size:0.82rem;font-weight:600;color:var(--cream);"><strong style="color:var(--wheat);">${ref}</strong> &bull; <strong style="color:#fff;text-transform:uppercase;">${escapeHtml(b.customer_name || 'Guest')}</strong> (${b.slot})</span>
+                <span style="font-size:0.82rem;font-weight:600;color:var(--cream);"><strong style="color:#fff;text-transform:uppercase;">${escapeHtml(b.customer_name || 'Guest')}</strong> (${b.slot})</span>
               `}
               <span class="badge badge-${b.status}" style="font-size:0.68rem;">${formatStatusLabel(b.status)}</span>
               <div style="font-size:0.75rem;color:rgba(245,240,232,0.7);display:inline-flex;align-items:center;gap:6px;">
@@ -3123,10 +3124,8 @@
                   ${customerDropdownOptions}
                 </select>
               ` : `
-                <div style="font-size:1.05rem;font-weight:700;color:var(--cream);display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                  <span>Booking <span style="color:var(--wheat);">${ref}</span></span>
-                  <span style="opacity:0.4;">&bull;</span>
-                  <span style="color:#fff;text-transform:uppercase;">${escapeHtml(b.customer_name || 'Guest')}</span>
+                <div style="font-size:1.05rem;font-weight:700;color:#fff;text-transform:uppercase;">
+                  ${escapeHtml(b.customer_name || 'Guest')}
                 </div>
               `}
               <span class="badge ${isQadri ? 'badge-qadri' : 'badge-hakimi'}">${hallLabel}</span>
@@ -3143,10 +3142,8 @@
 
           <!-- If multiple customers, show the customer header below the dropdown -->
           ${monthBookings.length > 1 ? `
-            <div style="margin-bottom:0.9rem;display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:700;color:var(--cream);">
-              <span>Booking <span style="color:var(--wheat);">${ref}</span></span>
-              <span style="opacity:0.4;">&bull;</span>
-              <span style="color:#fff;text-transform:uppercase;">${escapeHtml(b.customer_name || 'Guest')}</span>
+            <div style="margin-bottom:0.9rem;font-size:1.05rem;font-weight:700;color:#fff;text-transform:uppercase;">
+              ${escapeHtml(b.customer_name || 'Guest')}
             </div>
           ` : ''}
 
