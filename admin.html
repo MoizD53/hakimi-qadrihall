@@ -964,6 +964,17 @@
       background:rgba(255,255,255,0.055);
       box-shadow:0 0 0 3px rgba(201,169,110,0.14);
     }
+    .form-input:-webkit-autofill,
+    .form-input:-webkit-autofill:hover, 
+    .form-input:-webkit-autofill:focus, 
+    .form-input:-webkit-autofill:active{
+      -webkit-box-shadow:0 0 0 1000px #19130d inset !important;
+      box-shadow:0 0 0 1000px #19130d inset !important;
+      -webkit-text-fill-color:#f5f0e8 !important;
+      caret-color:#f5f0e8 !important;
+      transition:background-color 5000s ease-in-out 0s;
+      border-color:rgba(201,169,110,0.45) !important;
+    }
     .form-input::placeholder{
       color:rgba(245,240,232,0.35);
       font-size:0.82rem;
