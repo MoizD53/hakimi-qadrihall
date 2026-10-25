@@ -3381,7 +3381,7 @@
       <div class="cal-nav-bar">
         <div class="cal-month-title" id="calMonthLabel">Loading Calendar...</div>
         <div class="cal-ctrl-btns">
-          <button class="cal-btn-arrow" onclick="changeCustomerMonth(-1)" aria-label="Previous Month"><i class="fas fa-chevron-left"></i></button>
+          <button class="cal-btn-arrow" id="calPrevMonthBtn" onclick="changeCustomerMonth(-1)" aria-label="Previous Month"><i class="fas fa-chevron-left"></i></button>
           <button class="cal-btn-today" onclick="jumpCustomerToToday()">Today</button>
           <button class="cal-btn-arrow" onclick="changeCustomerMonth(1)" aria-label="Next Month"><i class="fas fa-chevron-right"></i></button>
         </div>
@@ -3630,9 +3630,22 @@ document.querySelectorAll('a[href^="#"]').forEach(a => a.addEventListener('click
 /* ═══════════════════════════════════════════
    CUSTOMER REAL-TIME CALENDAR CONTROLLER
 ═══════════════════════════════════════════ */
+function getIndiaTodayParts() {
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+  const parts = formatter.format(new Date()); // "YYYY-MM-DD"
+  const [y, m, d] = parts.split('-').map(Number);
+  return { dateStr: parts, year: y, month: m, day: d };
+}
+
+const todayParts = getIndiaTodayParts();
 let currentCustomerHall = 'Evan-e-Hakimi';
-let currentCustomerYear = new Date().getFullYear();
-let currentCustomerMonth = new Date().getMonth() + 1; // 1-12
+let currentCustomerYear = todayParts.year;
+let currentCustomerMonth = todayParts.month; // 1-12
 let customerMonthCache = {};
 let selectedCustomerDate = null;
 
@@ -3649,26 +3662,56 @@ function switchCustomerHall(hallName) {
   loadCustomerCalendar();
 }
 
-function changeCustomerMonth(delta) {
-  currentCustomerMonth += delta;
-  if (currentCustomerMonth < 1) {
-    currentCustomerMonth = 12;
-    currentCustomerYear--;
-  } else if (currentCustomerMonth > 12) {
-    currentCustomerMonth = 1;
-    currentCustomerYear++;
+function updateNavMonthControls() {
+  const today = getIndiaTodayParts();
+  const isCurrentOrPastMonth = (currentCustomerYear < today.year) ||
+    (currentCustomerYear === today.year && currentCustomerMonth <= today.month);
+  
+  const prevBtn = document.getElementById('calPrevMonthBtn');
+  if (prevBtn) {
+    prevBtn.disabled = isCurrentOrPastMonth;
+    prevBtn.style.opacity = isCurrentOrPastMonth ? '0.2' : '1';
+    prevBtn.style.cursor = isCurrentOrPastMonth ? 'not-allowed' : 'pointer';
+    prevBtn.setAttribute('aria-disabled', isCurrentOrPastMonth ? 'true' : 'false');
+    prevBtn.title = isCurrentOrPastMonth ? 'Past months cannot be selected' : 'Previous Month';
   }
+}
+
+function changeCustomerMonth(delta) {
+  const today = getIndiaTodayParts();
+  let targetYear = currentCustomerYear;
+  let targetMonth = currentCustomerMonth + delta;
+
+  if (targetMonth < 1) {
+    targetMonth = 12;
+    targetYear--;
+  } else if (targetMonth > 12) {
+    targetMonth = 1;
+    targetYear++;
+  }
+
+  // Strictly disallow navigating to any month in the past
+  if (targetYear < today.year || (targetYear === today.year && targetMonth < today.month)) {
+    return;
+  }
+
+  currentCustomerYear = targetYear;
+  currentCustomerMonth = targetMonth;
+  selectedCustomerDate = null;
   loadCustomerCalendar();
 }
 
 function jumpCustomerToToday() {
-  const now = new Date();
-  currentCustomerYear = now.getFullYear();
-  currentCustomerMonth = now.getMonth() + 1;
+  const today = getIndiaTodayParts();
+  currentCustomerYear = today.year;
+  currentCustomerMonth = today.month;
+  selectedCustomerDate = today.dateStr;
   loadCustomerCalendar();
 }
 
 async function loadCustomerCalendar() {
+  updateNavMonthControls();
+
   const monthLabel = document.getElementById('calMonthLabel');
   const grid = document.getElementById('customerCalGrid');
   if (!monthLabel || !grid) return;
@@ -3702,21 +3745,36 @@ function renderCustomerGrid(daysMap) {
   const grid = document.getElementById('customerCalGrid');
   if (!grid) return;
 
+  const today = getIndiaTodayParts();
   const headings = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   let html = headings.map(h => `<div class="cal-day-heading">${h}</div>`).join('');
 
   const firstDayIndex = new Date(Date.UTC(currentCustomerYear, currentCustomerMonth - 1, 1)).getUTCDay();
   const daysInMonth = new Date(Date.UTC(currentCustomerYear, currentCustomerMonth, 0)).getUTCDate();
-  const todayStr = new Date().toISOString().split('T')[0];
 
-  // Empty padding cells for start of month
+  // Empty padding cells before first day of month (preserves correct weekday alignment)
   for (let i = 0; i < firstDayIndex; i++) {
-    html += '<div class="cal-day-cell empty-pad"></div>';
+    html += '<div class="cal-day-cell empty-pad" aria-hidden="true"></div>';
   }
+
+  let firstSelectableDate = null;
 
   for (let day = 1; day <= daysInMonth; day++) {
     const dateStr = `${currentCustomerYear}-${String(currentCustomerMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    const isToday = dateStr === todayStr;
+    
+    // CRITICAL: HIDE ALL PAST DATES COMPLETELY
+    // If date is before today, render empty cell to preserve the 7-day grid geometry,
+    // without rendering date number, dot, label, status, or any clickable interaction!
+    if (dateStr < today.dateStr) {
+      html += '<div class="cal-day-cell empty-pad" aria-hidden="true"></div>';
+      continue;
+    }
+
+    if (!firstSelectableDate) {
+      firstSelectableDate = dateStr;
+    }
+
+    const isToday = dateStr === today.dateStr;
     const isSelected = dateStr === selectedCustomerDate;
     const dayInfo = daysMap[dateStr] || { color: 'green', status: 'available', label: 'Available' };
 
@@ -3751,21 +3809,37 @@ function renderCustomerGrid(daysMap) {
 
   grid.innerHTML = html;
 
-  // If already selected a date, update inspector
-  if (selectedCustomerDate && daysMap[selectedCustomerDate]) {
+  // Selected date management: strictly only today or future dates
+  const isSelectedValid = selectedCustomerDate && selectedCustomerDate >= today.dateStr && daysMap[selectedCustomerDate];
+  if (isSelectedValid) {
     updateDateInspector(selectedCustomerDate, daysMap[selectedCustomerDate]);
   } else {
-    // Default select today if in this month, or 1st of month
-    const defaultDate = daysMap[todayStr] ? todayStr : `${currentCustomerYear}-${String(currentCustomerMonth).padStart(2, '0')}-01`;
-    if (daysMap[defaultDate]) {
+    // Select today if in this month, otherwise select first available future date in this month
+    const defaultDate = (daysMap[today.dateStr] && currentCustomerYear === today.year && currentCustomerMonth === today.month) 
+      ? today.dateStr 
+      : firstSelectableDate;
+
+    if (defaultDate && daysMap[defaultDate]) {
       selectCustomerDate(defaultDate);
+    } else {
+      const card = document.getElementById('calInspectorCard');
+      if (card) card.style.display = 'none';
     }
   }
 }
 
 function selectCustomerDate(dateStr) {
+  const today = getIndiaTodayParts();
+  // Refuse selecting any past dates
+  if (dateStr < today.dateStr) return;
+
   selectedCustomerDate = dateStr;
   document.querySelectorAll('.cal-day-cell').forEach(c => c.classList.remove('selected'));
+  
+  // Highlight the selected day cell in DOM
+  const targetCell = Array.from(document.querySelectorAll('.cal-day-cell')).find(el => el.getAttribute('onclick')?.includes(dateStr));
+  if (targetCell) targetCell.classList.add('selected');
+
   const dayInfo = customerMonthCache[dateStr];
   if (dayInfo) {
     updateDateInspector(dateStr, dayInfo);

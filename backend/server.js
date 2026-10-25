@@ -1793,6 +1793,15 @@ app.get('/api/public/calendar', async (req, res) => {
     const { hall = 'Evan-e-Hakimi', month, year } = req.query;
     const cleanHall = String(hall).toLowerCase().includes('qadri') ? 'Qadri Hall' : 'Evan-e-Hakimi';
 
+    // Current India time reference
+    const nowIndia = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Kolkata',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).format(new Date());
+    const [curYear, curMonth] = nowIndia.split('-').map(Number);
+
     let targetYear, targetMonth;
     if (month && String(month).includes('-')) {
       const parts = String(month).split('-');
@@ -1802,9 +1811,14 @@ app.get('/api/public/calendar', async (req, res) => {
       targetYear = parseInt(year, 10);
       targetMonth = parseInt(month, 10);
     } else {
-      const now = new Date();
-      targetYear = now.getFullYear();
-      targetMonth = now.getMonth() + 1;
+      targetYear = curYear;
+      targetMonth = curMonth;
+    }
+
+    // Safety guard: prevent public calendar requests from querying past months
+    if (targetYear < curYear || (targetYear === curYear && targetMonth < curMonth)) {
+      targetYear = curYear;
+      targetMonth = curMonth;
     }
 
     const startDate = `${targetYear}-${String(targetMonth).padStart(2, '0')}-01`;
@@ -1814,17 +1828,26 @@ app.get('/api/public/calendar', async (req, res) => {
     const rawDays = await getHallAvailabilityRange(cleanHall, startDate, endDate);
 
     // Sanitize: NEVER leak customer details, phones, amounts, or internal notes
+    // For past dates in current month, mark is_past to ensure historical slot data is never exposed
     const sanitizedDays = {};
     for (const [d, info] of Object.entries(rawDays)) {
-      sanitizedDays[d] = {
-        date: info.date,
-        hall: info.hall,
-        color: info.color,
-        status: info.status,
-        label: info.label,
-        is_blocked: info.is_blocked,
-        slots: info.slots
-      };
+      if (d < nowIndia) {
+        sanitizedDays[d] = {
+          date: d,
+          hall: cleanHall,
+          is_past: true
+        };
+      } else {
+        sanitizedDays[d] = {
+          date: info.date,
+          hall: info.hall,
+          color: info.color,
+          status: info.status,
+          label: info.label,
+          is_blocked: info.is_blocked,
+          slots: info.slots
+        };
+      }
     }
 
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -1835,6 +1858,7 @@ app.get('/api/public/calendar', async (req, res) => {
       month: targetMonth,
       startDate,
       endDate,
+      today: nowIndia,
       days: sanitizedDays
     });
   } catch (err) {
