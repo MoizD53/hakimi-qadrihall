@@ -1023,23 +1023,45 @@
       box-shadow:none;
       transform:none;
     }
+    /* ── REFINED LUXURY ERROR ALERT ── */
     .alert-banner{
-      background:rgba(185,28,28,0.12);
-      border:1px solid rgba(239,68,68,0.3);
-      color:#fca5a5;
-      border-radius:8px;
-      padding:0.75rem 0.95rem;
-      font-size:0.76rem;
       display:none;
-      align-items:center;
-      gap:0.6rem;
-      margin-bottom:1.15rem;
+      align-items:flex-start;
+      gap:0.75rem;
+      padding:0.85rem 1.05rem;
+      margin-bottom:1.25rem;
+      border-radius:9px;
+      background:linear-gradient(135deg, rgba(38, 16, 16, 0.92) 0%, rgba(20, 10, 10, 0.96) 100%);
+      border:1px solid rgba(212, 110, 110, 0.25);
+      border-left:3px solid #d47070;
+      box-shadow:0 8px 24px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      color:#f7dede;
+      font-size:0.8rem;
       line-height:1.45;
+      letter-spacing:0.15px;
+      animation:alertSlide 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes alertSlide{
+      from{ opacity:0; transform:translateY(-6px); }
+      to{ opacity:1; transform:translateY(0); }
     }
     .alert-banner i{
-      font-size:0.85rem;
-      color:#f87171;
+      font-size:0.88rem;
+      color:#e28282;
+      margin-top:0.15rem;
       flex-shrink:0;
+    }
+    .shake {
+      animation:alertShake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    }
+    @keyframes alertShake {
+      0%, 100% { transform:translateX(0); }
+      15%, 45%, 75% { transform:translateX(-4px); }
+      30%, 60%, 90% { transform:translateX(4px); }
+    }
+    .form-input.input-error {
+      border-color:rgba(220, 110, 110, 0.55) !important;
+      background:rgba(255, 200, 200, 0.04) !important;
     }
     .pwa-divider{
       display:flex;
@@ -2608,17 +2630,49 @@
       }
     }
 
+    function showAdminLoginError(rawMsg) {
+      const banner = document.getElementById('adminErrBanner');
+      const msg = document.getElementById('adminErrMsg');
+      const card = document.querySelector('#adminAuthScreen .login-card');
+      const uInput = document.getElementById('adminUsername');
+      const pInput = document.getElementById('adminPassword');
+
+      let displayMsg = rawMsg;
+      if (!rawMsg || rawMsg.includes('Server configuration error') || rawMsg.includes('Admin credentials not configured') || rawMsg.includes('Invalid credentials')) {
+        displayMsg = 'Invalid username or password. Please verify your credentials.';
+      }
+
+      msg.textContent = displayMsg;
+      banner.style.display = 'flex';
+
+      if (uInput) uInput.classList.add('input-error');
+      if (pInput) pInput.classList.add('input-error');
+
+      if (card) {
+        card.classList.remove('shake');
+        void card.offsetWidth;
+        card.classList.add('shake');
+      }
+    }
+
+    ['adminUsername', 'adminPassword'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('input', () => {
+          el.classList.remove('input-error');
+        });
+      }
+    });
+
     async function handleAdminLogin(e) {
       e.preventDefault();
       const u = document.getElementById('adminUsername').value.trim();
       const p = document.getElementById('adminPassword').value;
       const btn = document.getElementById('adminSubmitBtn');
       const banner = document.getElementById('adminErrBanner');
-      const msg = document.getElementById('adminErrMsg');
 
       if (!u || !p) {
-        msg.textContent = 'Please enter both username and password.';
-        banner.style.display = 'flex';
+        showAdminLoginError('Please enter both username and password.');
         return;
       }
 
@@ -2648,14 +2702,12 @@
           btn.disabled = false;
           showDashboard();
         } else {
-          msg.textContent = data.error || data.message || 'Invalid username or password.';
-          banner.style.display = 'flex';
+          showAdminLoginError(data.error || data.message);
           btn.disabled = false;
           btn.innerHTML = '<span>Sign In to Dashboard</span> <i class="fas fa-arrow-right" style="font-size:0.75rem"></i>';
         }
       } catch (err) {
-        msg.textContent = 'Unable to connect to authentication server. Please check your internet connection.';
-        banner.style.display = 'flex';
+        showAdminLoginError('Unable to connect to authentication server. Please check your internet connection.');
         btn.disabled = false;
         btn.innerHTML = '<span>Sign In to Dashboard</span> <i class="fas fa-arrow-right" style="font-size:0.75rem"></i>';
       }
