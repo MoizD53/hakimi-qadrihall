@@ -10,6 +10,8 @@ const rateLimit = require('express-rate-limit');
 const jwt       = require('jsonwebtoken');
 const db        = require('./db');
 const { requireAuth } = require('./middleware/auth');
+const memoryCache = require('./cache');
+const { dbMetrics } = require('./dbMetrics');
 
 const app = express();
 const rootDir = path.join(__dirname, '..');
@@ -695,7 +697,10 @@ app.get('/api/bookings', requireAuth, async (req, res) => {
       params.push(s, s, s, s, s);
     }
 
-    query += ` ORDER BY check_in ASC, created_at DESC`;
+    const limit = Math.min(parseInt(req.query.limit, 10) || 500, 1000);
+    const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
+    query += ` ORDER BY check_in ASC, created_at DESC LIMIT ? OFFSET ?`;
+    params.push(limit, offset);
 
     const result = await db.query(query, params);
     const rows = result.rows || [];
@@ -733,15 +738,34 @@ app.get('/api/bookings', requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/bookings/summary — Summary counts for central dashboard (admin only)
+// GET /api/bookings/summary — Summary counts for central dashboard (admin only, SQL aggregated & cached)
 app.get('/api/bookings/summary', requireAuth, async (req, res) => {
   try {
     const { hall, fromDate, toDate } = req.query;
-    let sql = 'SELECT * FROM bookings WHERE 1=1';
-    const params = [];
+    const cleanHall = hall && hall !== 'all' ? (String(hall).toLowerCase().includes('qadri') ? 'Qadri Hall' : 'Evan-e-Hakimi') : 'all';
+    const cacheKey = `summary:${cleanHall}:${fromDate || ''}:${toDate || ''}`;
+    const cached = memoryCache.get(cacheKey);
+    if (cached) {
+      return res.json(cached);
+    }
 
-    if (hall && hall !== 'all') {
-      const cleanHall = String(hall).toLowerCase().includes('qadri') ? 'Qadri Hall' : 'Evan-e-Hakimi';
+    const today = new Date().toISOString().split('T')[0];
+    let sql = `
+      SELECT 
+        COUNT(CASE WHEN status NOT IN ('cancelled', 'CANCELLED', 'rejected', 'REJECTED') THEN 1 END) as totalBookings,
+        COUNT(CASE WHEN status NOT IN ('cancelled', 'CANCELLED', 'rejected', 'REJECTED') AND check_in >= ? THEN 1 END) as upcomingEvents,
+        COUNT(CASE WHEN status IN ('cancelled', 'CANCELLED', 'rejected', 'REJECTED') THEN 1 END) as cancelledBookings,
+        COUNT(CASE WHEN status NOT IN ('cancelled', 'CANCELLED', 'rejected', 'REJECTED') AND (payment_status = 'fully_paid' OR status = 'FULLY_PAID') THEN 1 END) as fullyPaidBookings,
+        COUNT(CASE WHEN status NOT IN ('cancelled', 'CANCELLED', 'rejected', 'REJECTED') AND (payment_status = 'advance_paid' OR status IN ('ADVANCE_PAID', 'advance_verified')) THEN 1 END) as advanceCollected,
+        COUNT(CASE WHEN status NOT IN ('cancelled', 'CANCELLED', 'rejected', 'REJECTED') AND (payment_status = 'advance_paid' OR status IN ('ADVANCE_PAID', 'advance_verified')) AND total_amount > advance_paid THEN 1 END) as remainingBalancePending,
+        COUNT(CASE WHEN status NOT IN ('cancelled', 'CANCELLED', 'rejected', 'REJECTED') AND (payment_status NOT IN ('fully_paid', 'advance_paid') AND status NOT IN ('FULLY_PAID', 'ADVANCE_PAID', 'advance_verified')) THEN 1 END) as awaitingAdvance,
+        COALESCE(SUM(CASE WHEN status NOT IN ('cancelled', 'CANCELLED', 'rejected', 'REJECTED') THEN total_amount ELSE 0 END), 0) as totalAmountBooked,
+        COALESCE(SUM(CASE WHEN status NOT IN ('cancelled', 'CANCELLED', 'rejected', 'REJECTED') THEN advance_paid ELSE 0 END), 0) as actualPaymentsCollected
+      FROM bookings WHERE 1=1
+    `;
+    const params = [today];
+
+    if (cleanHall !== 'all') {
       sql += ' AND COALESCE(hall, "Evan-e-Hakimi") = ?';
       params.push(cleanHall);
     }
@@ -755,56 +779,20 @@ app.get('/api/bookings/summary', requireAuth, async (req, res) => {
     }
 
     const result = await db.query(sql, params);
-    const rows = result.rows || [];
-    const today = new Date().toISOString().split('T')[0];
+    const agg = result.rows && result.rows[0] ? result.rows[0] : {};
 
-    let totalBookings = 0;
-    let upcomingEvents = 0;
-    let awaitingAdvance = 0;
-    let advanceCollected = 0;
-    let remainingBalancePending = 0;
-    let fullyPaidBookings = 0;
-    let cancelledBookings = 0;
-    let totalAmountBooked = 0;
-    let actualPaymentsCollected = 0;
-    let outstandingBalance = 0;
+    const totalBookings = parseInt(agg.totalBookings || 0, 10);
+    const upcomingEvents = parseInt(agg.upcomingEvents || 0, 10);
+    const cancelledBookings = parseInt(agg.cancelledBookings || 0, 10);
+    const fullyPaidBookings = parseInt(agg.fullyPaidBookings || 0, 10);
+    const advanceCollected = parseInt(agg.advanceCollected || 0, 10);
+    const remainingBalancePending = parseInt(agg.remainingBalancePending || 0, 10);
+    const awaitingAdvance = parseInt(agg.awaitingAdvance || 0, 10);
+    const totalAmountBooked = parseFloat(agg.totalAmountBooked || 0);
+    const actualPaymentsCollected = parseFloat(agg.actualPaymentsCollected || 0);
+    const outstandingBalance = Math.max(0, totalAmountBooked - actualPaymentsCollected);
 
-    rows.forEach(r => {
-      const s = String(r.status || '').toLowerCase();
-      const ps = String(r.payment_status || '').toLowerCase();
-      const total = parseFloat(r.total_amount || 0);
-      const paid = parseFloat(r.advance_paid || 0);
-      const isCancelled = s === 'cancelled' || s === 'rejected';
-
-      if (isCancelled) {
-        cancelledBookings++;
-        return;
-      }
-
-      totalBookings++;
-
-      if (r.check_in >= today) {
-        upcomingEvents++;
-      }
-
-      if (ps === 'fully_paid' || s === 'fully_paid') {
-        fullyPaidBookings++;
-      } else if (ps === 'advance_paid' || s === 'advance_paid' || s === 'advance_verified') {
-        advanceCollected++;
-        if (total > paid) {
-          remainingBalancePending++;
-        }
-      } else {
-        awaitingAdvance++;
-      }
-
-      totalAmountBooked += total;
-      actualPaymentsCollected += paid;
-    });
-
-    outstandingBalance = Math.max(0, totalAmountBooked - actualPaymentsCollected);
-
-    res.json({
+    const responsePayload = {
       success: true,
       totalBookings,
       upcomingEvents,
@@ -826,7 +814,10 @@ app.get('/api/bookings/summary', requireAuth, async (req, res) => {
       totalConfirmed: totalBookings,
       totalCollected: actualPaymentsCollected,
       totalOutstanding: outstandingBalance
-    });
+    };
+
+    memoryCache.set(cacheKey, responsePayload);
+    res.json(responsePayload);
   } catch (err) {
     sendError(res, 500, 'Failed to fetch bookings summary', err);
   }
@@ -1100,6 +1091,7 @@ app.post('/api/bookings', async (req, res) => {
     }
 
     await tx.commit();
+    memoryCache.invalidateAll();
 
     logAudit('booking_created', 'booking', inserted.id, `Created ${initialStatus} for ${custName} on ${eventDate} (${cleanHall}, ${eventSlot}, ₹${finalPrice})`, req.admin?.username || 'public_enquiry');
 res.json({ success: true, bookingId: inserted.id, booking: inserted });
@@ -1782,7 +1774,7 @@ app.delete('/api/bookings/:id', requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/public/calendar — Public sanitized real-time calendar availability per hall
+// GET /api/public/calendar — Public sanitized real-time calendar availability per hall (cached)
 app.get('/api/public/calendar', async (req, res) => {
   try {
     const { hall = 'Evan-e-Hakimi', month, year } = req.query;
@@ -1816,6 +1808,13 @@ app.get('/api/public/calendar', async (req, res) => {
       targetMonth = curMonth;
     }
 
+    const cacheKey = `calendar:${cleanHall}:${targetYear}:${targetMonth}`;
+    const cached = memoryCache.get(cacheKey);
+    if (cached) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      return res.json(cached);
+    }
+
     const startDate = `${targetYear}-${String(targetMonth).padStart(2, '0')}-01`;
     const lastDayNum = new Date(Date.UTC(targetYear, targetMonth, 0)).getUTCDate();
     const endDate = `${targetYear}-${String(targetMonth).padStart(2, '0')}-${String(lastDayNum).padStart(2, '0')}`;
@@ -1845,8 +1844,7 @@ app.get('/api/public/calendar', async (req, res) => {
       }
     }
 
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.json({
+    const payload = {
       success: true,
       hall: cleanHall,
       year: targetYear,
@@ -1855,7 +1853,12 @@ app.get('/api/public/calendar', async (req, res) => {
       endDate,
       today: nowIndia,
       days: sanitizedDays
-    });
+    };
+
+    memoryCache.set(cacheKey, payload);
+
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.json(payload);
   } catch (err) {
     sendError(res, 500, 'Failed to fetch public calendar availability', err);
   }
@@ -2603,6 +2606,19 @@ app.get('/api/audit-logs', requireAuth, async (req, res) => {
     res.json(result.rows || []);
   } catch (err) {
     sendError(res, 500, 'Failed to fetch audit logs', err);
+  }
+});
+
+// GET /api/admin/db-usage — Real-time database quota, tier status & cost telemetry (admin only)
+app.get('/api/admin/db-usage', requireAuth, async (req, res) => {
+  try {
+    const stats = dbMetrics.getStats();
+    res.json({
+      success: true,
+      ...stats
+    });
+  } catch (err) {
+    sendError(res, 500, 'Failed to fetch database usage metrics', err);
   }
 });
 
