@@ -3734,7 +3734,7 @@
 
         const isPreOpening = isQadri && dateStr < '2026-11-21';
         let colorCode = '#22c55e'; // GREEN
-        let statusBadgeText = '🟢 Available';
+        let statusBadgeText = 'Available';
         let statusClass = 'status-green';
 
         if (isPreOpening) {
@@ -3743,7 +3743,7 @@
           statusClass = 'status-grey';
         } else if (dayBlock) {
           colorCode = '#ef4444'; // RED
-          statusBadgeText = '🔴 Blocked';
+          statusBadgeText = 'Blocked';
           statusClass = 'status-red';
         } else {
           const hasFull = dayBookings.some(b => b.slot === 'fullday');
@@ -3752,11 +3752,11 @@
 
           if (hasFull || (hasMorning && hasEvening)) {
             colorCode = '#ef4444'; // RED
-            statusBadgeText = '🔴 Fully Booked';
+            statusBadgeText = 'Fully Booked';
             statusClass = 'status-red';
           } else if (hasMorning || hasEvening) {
             colorCode = '#eab308'; // YELLOW
-            statusBadgeText = `🟡 Partial (${hasMorning ? 'Eve Open' : 'Morn Open'})`;
+            statusBadgeText = `Partial (${hasMorning ? 'Eve Open' : 'Morn Open'})`;
             statusClass = 'status-yellow';
           }
         }
@@ -3786,7 +3786,6 @@
           });
         }
 
-        const cleanBadgeText = statusBadgeText.replace(/^[🟢🟡🔴]\s*/, '');
         html += `
           <div class="cal-cell ${isToday ? 'today' : ''} ${statusClass}" 
                style="cursor:pointer;min-height:95px;"
@@ -3796,7 +3795,7 @@
               ${isToday ? '<span class="cal-today-badge">TODAY</span>' : ''}
               <span style="font-size:0.58rem;font-weight:600;color:${colorCode};display:inline-flex;align-items:center;gap:4px;">
                 <span style="width:5px;height:5px;border-radius:50%;background:${colorCode};display:inline-block;"></span>
-                ${cleanBadgeText}
+                ${statusBadgeText}
               </span>
             </div>
             ${pillsHtml}
@@ -4579,7 +4578,7 @@
     /* ════════ DATE BLOCKING SYSTEM ════════ */
     function openDateBlockModal(hall = 'Evan-e-Hakimi', date = '') {
       document.getElementById('blockHall').value = hall;
-      if (date) document.getElementById('blockDate').value = date;
+      setDateVal('blockDate', date);
       document.getElementById('blockReason').value = '';
       openModal('modalDateBlock');
     }
@@ -4800,7 +4799,7 @@
       document.getElementById('bEditId').value = '';
       document.getElementById('bookingModalTitle').textContent = 'Create Hall Booking';
       document.getElementById('rowInitialPayment').style.display = 'grid';
-      document.getElementById('bDate').valueAsDate = new Date();
+      setDateVal('bDate');
       recalculatePriceHint();
       openModal('modalBooking');
     }
@@ -4811,7 +4810,7 @@
       document.getElementById('bEditId').value = b.id;
       document.getElementById('bookingModalTitle').textContent = 'Edit Booking #' + b.id;
       document.getElementById('bHall').value = b.hall || 'Evan-e-Hakimi';
-      document.getElementById('bDate').value = b.check_in || '';
+      setDateVal('bDate', b.check_in);
       document.getElementById('bSlot').value = b.slot || 'morning';
       document.getElementById('bPkg').value = b.package || 'without_jaman';
       document.getElementById('bName').value = b.customer_name || '';
@@ -4985,7 +4984,7 @@
 
       document.getElementById('payAmount').value = bal > 0 ? bal : (total * 0.4);
       document.getElementById('payType').value = bal === 0 ? 'full' : (paid > 0 ? 'balance' : 'advance');
-      document.getElementById('payDate').valueAsDate = new Date();
+      setDateVal('payDate');
       openModal('modalPayment');
     }
 
@@ -5100,7 +5099,7 @@
       document.getElementById('expEditId').value = '';
       document.getElementById('expModalTitle').textContent = 'Record Expense';
       document.getElementById('eHall').value = 'Evan-e-Hakimi';
-      document.getElementById('eDate').valueAsDate = new Date();
+      setDateVal('eDate');
       openModal('modalExpense');
     }
 
@@ -5113,7 +5112,7 @@
       document.getElementById('eHall').value = e.hall || 'Evan-e-Hakimi';
       document.getElementById('eCat').value = e.category || 'utilities';
       document.getElementById('eAmount').value = e.amount || '';
-      document.getElementById('eDate').value = e.date || '';
+      setDateVal('eDate', e.date);
       document.getElementById('ePayMethod').value = e.payment_method || 'Cash';
       document.getElementById('ePaidTo').value = e.paid_to || '';
       document.getElementById('eReceipt').value = e.receipt_url || '';
@@ -5276,7 +5275,7 @@
       document.getElementById('formStaff').reset();
       document.getElementById('staffEditId').value = '';
       document.getElementById('staffModalTitle').textContent = 'Add Staff Member';
-      document.getElementById('sJoinDate').valueAsDate = new Date();
+      setDateVal('sJoinDate');
       openModal('modalStaff');
     }
 
@@ -5289,7 +5288,7 @@
       document.getElementById('sPhone').value = s.phone || '';
       document.getElementById('sRole').value = s.role || '';
       document.getElementById('sSalary').value = s.salary || '';
-      document.getElementById('sJoinDate').value = s.joining_date || '';
+      setDateVal('sJoinDate', s.joining_date);
       document.getElementById('sStatus').value = s.status || 'active';
       document.getElementById('sNotes').value = s.notes || '';
       openModal('modalStaff');
@@ -5361,7 +5360,7 @@
       const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
       document.getElementById('salPeriod').value = `${monthNames[now.getMonth()]} ${now.getFullYear()}`;
       document.getElementById('salAmount').value = s.salary || 0;
-      document.getElementById('salDate').valueAsDate = new Date();
+      setDateVal('salDate');
       openModal('modalSalaryPay');
     }
 
@@ -5497,6 +5496,32 @@
     }
 
     /* ════════ HELPERS & MODAL UTILITIES ════════ */
+    function setDateVal(id, dateObjOrStr) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      let dateStr = '';
+      if (dateObjOrStr instanceof Date) {
+        const yyyy = dateObjOrStr.getFullYear();
+        const mm = String(dateObjOrStr.getMonth() + 1).padStart(2, '0');
+        const dd = String(dateObjOrStr.getDate()).padStart(2, '0');
+        dateStr = `${yyyy}-${mm}-${dd}`;
+      } else if (dateObjOrStr) {
+        dateStr = String(dateObjOrStr).split('T')[0];
+      } else {
+        const d = new Date();
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        dateStr = `${yyyy}-${mm}-${dd}`;
+      }
+
+      el.value = dateStr;
+      try { el.valueAsDate = new Date(dateStr + 'T12:00:00Z'); } catch (_) {}
+      if (el._flatpickr) {
+        el._flatpickr.setDate(dateStr, false);
+      }
+    }
+
     function initLuxuryDatePickers() {
       if (typeof flatpickr === 'undefined') return;
       document.querySelectorAll('input[type="date"]').forEach(el => {
@@ -5504,8 +5529,6 @@
         const initialVal = el.value;
         flatpickr(el, {
           dateFormat: 'Y-m-d',
-          altInput: true,
-          altFormat: 'd-m-Y',
           allowInput: true,
           disableMobile: true,
           defaultDate: initialVal || null,
