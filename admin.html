@@ -1548,66 +1548,6 @@
           </div>
         </div>
 
-        <!-- DATABASE QUOTA & PERFORMANCE TELEMETRY -->
-        <div class="card" style="margin-bottom:1.5rem;background:linear-gradient(135deg, rgba(20,14,8,0.95), rgba(36,22,10,0.85));border:1px solid rgba(201,169,110,0.25);border-radius:12px;padding:1.1rem 1.4rem;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.9rem;flex-wrap:wrap;gap:10px;">
-            <div style="display:flex;align-items:center;gap:10px;">
-              <div style="width:36px;height:36px;border-radius:8px;background:rgba(201,169,110,0.12);border:1px solid rgba(201,169,110,0.3);display:flex;align-items:center;justify-content:center;color:var(--wheat);">
-                <i class="fas fa-server"></i>
-              </div>
-              <div>
-                <div style="font-family:'Cinzel',serif;font-size:0.92rem;font-weight:600;color:var(--cream);letter-spacing:0.5px;">Database Quota &amp; Cost Performance</div>
-                <div style="font-size:0.72rem;color:rgba(245,240,232,0.5);">Turso / libSQL Real-Time Telemetry &bull; Monthly Cap: 20,000,000 Rows Read</div>
-              </div>
-            </div>
-            <div style="display:flex;align-items:center;gap:12px;">
-              <span id="dbTierBadge" class="badge-status" style="background:rgba(34,197,94,0.15);color:#86efac;border:1px solid rgba(34,197,94,0.3);font-size:0.7rem;padding:0.25rem 0.65rem;border-radius:20px;font-weight:600;letter-spacing:0.5px;">
-                <i class="fas fa-shield-alt"></i> TIER: NORMAL (0–70%)
-              </span>
-              <button class="btn-quick" style="padding:0.3rem 0.75rem;font-size:0.72rem;" onclick="loadDbUsageMetrics()">
-                <i class="fas fa-sync-alt"></i> Refresh Telemetry
-              </button>
-            </div>
-          </div>
-
-          <!-- Progress Bar for Monthly 20M Read Limit -->
-          <div style="margin-bottom:1rem;">
-            <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.75rem;margin-bottom:6px;">
-              <span style="color:var(--cream);font-weight:500;">
-                <i class="fas fa-book-reader" style="color:var(--wheat);margin-right:4px;"></i> Monthly Rows Read:
-                <strong id="dbRowsReadText" style="color:var(--wheat);font-weight:700;">0</strong> / 20,000,000
-              </span>
-              <span id="dbReadPercentText" style="color:#86efac;font-weight:600;">0.00% Consumed</span>
-            </div>
-            <div style="width:100%;height:8px;background:rgba(255,255,255,0.06);border-radius:10px;overflow:hidden;border:1px solid rgba(201,169,110,0.15);">
-              <div id="dbReadProgressBar" style="width:0.1%;height:100%;background:linear-gradient(90deg, #22c55e, #c9a96e);border-radius:10px;transition:width 0.4s ease;"></div>
-            </div>
-          </div>
-
-          <!-- Micro-Stats Grid -->
-          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));gap:10px;font-size:0.74rem;">
-            <div style="background:rgba(0,0,0,0.25);border:1px solid rgba(201,169,110,0.12);border-radius:8px;padding:0.6rem 0.8rem;">
-              <div style="color:rgba(245,240,232,0.45);font-size:0.68rem;text-transform:uppercase;letter-spacing:0.5px;">Monthly Writes</div>
-              <div id="dbRowsWritten" style="font-weight:700;color:var(--cream);font-size:0.95rem;margin-top:2px;">0</div>
-              <div style="color:rgba(245,240,232,0.35);font-size:0.65rem;">Budget: 500k writes</div>
-            </div>
-            <div style="background:rgba(0,0,0,0.25);border:1px solid rgba(201,169,110,0.12);border-radius:8px;padding:0.6rem 0.8rem;">
-              <div style="color:rgba(245,240,232,0.45);font-size:0.68rem;text-transform:uppercase;letter-spacing:0.5px;">Total Queries</div>
-              <div id="dbQueryCount" style="font-weight:700;color:var(--cream);font-size:0.95rem;margin-top:2px;">0</div>
-              <div style="color:rgba(245,240,232,0.35);font-size:0.65rem;">Active session</div>
-            </div>
-            <div style="background:rgba(0,0,0,0.25);border:1px solid rgba(201,169,110,0.12);border-radius:8px;padding:0.6rem 0.8rem;">
-              <div style="color:rgba(245,240,232,0.45);font-size:0.68rem;text-transform:uppercase;letter-spacing:0.5px;">Cache Hit Rate</div>
-              <div id="dbCacheHitRate" style="font-weight:700;color:#86efac;font-size:0.95rem;margin-top:2px;">100.0%</div>
-              <div style="color:rgba(245,240,232,0.35);font-size:0.65rem;">Saved from DB read</div>
-            </div>
-            <div style="background:rgba(0,0,0,0.25);border:1px solid rgba(201,169,110,0.12);border-radius:8px;padding:0.6rem 0.8rem;">
-              <div style="color:rgba(245,240,232,0.45);font-size:0.68rem;text-transform:uppercase;letter-spacing:0.5px;">Safety Margin</div>
-              <div id="dbSafetyMargin" style="font-weight:700;color:var(--wheat);font-size:0.95rem;margin-top:2px;">50x Free Plan</div>
-              <div style="color:rgba(245,240,232,0.35);font-size:0.65rem;">Hard limit protected</div>
-            </div>
-          </div>
-        </div>
 
         <div class="stats-grid">
           <div class="stat-card">
@@ -3552,64 +3492,8 @@
             `;
           }).join('');
         }
-
-        // Fetch Real-time Database Quota & Telemetry
-        loadDbUsageMetrics();
       } catch (err) {
         console.error('Failed to load overview:', err);
-      }
-    }
-
-    async function loadDbUsageMetrics() {
-      try {
-        const res = await authFetch('/api/admin/db-usage');
-        if (!res.ok) return;
-        const data = await res.json();
-
-        const readEl = document.getElementById('dbRowsReadText');
-        const pctEl = document.getElementById('dbReadPercentText');
-        const barEl = document.getElementById('dbReadProgressBar');
-        const badgeEl = document.getElementById('dbTierBadge');
-        const writesEl = document.getElementById('dbRowsWritten');
-        const queriesEl = document.getElementById('dbQueryCount');
-        const cacheEl = document.getElementById('dbCacheHitRate');
-
-        if (readEl) readEl.textContent = (data.rowsRead || 0).toLocaleString('en-IN');
-        if (pctEl) pctEl.textContent = `${(data.readPercentage || 0).toFixed(3)}% Consumed`;
-        if (barEl) {
-          const pct = Math.max(0.4, Math.min(100, data.readPercentage || 0));
-          barEl.style.width = `${pct}%`;
-          if (data.tier === 'HARD_LIMIT' || data.tier === 'RESTRICTED') {
-            barEl.style.background = '#ef4444';
-          } else if (data.tier === 'THROTTLE' || data.tier === 'MONITOR') {
-            barEl.style.background = '#f59e0b';
-          } else {
-            barEl.style.background = 'linear-gradient(90deg, #22c55e, #c9a96e)';
-          }
-        }
-
-        if (badgeEl) {
-          badgeEl.innerHTML = `<i class="fas fa-shield-alt"></i> TIER: ${data.tier || 'NORMAL'} (${(data.readPercentage || 0).toFixed(2)}%)`;
-          if (data.tier === 'HARD_LIMIT') {
-            badgeEl.style.background = 'rgba(239,68,68,0.2)';
-            badgeEl.style.color = '#ef4444';
-            badgeEl.style.borderColor = 'rgba(239,68,68,0.4)';
-          } else if (data.tier === 'RESTRICTED' || data.tier === 'THROTTLE') {
-            badgeEl.style.background = 'rgba(245,158,11,0.2)';
-            badgeEl.style.color = '#f59e0b';
-            badgeEl.style.borderColor = 'rgba(245,158,11,0.4)';
-          } else {
-            badgeEl.style.background = 'rgba(34,197,94,0.15)';
-            badgeEl.style.color = '#86efac';
-            badgeEl.style.borderColor = 'rgba(34,197,94,0.3)';
-          }
-        }
-
-        if (writesEl) writesEl.textContent = `${(data.rowsWritten || 0).toLocaleString('en-IN')} / ${(data.maxRowsWritten || 500000).toLocaleString('en-IN')}`;
-        if (queriesEl) queriesEl.textContent = (data.queryCount || 0).toLocaleString('en-IN');
-        if (cacheEl && data.cache) cacheEl.textContent = data.cache.hitRate || '100.0%';
-      } catch (err) {
-        console.warn('Failed to load DB usage metrics:', err);
       }
     }
 
