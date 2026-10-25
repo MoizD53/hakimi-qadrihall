@@ -2938,7 +2938,27 @@
       cursor: default;
       border: none;
     }
-    .cal-day-cell:hover:not(.empty-pad) {
+    .cal-day-cell.cal-past-date {
+      background: rgba(14, 10, 7, 0.45);
+      border-color: rgba(201, 169, 110, 0.06);
+      cursor: not-allowed;
+      opacity: 0.42;
+      pointer-events: none;
+    }
+    .cal-day-cell.cal-past-date .cal-date-number span {
+      color: #786b5e;
+    }
+    .cal-past-label {
+      font-size: 0.62rem;
+      letter-spacing: 0.3px;
+      color: #63574a;
+      font-weight: 500;
+    }
+    .cal-day-cell.cal-is-today {
+      border-color: rgba(201, 169, 110, 0.6);
+      box-shadow: inset 0 0 10px rgba(201, 169, 110, 0.08);
+    }
+    .cal-day-cell:hover:not(.empty-pad):not(.cal-past-date) {
       background: rgba(201,169,110,0.06);
       border-color: rgba(201,169,110,0.3);
     }
@@ -3234,24 +3254,21 @@
         display: block;
       }
       .cal-section {
-        padding: 3.5rem 1rem 6rem;
+        padding: 3rem 0.85rem 5.5rem;
       }
       .cal-card {
-        padding: 1.2rem 0.8rem;
-        border-radius: 16px;
+        padding: 1.1rem 0.75rem;
+        border-radius: 14px;
       }
       .cal-day-cell {
-        min-height: 68px;
+        min-height: 60px;
         padding: 4px;
       }
-      .cal-badge-pill {
-        font-size: 0.58rem;
-        padding: 2px 3px;
-      }
       .cal-legend-bar {
-        gap: 12px;
-        font-size: 0.74rem;
-        padding: 0.5rem;
+        gap: 10px;
+        font-size: 0.7rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 20px;
       }
       .inspector-slots-grid {
         grid-template-columns: 1fr;
@@ -3263,7 +3280,106 @@
       }
       .inspector-call-btns a {
         width: 100%;
+        min-height: 44px;
         justify-content: center;
+      }
+    }
+
+    @media (max-width: 540px) {
+      .hall-tabs {
+        width: 100%;
+        display: flex;
+        border-radius: 10px;
+        gap: 2px;
+        padding: 3px;
+        margin-bottom: 1.5rem;
+      }
+      .hall-tab-btn {
+        flex: 1;
+        padding: 0.6rem 0.4rem;
+        font-size: 0.72rem;
+        text-align: center;
+        justify-content: center;
+        border-radius: 8px;
+        letter-spacing: 0.3px;
+      }
+      .cal-grid {
+        gap: 3px;
+      }
+      .cal-day-heading {
+        font-size: 0.62rem;
+        padding: 4px 2px;
+        letter-spacing: 0.5px;
+      }
+      .cal-day-cell {
+        min-height: 52px;
+        padding: 4px 2px;
+        border-radius: 6px;
+      }
+      .cal-date-number {
+        font-size: 0.78rem;
+        justify-content: center;
+      }
+      .cal-date-number .cal-today-badge {
+        display: none;
+      }
+      .cal-day-cell.cal-is-today {
+        border-color: var(--wheat) !important;
+        box-shadow: inset 0 0 0 1px var(--wheat);
+      }
+      .cal-status-row {
+        justify-content: center;
+      }
+      .cal-status-row .label {
+        display: none;
+      }
+      .cal-past-label {
+        display: none;
+      }
+      .cal-status-row .dot {
+        width: 5px;
+        height: 5px;
+      }
+      .cal-nav-bar {
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+      }
+      .cal-month-title {
+        font-size: 1.15rem;
+        width: 100%;
+        text-align: center;
+      }
+      .cal-ctrl-btns {
+        width: 100%;
+        justify-content: center;
+      }
+      .cal-btn-arrow, .cal-btn-today {
+        min-height: 38px;
+      }
+      .cal-btn-today {
+        padding: 0 1.1rem;
+      }
+      .cal-inspector {
+        padding: 1.25rem 1rem;
+      }
+      .inspector-head {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .cal-day-cell {
+        min-height: 48px;
+        padding: 2px;
+      }
+      .cal-date-number {
+        font-size: 0.72rem;
+      }
+      .cal-card {
+        padding: 0.85rem 0.5rem;
       }
     }
   </style>
@@ -3448,14 +3564,6 @@
     </div>
     <div style="font-size: 0.72rem; letter-spacing: 2px; text-transform: uppercase; color: var(--wheat); font-weight: 600;">
       Premier Halls &bull; Dahod, Gujarat
-    </div>
-    <div style="display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; margin: 6px 0;">
-      <a href="tel:+919033647648" style="color: var(--cream); text-decoration: none; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 6px; padding: 7px 16px; border: 1px solid rgba(201,169,110,0.3); border-radius: 20px; transition: all 0.2s ease;">
-        <i class="fas fa-phone-alt" style="color: var(--wheat); font-size: 0.72rem;"></i> Call Aliasgar Challa: +91 90336 47648
-      </a>
-      <a href="tel:+919824129952" style="color: var(--cream); text-decoration: none; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 6px; padding: 7px 16px; border: 1px solid rgba(201,169,110,0.3); border-radius: 20px; transition: all 0.2s ease;">
-        <i class="fas fa-phone-alt" style="color: var(--wheat); font-size: 0.72rem;"></i> Call Zainab Jadliwala: +91 98241 29952
-      </a>
     </div>
     <div style="font-size: 0.72rem; color: rgba(245,240,232,0.45); margin-top: 4px;">
       &copy; <span id="currentYear">2026</span> Evan-e-Hakimi &amp; Qadri Hall. All Rights Reserved.
@@ -3761,12 +3869,22 @@ function renderCustomerGrid(daysMap) {
 
   for (let day = 1; day <= daysInMonth; day++) {
     const dateStr = `${currentCustomerYear}-${String(currentCustomerMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    
-    // CRITICAL: HIDE ALL PAST DATES COMPLETELY
-    // If date is before today, render empty cell to preserve the 7-day grid geometry,
-    // without rendering date number, dot, label, status, or any clickable interaction!
-    if (dateStr < today.dateStr) {
-      html += '<div class="cal-day-cell empty-pad" aria-hidden="true"></div>';
+    const isPast = dateStr < today.dateStr;
+
+    // Past dates: keep in grid, display "Past Date", low-contrast, non-interactive
+    if (isPast) {
+      html += `
+        <div class="cal-day-cell cal-past-date" 
+             aria-disabled="true"
+             aria-label="${dateStr}: Past Date">
+          <div class="cal-date-number">
+            <span>${day}</span>
+          </div>
+          <div class="cal-status-row">
+            <span class="cal-past-label">Past Date</span>
+          </div>
+        </div>
+      `;
       continue;
     }
 
@@ -3789,7 +3907,7 @@ function renderCustomerGrid(daysMap) {
     }
 
     html += `
-      <div class="cal-day-cell ${isSelected ? 'selected' : ''}" 
+      <div class="cal-day-cell ${isToday ? 'cal-is-today' : ''} ${isSelected ? 'selected' : ''}" 
            role="button"
            tabindex="0"
            aria-label="${dateStr}: ${statusText}"
@@ -3797,7 +3915,7 @@ function renderCustomerGrid(daysMap) {
            onkeydown="if(event.key==='Enter'||event.key===' ')selectCustomerDate('${dateStr}')">
         <div class="cal-date-number">
           <span>${day}</span>
-          ${isToday ? '<span class="cal-today-badge">Today</span>' : ''}
+          ${isToday ? '<span class="cal-today-badge">TODAY</span>' : ''}
         </div>
         <div class="cal-status-row ${dotColor}">
           <span class="dot"></span>
