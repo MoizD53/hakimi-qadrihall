@@ -356,125 +356,6 @@ function formatSlotName(slot) {
   return slot || 'Morning';
 }
 
-function generateWhatsAppPayloads(b) {
-  const phone = normalizePhone(b.phone);
-  const name = b.customer_name || 'Valued Guest';
-  const ref = b.booking_reference || generateBookingReference(b.hall, b.id, b.check_in);
-  const hall = b.hall || 'Evan-e-Hakimi';
-  const dateStr = b.check_in ? String(b.check_in).split('T')[0] : 'Event Date';
-  const formattedDate = formatEventDate(b.check_in);
-  const slotName = formatSlotName(b.slot);
-  const pkgName = (b.package === 'with_jaman' || String(b.package).toLowerCase().includes('with jaman')) ? 'With Jaman' : 'Without Jaman';
-  const total = Math.round(parseFloat(b.total_amount || 0));
-  const advance = Math.round(parseFloat(b.advance_amount || total * 0.4));
-  const paid = Math.round(parseFloat(b.advance_paid || b.advancePaid || 0));
-  const balance = Math.max(0, total - paid);
-
-  // Template 1: Confirmation & 40% Advance Request
-  const textConfirmation = 
-`Salaam ${name},
-
-Your booking for ${hall} has been approved.
-
-Date: ${formattedDate}
-Slot: ${slotName}
-Catering: ${pkgName}
-
-Total Amount: ₹${total.toLocaleString('en-IN')}
-Advance (40%): ₹${advance.toLocaleString('en-IN')} (Non-refundable)
-Balance (60%): ₹${(total - advance).toLocaleString('en-IN')} (Due 2–3 days before the event)
-
-Kindly pay the 40% advance of ₹${advance.toLocaleString('en-IN')} within 24 hours to secure your booking slot.
-
-Regards,
-Evan-e-Hakimi & Qadri Hall Management`;
-
-  // Template 2: Advance Payment Received & Booking Secured
-  const textAdvanceReceived = 
-`*Salaam / Greetings ${name},*
-
-We have received your 40% advance payment of *₹${paid.toLocaleString('en-IN')}* for *${hall}*.
-
-✅ *Your booking is now confirmed & secured!*
-• *Booking Ref:* ${ref}
-• *Event Date:* ${formattedDate} (${slotName})
-• *Total Amount:* ₹${total.toLocaleString('en-IN')}
-• *Advance Received (40%):* ₹${paid.toLocaleString('en-IN')}
-• *Remaining Balance (60%):* ₹${balance.toLocaleString('en-IN')}
-
-⚠️ *Reminder:* The remaining 60% balance of ₹${balance.toLocaleString('en-IN')} is payable at Hakimi Tower, 2nd Floor, to Aliasgar Challawala, 2–3 days before the function.
-
-Thank you,
-*Evan-e-Hakimi & Qadri Hall Management*`;
-
-  // Template 3: Full Payment Received
-  const textFullyPaid = 
-`*Salaam / Greetings ${name},*
-
-We confirm receipt of the full payment of *₹${total.toLocaleString('en-IN')}* for your event at *${hall}*.
-
-🎉 *Your booking is completely settled & fully paid!*
-• *Booking Ref:* ${ref}
-• *Event Date:* ${formattedDate} (${slotName})
-• *Total Paid:* ₹${total.toLocaleString('en-IN')}
-• *Outstanding Balance:* ₹0 (Fully Paid)
-
-We look forward to hosting your gathering. Please feel free to reach out for any setup arrangements.
-
-Warm regards,
-*Evan-e-Hakimi & Qadri Hall Management*`;
-
-  // Template 4: Rejection Notification
-  const reason = b.rejection_reason || 'Requested slot or date is already booked or unavailable';
-  const textRejection = 
-`Salaam ${name},
-
-Regarding your booking enquiry for ${hall} on ${formattedDate} (${slotName}):
-
-We regret to inform you that we are unable to accommodate this reservation at this time.
-Reason: ${reason}
-
-We sincerely apologize for any inconvenience. Please reach out to us if you would like to explore alternative dates or hall options.
-
-Regards,
-Evan-e-Hakimi & Qadri Hall Management`;
-
-  // Template 5: 60% Balance Reminder
-  const textBalanceReminder = 
-`Salaam ${name},
-
-Reminder regarding your upcoming booking for ${hall}:
-• Booking Ref: ${ref}
-• Event Date: ${formattedDate} (${slotName})
-• Total Amount: ₹${total.toLocaleString('en-IN')}
-• Advance Paid (40%): ₹${paid.toLocaleString('en-IN')}
-• Remaining Balance (60%): ₹${balance.toLocaleString('en-IN')}
-
-Kindly note that the remaining 60% balance of ₹${balance.toLocaleString('en-IN')} is payable at Hakimi Tower, 2nd Floor, to Aliasgar Challawala, 2–3 days before the function.
-
-Regards,
-Evan-e-Hakimi & Qadri Hall Management`;
-
-  const baseUrl = phone ? `https://wa.me/${phone}?text=` : `https://wa.me/?text=`;
-
-  return {
-    normalizedPhone: phone,
-    confirmationUrl: baseUrl + encodeURIComponent(textConfirmation),
-    advanceReceiptUrl: baseUrl + encodeURIComponent(textAdvanceReceived),
-    fullyPaidUrl: baseUrl + encodeURIComponent(textFullyPaid),
-    fullPaymentReceiptUrl: baseUrl + encodeURIComponent(textFullyPaid),
-    rejectionUrl: baseUrl + encodeURIComponent(textRejection),
-    balanceReminderUrl: baseUrl + encodeURIComponent(textBalanceReminder),
-    templates: {
-      confirmation: textConfirmation,
-      advanceReceived: textAdvanceReceived,
-      fullyPaid: textFullyPaid,
-      rejection: textRejection,
-      balanceReminder: textBalanceReminder
-    }
-  };
-}
-
 function isDateOnOrAfterJan2027(dateStr) {
   if (!dateStr) return false;
   const clean = String(dateStr).split('T')[0].trim();
@@ -551,6 +432,20 @@ async function assertNoBookingConflict(tx, bookingId, overrideDate, overrideHall
     throw err;
   }
 
+  // Check if date is blocked by administration for this hall
+  const existingBlock = await tx.query(
+    `SELECT * FROM date_blocks WHERE block_date = ? AND hall = ?`,
+    [targetDate, targetHall]
+  );
+  if (existingBlock.rows && existingBlock.rows.length > 0) {
+    const blk = existingBlock.rows[0];
+    const err = new Error(
+      `Date Blocked: ${targetDate} is blocked by administration for ${targetHall}${blk.reason ? ' (' + blk.reason + ')' : ''}. No bookings can be created for this date.`
+    );
+    err.status = 409;
+    throw err;
+  }
+
   // Query existing confirmed bookings inside the write transaction for the SAME hall
   const existingConfirmed = await tx.query(
     `SELECT id, customer_name, slot, status, hall, booking_reference FROM bookings 
@@ -569,6 +464,168 @@ async function assertNoBookingConflict(tx, bookingId, overrideDate, overrideHall
   }
 
   return target;
+}
+
+// ── CORE AVAILABILITY ENGINE: Independent time slot calculation per hall ──
+async function getHallAvailabilityRange(hallName, startDate, endDate) {
+  const cleanHall = String(hallName).toLowerCase().includes('qadri') ? 'Qadri Hall' : 'Evan-e-Hakimi';
+
+  // 1. Fetch active bookings (cancelled and rejected bookings NEVER occupy slots)
+  const bookingsRes = await db.query(
+    `SELECT id, customer_name, phone, check_in as date, slot, status, payment_status, 
+            total_amount, advance_paid, balance_amount, booking_reference, occasion
+     FROM bookings
+     WHERE COALESCE(hall, 'Evan-e-Hakimi') = ?
+       AND check_in >= ? AND check_in <= ?
+       AND status NOT IN ('cancelled', 'CANCELLED', 'rejected', 'REJECTED')
+     ORDER BY check_in ASC, slot ASC`,
+    [cleanHall, startDate, endDate]
+  );
+
+  // 2. Fetch date blocks in range
+  const blocksRes = await db.query(
+    `SELECT id, block_date as date, reason, created_by, created_at
+     FROM date_blocks
+     WHERE hall = ? AND block_date >= ? AND block_date <= ?`,
+    [cleanHall, startDate, endDate]
+  );
+
+  const blockMap = {};
+  (blocksRes.rows || []).forEach(r => {
+    const d = String(r.date).split('T')[0];
+    blockMap[d] = r;
+  });
+
+  const bookingsByDate = {};
+  (bookingsRes.rows || []).forEach(r => {
+    const d = String(r.date).split('T')[0];
+    if (!bookingsByDate[d]) bookingsByDate[d] = [];
+    bookingsByDate[d].push({
+      ...r,
+      date: d,
+      slot: String(r.slot || 'morning').toLowerCase().trim()
+    });
+  });
+
+  const days = {};
+  // Parse startDate and endDate safely (YYYY-MM-DD)
+  const [sY, sM, sD] = startDate.split('-').map(Number);
+  const [eY, eM, eD] = endDate.split('-').map(Number);
+  const startDt = new Date(Date.UTC(sY, sM - 1, sD));
+  const endDt = new Date(Date.UTC(eY, eM - 1, eD));
+
+  const curr = new Date(startDt);
+  while (curr <= endDt) {
+    const dateStr = curr.toISOString().split('T')[0];
+
+    // Check if blocked by admin
+    if (blockMap[dateStr]) {
+      const blk = blockMap[dateStr];
+      days[dateStr] = {
+        date: dateStr,
+        hall: cleanHall,
+        color: 'red',
+        status: 'booked',
+        label: 'Fully Booked (Date Blocked)',
+        is_blocked: true,
+        block_reason: blk.reason || 'Blocked by administration',
+        block_id: blk.id,
+        slots: {
+          morning: { available: false, label: 'Blocked by Admin' },
+          evening: { available: false, label: 'Blocked by Admin' },
+          fullday: { available: false, label: 'Blocked by Admin' }
+        },
+        bookings: []
+      };
+      curr.setUTCDate(curr.getUTCDate() + 1);
+      continue;
+    }
+
+    // Check Qadri Hall opening condition (< 21 Nov 2026)
+    if (cleanHall === 'Qadri Hall' && dateStr < '2026-11-21') {
+      days[dateStr] = {
+        date: dateStr,
+        hall: cleanHall,
+        color: 'red',
+        status: 'booked',
+        label: 'Opening 21 Nov 2026',
+        is_blocked: true,
+        block_reason: 'Bookings open from 21 Nov 2026',
+        slots: {
+          morning: { available: false, label: 'Opens 21 Nov 2026' },
+          evening: { available: false, label: 'Opens 21 Nov 2026' },
+          fullday: { available: false, label: 'Opens 21 Nov 2026' }
+        },
+        bookings: []
+      };
+      curr.setUTCDate(curr.getUTCDate() + 1);
+      continue;
+    }
+
+    const bList = bookingsByDate[dateStr] || [];
+    const morningBooking = bList.find(b => b.slot === 'morning' || b.slot === 'fullday');
+    const eveningBooking = bList.find(b => b.slot === 'evening' || b.slot === 'fullday');
+    const fulldayBooking = bList.find(b => b.slot === 'fullday');
+    const majlisBooking = bList.find(b => b.slot === 'majlis');
+
+    const morningOccupied = !!morningBooking;
+    const eveningOccupied = !!eveningBooking;
+    const fullDayOccupied = !!fulldayBooking || (morningOccupied && eveningOccupied);
+
+    let color = 'green';
+    let status = 'available';
+    let label = 'Fully Available';
+
+    if (bList.length === 0) {
+      color = 'green';
+      status = 'available';
+      label = 'Fully Available';
+    } else if (fullDayOccupied || (morningOccupied && eveningOccupied)) {
+      color = 'red';
+      status = 'booked';
+      label = 'Fully Booked';
+    } else if (morningOccupied && !eveningOccupied) {
+      color = 'yellow';
+      status = 'partial';
+      label = 'Partially Booked (Evening Slot Open)';
+    } else if (eveningOccupied && !morningOccupied) {
+      color = 'yellow';
+      status = 'partial';
+      label = 'Partially Booked (Morning Slot Open)';
+    } else if (majlisBooking) {
+      color = 'yellow';
+      status = 'partial';
+      label = 'Partially Booked (Majlis Occupied)';
+    }
+
+    days[dateStr] = {
+      date: dateStr,
+      hall: cleanHall,
+      color,
+      status,
+      label,
+      is_blocked: false,
+      slots: {
+        morning: {
+          available: !morningOccupied,
+          label: morningOccupied ? 'Booked (10:30 AM – 2:30 PM)' : 'Available (10:30 AM – 2:30 PM)'
+        },
+        evening: {
+          available: !eveningOccupied,
+          label: eveningOccupied ? 'Booked (6:30 PM – 10:30 PM)' : 'Available (6:30 PM – 10:30 PM)'
+        },
+        fullday: {
+          available: !morningOccupied && !eveningOccupied,
+          label: (!morningOccupied && !eveningOccupied) ? 'Available (10:00 AM – 10:00 PM)' : 'Unavailable'
+        }
+      },
+      bookings: bList
+    };
+
+    curr.setUTCDate(curr.getUTCDate() + 1);
+  }
+
+  return days;
 }
 
 /* ═══════════════════════════════════════════
@@ -672,9 +729,7 @@ app.get('/api/bookings', requireAuth, async (req, res) => {
         booking_reference: bookingRef,
         balanceAmount: balVal,
         hasConflict: !!conflictWith,
-        conflictDetails: conflictWith ? { id: conflictWith.id, name: conflictWith.customer_name, slot: conflictWith.slot, hall: conflictWith.hall } : null,
-        whatsapp: generateWhatsAppPayloads({ ...b, booking_reference: bookingRef })
-      };
+        conflictDetails: conflictWith ? { id: conflictWith.id, name: conflictWith.customer_name, slot: conflictWith.slot, hall: conflictWith.hall } : null,};
     });
 
     res.json(annotatedRows);
@@ -686,62 +741,96 @@ app.get('/api/bookings', requireAuth, async (req, res) => {
 // GET /api/bookings/summary — Summary counts for central dashboard (admin only)
 app.get('/api/bookings/summary', requireAuth, async (req, res) => {
   try {
-    const result = await db.query('SELECT status, payment_status, total_amount, advance_paid FROM bookings');
-    const rows = result.rows || [];
+    const { hall, fromDate, toDate } = req.query;
+    let sql = 'SELECT * FROM bookings WHERE 1=1';
+    const params = [];
 
-    let newEnquiries = 0;
-    let confirmedPendingAdvance = 0;
-    let advancePaid = 0;
-    let fullyPaid = 0;
-    let rejected = 0;
-    let totalConfirmed = 0;
-    let totalCollected = 0;
-    let totalOutstanding = 0;
+    if (hall && hall !== 'all') {
+      const cleanHall = String(hall).toLowerCase().includes('qadri') ? 'Qadri Hall' : 'Evan-e-Hakimi';
+      sql += ' AND COALESCE(hall, "Evan-e-Hakimi") = ?';
+      params.push(cleanHall);
+    }
+    if (fromDate) {
+      sql += ' AND check_in >= ?';
+      params.push(fromDate);
+    }
+    if (toDate) {
+      sql += ' AND check_in <= ?';
+      params.push(toDate);
+    }
+
+    const result = await db.query(sql, params);
+    const rows = result.rows || [];
+    const today = new Date().toISOString().split('T')[0];
+
+    let totalBookings = 0;
+    let upcomingEvents = 0;
+    let awaitingAdvance = 0;
+    let advanceCollected = 0;
+    let remainingBalancePending = 0;
+    let fullyPaidBookings = 0;
+    let cancelledBookings = 0;
+    let totalAmountBooked = 0;
+    let actualPaymentsCollected = 0;
+    let outstandingBalance = 0;
 
     rows.forEach(r => {
-      const s = r.status;
-      const isConf = CONFIRMED_STATUSES.includes(s);
+      const s = String(r.status || '').toLowerCase();
+      const ps = String(r.payment_status || '').toLowerCase();
       const total = parseFloat(r.total_amount || 0);
       const paid = parseFloat(r.advance_paid || 0);
-      const bal = Math.max(0, total - paid);
+      const isCancelled = s === 'cancelled' || s === 'rejected';
 
-      if (ENQUIRY_STATUSES.includes(s)) {
-        newEnquiries++;
-      } else if (s === 'CONFIRMED_PENDING_ADVANCE') {
-        confirmedPendingAdvance++;
-        totalConfirmed++;
-      } else if (s === 'FULLY_PAID' || r.payment_status === 'fully_paid') {
-        fullyPaid++;
-        totalConfirmed++;
-      } else if (s === 'ADVANCE_PAID' || s === 'advance_verified' || s === 'ADVANCE_PARTIALLY_PAID') {
-        advancePaid++;
-        totalConfirmed++;
-      } else if (isConf) {
-        totalConfirmed++;
+      if (isCancelled) {
+        cancelledBookings++;
+        return;
       }
 
-      if (REJECTED_STATUSES.includes(s)) {
-        rejected++;
+      totalBookings++;
+
+      if (r.check_in >= today) {
+        upcomingEvents++;
       }
 
-      if (isConf) {
-        totalCollected += paid;
-        totalOutstanding += bal;
+      if (ps === 'fully_paid' || s === 'fully_paid') {
+        fullyPaidBookings++;
+      } else if (ps === 'advance_paid' || s === 'advance_paid' || s === 'advance_verified') {
+        advanceCollected++;
+        if (total > paid) {
+          remainingBalancePending++;
+        }
+      } else {
+        awaitingAdvance++;
       }
+
+      totalAmountBooked += total;
+      actualPaymentsCollected += paid;
     });
+
+    outstandingBalance = Math.max(0, totalAmountBooked - actualPaymentsCollected);
 
     res.json({
       success: true,
-      newEnquiries,
-      pendingEnquiries: newEnquiries,
-      confirmedPendingAdvance,
-      advancePaid,
-      fullyPaid,
-      rejected,
-      totalConfirmed,
-      totalBookings: rows.length,
-      totalCollected,
-      totalOutstanding
+      totalBookings,
+      upcomingEvents,
+      awaitingAdvance,
+      advanceCollected,
+      remainingBalancePending,
+      fullyPaidBookings,
+      cancelledBookings,
+      totalAmountBooked,
+      actualPaymentsCollected,
+      outstandingBalance,
+      // Backward compatibility aliases
+      newEnquiries: awaitingAdvance,
+      pendingEnquiries: awaitingAdvance,
+      confirmedPendingAdvance: awaitingAdvance,
+      advancePaid: advanceCollected,
+      fullyPaid: fullyPaidBookings,
+      rejected: cancelledBookings,
+      totalConfirmed: totalBookings,
+      totalCollected: actualPaymentsCollected,
+      totalOutstanding: outstandingBalance
     });
   } catch (err) {
     sendError(res, 500, 'Failed to fetch bookings summary', err);
@@ -890,9 +979,7 @@ app.get('/api/bookings/:id', requireAuth, async (req, res) => {
 
     booking.payments = paymentsResult.rows || [];
     booking.booking_reference = booking.booking_reference || (CONFIRMED_STATUSES.includes(booking.status) ? generateBookingReference(booking.hall, booking.id, booking.check_in) : null);
-    booking.whatsapp = generateWhatsAppPayloads(booking);
-
-    res.json(booking);
+res.json(booking);
   } catch (err) {
     sendError(res, 500, 'Failed to fetch booking', err);
   }
@@ -914,8 +1001,11 @@ app.post('/api/bookings', async (req, res) => {
       slot,
       occasion, 
       price, 
+      total_amount,
       advance_amount,
       advance_paid = 0,
+      start_time,
+      end_time,
       guests, 
       specialRequirements,
       notes,
@@ -959,7 +1049,7 @@ app.post('/api/bookings', async (req, res) => {
     }
 
     const calculatedPrice = calculateHallPrice(eventSlot, cleanPkg, eventDate);
-    const finalPrice = price != null ? parseFloat(price) : calculatedPrice;
+    const finalPrice = (total_amount != null || price != null) ? parseFloat(total_amount != null ? total_amount : price) : calculatedPrice;
     const finalAdvance = advance_amount != null ? parseFloat(advance_amount) : calculateAdvanceAmount(finalPrice);
     const finalAdvancePaid = parseFloat(advance_paid) || 0;
     const balanceAmount = Math.max(0, finalPrice - finalAdvancePaid);
@@ -984,14 +1074,15 @@ app.post('/api/bookings', async (req, res) => {
       `INSERT INTO bookings (
         customer_name, phone, email, check_in, check_out, guests, total_amount, 
         advance_amount, advance_paid, advance_verified, payment_status, payment_method, 
-        balance_amount, occasion, notes, slot, status, hall, package, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        balance_amount, occasion, notes, slot, status, hall, package, start_time, end_time, created_by, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
       RETURNING *`,
       [
         custName, phone.trim(), email?.trim() || null, eventDate, eventDate, guestCount,
         finalPrice, finalAdvance, finalAdvancePaid, (initialStatus === 'advance_verified' ? 1 : 0),
         paymentStatus, payment_method, balanceAmount, occasion?.trim() || 'Not specified',
-        notesCombined || null, eventSlot, initialStatus, cleanHall, cleanPkg
+        notesCombined || null, eventSlot, initialStatus, cleanHall, cleanPkg,
+        start_time || null, end_time || null, req.admin?.username || 'admin'
       ]
     );
 
@@ -1016,10 +1107,7 @@ app.post('/api/bookings', async (req, res) => {
     await tx.commit();
 
     logAudit('booking_created', 'booking', inserted.id, `Created ${initialStatus} for ${custName} on ${eventDate} (${cleanHall}, ${eventSlot}, ₹${finalPrice})`, req.admin?.username || 'public_enquiry');
-
-    inserted.whatsapp = generateWhatsAppPayloads(inserted);
-
-    res.json({ success: true, bookingId: inserted.id, booking: inserted });
+res.json({ success: true, bookingId: inserted.id, booking: inserted });
   } catch (err) {
     if (tx) {
       try { await tx.rollback(); } catch (_) {}
@@ -1125,17 +1213,14 @@ app.post('/api/bookings/:id/confirm', requireAuth, async (req, res) => {
     await tx.commit();
 
     const bookingRow = updated.rows[0];
-    const whatsapp = generateWhatsAppPayloads(bookingRow);
-
-    logAudit('enquiry_confirmed', 'booking', bookingId, `Enquiry #${bookingId} confirmed as ${bookingRef} for ${bookingRow.customer_name} (${targetHall}, ${targetDate}, ${targetSlot})`, req.admin.username);
+logAudit('enquiry_confirmed', 'booking', bookingId, `Enquiry #${bookingId} confirmed as ${bookingRef} for ${bookingRow.customer_name} (${targetHall}, ${targetDate}, ${targetSlot})`, req.admin.username);
 
     res.json({
       success: true,
       message: `Booking #${bookingId} successfully confirmed with reference ${bookingRef}. Slot is now reserved.`,
       booking: {
         ...bookingRow,
-        whatsapp
-      }
+}
     });
   } catch (err) {
     if (tx) {
@@ -1178,17 +1263,14 @@ app.post('/api/bookings/:id/reject', requireAuth, async (req, res) => {
     await tx.commit();
 
     const bookingRow = updated.rows[0];
-    const whatsapp = generateWhatsAppPayloads(bookingRow);
-
-    logAudit('enquiry_rejected', 'booking', bookingId, `Enquiry #${bookingId} rejected for ${current.customer_name}. Reason: ${reason}`, req.admin.username);
+logAudit('enquiry_rejected', 'booking', bookingId, `Enquiry #${bookingId} rejected for ${current.customer_name}. Reason: ${reason}`, req.admin.username);
 
     res.json({
       success: true,
       message: `Enquiry #${bookingId} has been rejected.`,
       booking: {
         ...bookingRow,
-        whatsapp
-      }
+}
     });
   } catch (err) {
     if (tx) {
@@ -1251,17 +1333,14 @@ app.post(['/api/bookings/:id/receive-advance', '/api/bookings/:id/verify-advance
     await tx.commit();
 
     const bookingRow = updated.rows[0];
-    const whatsapp = generateWhatsAppPayloads(bookingRow);
-
-    logAudit('advance_received', 'booking', bookingId, `Recorded 40% advance of ₹${advanceToRecord} for booking #${bookingId}`, req.admin.username);
+logAudit('advance_received', 'booking', bookingId, `Recorded 40% advance of ₹${advanceToRecord} for booking #${bookingId}`, req.admin.username);
 
     res.json({
       success: true,
       message: `40% advance of ₹${advanceToRecord.toLocaleString('en-IN')} recorded for booking #${bookingId}. Status: ADVANCE_PAID.`,
       booking: {
         ...bookingRow,
-        whatsapp
-      }
+}
     });
   } catch (err) {
     if (tx) {
@@ -1318,17 +1397,14 @@ app.post(['/api/bookings/:id/receive-balance', '/api/bookings/:id/mark-fully-pai
     await tx.commit();
 
     const bookingRow = updated.rows[0];
-    const whatsapp = generateWhatsAppPayloads(bookingRow);
-
-    logAudit('booking_fully_paid', 'booking', bookingId, `Booking #${bookingId} marked as fully paid (₹${total})`, req.admin.username);
+logAudit('booking_fully_paid', 'booking', bookingId, `Booking #${bookingId} marked as fully paid (₹${total})`, req.admin.username);
 
     res.json({
       success: true,
       message: `Booking #${bookingId} is marked as fully paid. Outstanding balance is ₹0.`,
       booking: {
         ...bookingRow,
-        whatsapp
-      }
+}
     });
   } catch (err) {
     if (tx) {
@@ -1426,9 +1502,7 @@ app.put('/api/bookings/:id', requireAuth, async (req, res) => {
     await tx.commit();
 
     const bookingRow = updated.rows[0];
-    bookingRow.whatsapp = generateWhatsAppPayloads(bookingRow);
-
-    logAudit('booking_updated', 'booking', bookingId, `Updated booking #${bookingId} for ${customer_name || current.customer_name}`, req.admin.username);
+logAudit('booking_updated', 'booking', bookingId, `Updated booking #${bookingId} for ${customer_name || current.customer_name}`, req.admin.username);
 
     res.json({ success: true, booking: bookingRow });
   } catch (err) {
@@ -1476,9 +1550,7 @@ app.patch('/api/bookings/:id/status', requireAuth, async (req, res) => {
     await tx.commit();
 
     const bookingRow = updated.rows[0];
-    bookingRow.whatsapp = generateWhatsAppPayloads(bookingRow);
-
-    logAudit('booking_status_updated', 'booking', req.params.id, `Status updated to ${status}`, req.admin.username);
+logAudit('booking_status_updated', 'booking', req.params.id, `Status updated to ${status}`, req.admin.username);
     res.json({ success: true, booking: bookingRow });
   } catch (err) {
     if (tx) {
@@ -1567,9 +1639,7 @@ app.post('/api/bookings/:id/payments', requireAuth, async (req, res) => {
     await tx.commit();
 
     const bookingRow = updated.rows[0];
-    bookingRow.whatsapp = generateWhatsAppPayloads(bookingRow);
-
-    logAudit('payment_recorded', 'booking', req.params.id, `Recorded ₹${payAmount} via ${payment_method} (${payment_type})`, req.admin.username);
+logAudit('payment_recorded', 'booking', req.params.id, `Recorded ₹${payAmount} via ${payment_method} (${payment_type})`, req.admin.username);
 
     res.json({
       success: true,
@@ -1647,9 +1717,7 @@ app.patch('/api/bookings/:id/verify-advance', requireAuth, async (req, res) => {
     await tx.commit();
 
     const bookingRow = updated.rows[0];
-    bookingRow.whatsapp = generateWhatsAppPayloads(bookingRow);
-
-    logAudit('advance_verified', 'booking', req.params.id, `Advance verified for ₹${advancePaid}`, req.admin.username);
+logAudit('advance_verified', 'booking', req.params.id, `Advance verified for ₹${advancePaid}`, req.admin.username);
     res.json({ success: true, booking: bookingRow });
   } catch (err) {
     if (tx) {
@@ -1695,9 +1763,7 @@ app.patch('/api/bookings/:id/collect-cash', requireAuth, async (req, res) => {
     }
 
     const bookingRow = result.rows[0];
-    bookingRow.whatsapp = generateWhatsAppPayloads(bookingRow);
-
-    logAudit('balance_collected', 'booking', req.params.id, `Collected full cash payment (₹${balanceCollected})`, req.admin.username);
+logAudit('balance_collected', 'booking', req.params.id, `Collected full cash payment (₹${balanceCollected})`, req.admin.username);
     res.json({ success: true, booking: bookingRow });
   } catch (err) {
     sendError(res, 500, 'Failed to collect cash', err);
@@ -1721,118 +1787,249 @@ app.delete('/api/bookings/:id', requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/bookings/availability — Slot availability per hall for calendars
+// GET /api/public/calendar — Public sanitized real-time calendar availability per hall
+app.get('/api/public/calendar', async (req, res) => {
+  try {
+    const { hall = 'Evan-e-Hakimi', month, year } = req.query;
+    const cleanHall = String(hall).toLowerCase().includes('qadri') ? 'Qadri Hall' : 'Evan-e-Hakimi';
+
+    let targetYear, targetMonth;
+    if (month && String(month).includes('-')) {
+      const parts = String(month).split('-');
+      targetYear = parseInt(parts[0], 10);
+      targetMonth = parseInt(parts[1], 10);
+    } else if (year && month) {
+      targetYear = parseInt(year, 10);
+      targetMonth = parseInt(month, 10);
+    } else {
+      const now = new Date();
+      targetYear = now.getFullYear();
+      targetMonth = now.getMonth() + 1;
+    }
+
+    const startDate = `${targetYear}-${String(targetMonth).padStart(2, '0')}-01`;
+    const lastDayNum = new Date(Date.UTC(targetYear, targetMonth, 0)).getUTCDate();
+    const endDate = `${targetYear}-${String(targetMonth).padStart(2, '0')}-${String(lastDayNum).padStart(2, '0')}`;
+
+    const rawDays = await getHallAvailabilityRange(cleanHall, startDate, endDate);
+
+    // Sanitize: NEVER leak customer details, phones, amounts, or internal notes
+    const sanitizedDays = {};
+    for (const [d, info] of Object.entries(rawDays)) {
+      sanitizedDays[d] = {
+        date: info.date,
+        hall: info.hall,
+        color: info.color,
+        status: info.status,
+        label: info.label,
+        is_blocked: info.is_blocked,
+        slots: info.slots
+      };
+    }
+
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.json({
+      success: true,
+      hall: cleanHall,
+      year: targetYear,
+      month: targetMonth,
+      startDate,
+      endDate,
+      days: sanitizedDays
+    });
+  } catch (err) {
+    sendError(res, 500, 'Failed to fetch public calendar availability', err);
+  }
+});
+
+// GET /api/bookings/availability — Admin calendar availability with slot details
 app.get('/api/bookings/availability', async (req, res) => {
   try {
-    const result = await db.query(
-      `SELECT check_in as date, slot, status, COALESCE(hall, 'Evan-e-Hakimi') as hall FROM bookings 
-       WHERE status IN ('confirmed', 'pending', 'waiting', 'advance_requested', 'advance_verified', 'NEW_ENQUIRY', 'CONFIRMED_PENDING_ADVANCE', 'ADVANCE_PARTIALLY_PAID', 'ADVANCE_PAID', 'FULLY_PAID')`
-    );
+    const { hall = 'Evan-e-Hakimi', month, year, date, fromDate, toDate } = req.query;
+    const cleanHall = String(hall).toLowerCase().includes('qadri') ? 'Qadri Hall' : 'Evan-e-Hakimi';
 
-    const availability = {
-      'Evan-e-Hakimi': {},
-      'Qadri Hall': {}
-    };
-
-    function applySlotStatus(targetObj, dateStr, slotKey, newStatus) {
-      if (!targetObj[dateStr]) targetObj[dateStr] = {};
-      const current = targetObj[dateStr][slotKey];
-      const rank = { confirmed_booked: 3, conflict_blocked: 2, pending_inquiry: 1 };
-      const currentRank = rank[current] || 0;
-      const newRank = rank[newStatus] || 0;
-      if (newRank > currentRank) {
-        targetObj[dateStr][slotKey] = newStatus;
-      }
-    }
-
-    (result.rows || []).forEach(r => {
-      const d = r.date && r.date.toISOString ? r.date.toISOString().split('T')[0] : String(r.date).split('T')[0];
-      const hallKey = String(r.hall).toLowerCase().includes('qadri') ? 'Qadri Hall' : 'Evan-e-Hakimi';
-      const slot = String(r.slot).toLowerCase();
-      const isConfirmed = CONFIRMED_STATUSES.includes(r.status);
-      const markStatus = isConfirmed ? 'confirmed_booked' : 'pending_inquiry';
-
-      const hallTarget = availability[hallKey];
-
-      if (slot === 'fullday') {
-        applySlotStatus(hallTarget, d, 'fullday', markStatus);
-        if (isConfirmed) {
-          applySlotStatus(hallTarget, d, 'morning', 'conflict_blocked');
-          applySlotStatus(hallTarget, d, 'evening', 'conflict_blocked');
-          applySlotStatus(hallTarget, d, 'majlis', 'conflict_blocked');
-        }
-      } else if (slot === 'morning') {
-        applySlotStatus(hallTarget, d, 'morning', markStatus);
-        if (isConfirmed) {
-          applySlotStatus(hallTarget, d, 'fullday', 'conflict_blocked');
-        }
-      } else if (slot === 'evening') {
-        applySlotStatus(hallTarget, d, 'evening', markStatus);
-        if (isConfirmed) {
-          applySlotStatus(hallTarget, d, 'fullday', 'conflict_blocked');
-        }
-      } else if (slot === 'majlis') {
-        applySlotStatus(hallTarget, d, 'majlis', markStatus);
-        if (isConfirmed) {
-          applySlotStatus(hallTarget, d, 'fullday', 'conflict_blocked');
-        }
-      }
-    });
-
-    const queryDate = req.query.date || req.query.event_date || req.query.check_in;
-    const queryHall = req.query.hall || 'Evan-e-Hakimi';
-    const cleanHall = String(queryHall).toLowerCase().includes('qadri') ? 'Qadri Hall' : 'Evan-e-Hakimi';
-    const cleanDate = queryDate ? String(queryDate).split('T')[0].trim() : null;
-
-    let slots = undefined;
-    if (cleanDate) {
-      if (cleanHall === 'Qadri Hall' && cleanDate < '2026-11-21') {
-        slots = {
-          morning: { status: 'conflict_blocked', available: false, label: 'Opens 21 Nov 2026' },
-          evening: { status: 'conflict_blocked', available: false, label: 'Opens 21 Nov 2026' },
-          fullday: { status: 'conflict_blocked', available: false, label: 'Opens 21 Nov 2026' },
-          majlis:  { status: 'conflict_blocked', available: false, label: 'Opens 21 Nov 2026' }
-        };
+    let startDate, endDate;
+    if (fromDate && toDate) {
+      startDate = String(fromDate).split('T')[0];
+      endDate = String(toDate).split('T')[0];
+    } else if (date) {
+      startDate = String(date).split('T')[0];
+      endDate = startDate;
+    } else {
+      let targetYear, targetMonth;
+      if (month && String(month).includes('-')) {
+        const parts = String(month).split('-');
+        targetYear = parseInt(parts[0], 10);
+        targetMonth = parseInt(parts[1], 10);
+      } else if (year && month) {
+        targetYear = parseInt(year, 10);
+        targetMonth = parseInt(month, 10);
       } else {
-        const dObj = (availability[cleanHall] && availability[cleanHall][cleanDate]) || {};
-        slots = {
-          morning: { 
-            status: dObj.morning || 'available', 
-            available: !dObj.morning || dObj.morning === 'pending_inquiry',
-            label: dObj.morning === 'confirmed_booked' ? 'Booked' : (dObj.morning === 'conflict_blocked' ? 'Conflict' : 'Available')
-          },
-          evening: { 
-            status: dObj.evening || 'available', 
-            available: !dObj.evening || dObj.evening === 'pending_inquiry',
-            label: dObj.evening === 'confirmed_booked' ? 'Booked' : (dObj.evening === 'conflict_blocked' ? 'Conflict' : 'Available')
-          },
-          fullday: { 
-            status: dObj.fullday || 'available', 
-            available: !dObj.fullday || dObj.fullday === 'pending_inquiry',
-            label: dObj.fullday === 'confirmed_booked' ? 'Booked' : (dObj.fullday === 'conflict_blocked' ? 'Conflict' : 'Available')
-          },
-          majlis: { 
-            status: dObj.majlis || 'available', 
-            available: !dObj.majlis || dObj.majlis === 'pending_inquiry',
-            label: dObj.majlis === 'confirmed_booked' ? 'Booked' : (dObj.majlis === 'conflict_blocked' ? 'Conflict' : 'Available')
-          }
-        };
+        const now = new Date();
+        targetYear = now.getFullYear();
+        targetMonth = now.getMonth() + 1;
       }
+      startDate = `${targetYear}-${String(targetMonth).padStart(2, '0')}-01`;
+      const lastDayNum = new Date(Date.UTC(targetYear, targetMonth, 0)).getUTCDate();
+      endDate = `${targetYear}-${String(targetMonth).padStart(2, '0')}-${String(lastDayNum).padStart(2, '0')}`;
     }
 
-    res.json({ 
-      success: true, 
-      date: cleanDate || undefined,
+    const days = await getHallAvailabilityRange(cleanHall, startDate, endDate);
+
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.json({
+      success: true,
       hall: cleanHall,
-      slots,
-      availability,
-      hallStatus: {
-        'Evan-e-Hakimi': { status: 'available', floor: '2nd Floor', capacity: '35–40 Thals (approx. 280–320 guests)' },
-        'Qadri Hall': { status: 'available', floor: '3rd Floor', capacity: '25–30 Thals (open from 21 Nov 2026)' }
-      }
+      startDate,
+      endDate,
+      days
     });
   } catch (err) {
     sendError(res, 500, 'Failed to fetch availability', err);
+  }
+});
+
+// POST /api/bookings/:id/cancel — Admin action: Cancel booking and release occupied slot
+app.post('/api/bookings/:id/cancel', requireAuth, async (req, res) => {
+  let tx;
+  try {
+    const bookingId = req.params.id;
+    const { 
+      reason = 'Cancelled by management upon customer request', 
+      refund_status = 'none', 
+      refund_amount = 0 
+    } = req.body;
+
+    tx = await db.transaction('write');
+    const cur = await tx.query('SELECT * FROM bookings WHERE id = ?', [bookingId]);
+    if (!cur.rows || cur.rows.length === 0) {
+      await tx.rollback();
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+    const b = cur.rows[0];
+
+    await tx.query(
+      `UPDATE bookings SET
+        status = 'cancelled',
+        cancellation_reason = ?,
+        cancelled_at = CURRENT_TIMESTAMP,
+        cancelled_by = ?,
+        refund_status = ?,
+        refund_amount = ?,
+        updated_at = CURRENT_TIMESTAMP
+       WHERE id = ?`,
+      [reason.trim(), req.admin.username, refund_status, parseFloat(refund_amount) || 0, bookingId]
+    );
+
+    await tx.commit();
+
+    logAudit('booking_cancelled', 'booking', bookingId, 
+      `Cancelled booking #${bookingId} (${b.customer_name}). Reason: ${reason}. Refund status: ${refund_status}`, 
+      req.admin.username
+    );
+
+    res.json({
+      success: true,
+      message: `Booking #${bookingId} for ${b.customer_name} has been cancelled. The time slot (${b.slot} on ${b.check_in}) is now released.`,
+      booking: { id: bookingId, status: 'cancelled', refund_status }
+    });
+  } catch (err) {
+    if (tx) {
+      try { await tx.rollback(); } catch (_) {}
+    }
+    sendError(res, 500, 'Failed to cancel booking', err);
+  }
+});
+
+// GET /api/date-blocks — List all date blocks (admin only)
+app.get('/api/date-blocks', requireAuth, async (req, res) => {
+  try {
+    const { hall } = req.query;
+    let sql = 'SELECT * FROM date_blocks WHERE 1=1';
+    const params = [];
+    if (hall && hall !== 'all') {
+      const cleanHall = String(hall).toLowerCase().includes('qadri') ? 'Qadri Hall' : 'Evan-e-Hakimi';
+      sql += ' AND hall = ?';
+      params.push(cleanHall);
+    }
+    sql += ' ORDER BY block_date ASC';
+    const result = await db.query(sql, params);
+    res.json({ success: true, dateBlocks: result.rows || [] });
+  } catch (err) {
+    sendError(res, 500, 'Failed to fetch date blocks', err);
+  }
+});
+
+// POST /api/date-blocks — Block a full date for a hall (admin only)
+app.post('/api/date-blocks', requireAuth, async (req, res) => {
+  try {
+    const { hall, block_date, reason } = req.body;
+    if (!block_date) {
+      return res.status(400).json({ error: 'block_date is required (YYYY-MM-DD)' });
+    }
+    const cleanHall = String(hall || '').toLowerCase().includes('qadri') ? 'Qadri Hall' : 'Evan-e-Hakimi';
+    const cleanDate = String(block_date).split('T')[0].trim();
+    const cleanReason = (reason || 'Blocked by management').trim();
+
+    await db.query(
+      `INSERT OR REPLACE INTO date_blocks (hall, block_date, reason, created_by, created_at)
+       VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)`,
+      [cleanHall, cleanDate, cleanReason, req.admin.username]
+    );
+
+    logAudit('date_blocked', 'date_block', null, 
+      `Blocked date ${cleanDate} for ${cleanHall} (Reason: ${cleanReason})`, 
+      req.admin.username
+    );
+
+    res.json({
+      success: true,
+      message: `Date ${cleanDate} has been blocked for ${cleanHall}. It will appear as fully booked (Red).`
+    });
+  } catch (err) {
+    sendError(res, 500, 'Failed to block date', err);
+  }
+});
+
+// POST /api/date-blocks/unblock — Unblock date (admin only)
+app.post('/api/date-blocks/unblock', requireAuth, async (req, res) => {
+  try {
+    const { hall, block_date, id } = req.body;
+    let sql = 'DELETE FROM date_blocks WHERE ';
+    const params = [];
+    if (id) {
+      sql += 'id = ?';
+      params.push(id);
+    } else if (hall && block_date) {
+      const cleanHall = String(hall).toLowerCase().includes('qadri') ? 'Qadri Hall' : 'Evan-e-Hakimi';
+      const cleanDate = String(block_date).split('T')[0].trim();
+      sql += 'hall = ? AND block_date = ?';
+      params.push(cleanHall, cleanDate);
+    } else {
+      return res.status(400).json({ error: 'Either id or (hall and block_date) is required' });
+    }
+
+    await db.query(sql, params);
+    logAudit('date_unblocked', 'date_block', id || null, `Unblocked date for ${hall || 'hall'}`, req.admin.username);
+
+    res.json({
+      success: true,
+      message: `Date has been unblocked. Availability has been restored.`
+    });
+  } catch (err) {
+    sendError(res, 500, 'Failed to unblock date', err);
+  }
+});
+
+// DELETE /api/date-blocks/:id — Unblock date by ID (admin only)
+app.delete('/api/date-blocks/:id', requireAuth, async (req, res) => {
+  try {
+    const id = req.params.id;
+    await db.query('DELETE FROM date_blocks WHERE id = ?', [id]);
+    logAudit('date_unblocked', 'date_block', id, `Unblocked date id ${id}`, req.admin.username);
+    res.json({ success: true, message: 'Date block removed' });
+  } catch (err) {
+    sendError(res, 500, 'Failed to remove date block', err);
   }
 });
 
@@ -2418,7 +2615,6 @@ if (require.main === module) {
 }
 
 // Export Express app for Vercel Serverless Function
-app.generateWhatsAppPayloads = generateWhatsAppPayloads;
 app.formatEventDate = formatEventDate;
 app.formatSlotName = formatSlotName;
 module.exports = app;

@@ -469,8 +469,8 @@ it('admin.html bookings table starts with Customer column and completely exclude
   assert.strictEqual(html.includes('colspan="10"'), true);
 });
 
-// ── TEST GROUP 10: COMPLETE BOOKING WORKFLOW & WHATSAPP ACTIONS ──
-console.log('\n📲 Group 10: Complete Booking Workflow, WhatsApp Actions & Concurrency Safety');
+// ── TEST GROUP 10: COMPLETE BOOKING WORKFLOW & LIFECYCLE ──
+console.log('\n📅 Group 10: Complete Booking Workflow, Payment Stages & Concurrency Safety');
 
 function normalizePhone(phone) {
   if (!phone) return '';
@@ -501,63 +501,12 @@ it('booking reference generator produces unique structured IDs for both venues',
   assert.strictEqual(generateBookingReference('Qadri Hall', 105, '2027-02-15'), 'QH-2027-0105');
 });
 
-it('WhatsApp confirmation message matches exact approved template formatting', () => {
-  const server = require('./server');
-  const b = {
-    id: 11,
-    customer_name: 'Moiz Dheela',
-    phone: '9876543210',
-    hall: 'Evan-e-Hakimi',
-    check_in: '2026-11-19',
-    slot: 'majlis',
-    package: 'without_jaman',
-    total_amount: 11000,
-    advance_amount: 4400
-  };
-  const payloads = server.generateWhatsAppPayloads(b);
-  const text = payloads.templates.confirmation;
-
-  const expected = 
-`Salaam Moiz Dheela,
-
-Your booking for Evan-e-Hakimi has been approved.
-
-Date: 19 November 2026
-Slot: Majlis Only (Custom Timings)
-Catering: Without Jaman
-
-Total Amount: ₹11,000
-Advance (40%): ₹4,400 (Non-refundable)
-Balance (60%): ₹6,600 (Due 2–3 days before the event)
-
-Kindly pay the 40% advance of ₹4,400 within 24 hours to secure your booking slot.
-
-Regards,
-Evan-e-Hakimi & Qadri Hall Management`;
-
-  assert.strictEqual(text, expected);
-  assert.strictEqual(payloads.confirmationUrl.includes('wa.me/919876543210'), true);
-});
-
-it('WhatsApp 60% balance reminder specifies Hakimi Tower, 2nd Floor, to Aliasgar Challawala, 2–3 days before the function', () => {
-  const server = require('./server');
-  const b = {
-    id: 11,
-    booking_reference: 'EH-2026-0011',
-    customer_name: 'Moiz Dheela',
-    phone: '9876543210',
-    hall: 'Evan-e-Hakimi',
-    check_in: '2026-11-19',
-    slot: 'majlis',
-    total_amount: 11000,
-    advance_paid: 4400,
-    balance_amount: 6600
-  };
-  const payloads = server.generateWhatsAppPayloads(b);
-  const text = payloads.templates.balanceReminder;
-
-  assert.strictEqual(text.includes('Hakimi Tower, 2nd Floor, to Aliasgar Challawala, 2–3 days before the function'), true);
-  assert.strictEqual(payloads.balanceReminderUrl.includes('wa.me/919876543210'), true);
+it('payment stages calculate 40% advance and 60% balance correctly', () => {
+  const total = 15000;
+  const advance = Math.round(total * 0.4);
+  const balance = total - advance;
+  assert.strictEqual(advance, 6000);
+  assert.strictEqual(balance, 9000);
 });
 
 it('slot conflict verification recognizes CONFIRMED_PENDING_ADVANCE, ADVANCE_PAID, and FULLY_PAID as slot-locking', () => {

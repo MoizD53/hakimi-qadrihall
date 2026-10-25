@@ -378,7 +378,7 @@
     }
     .mobile-sidebar-close:hover{color:var(--cream);}
 
-    /* ── ENQUIRY WORKFLOW, AVAILABILITY & WHATSAPP STYLES ── */
+    /* ── ENQUIRY WORKFLOW & AVAILABILITY STYLES ── */
     .modal-box.workflow-box{
       max-width: 720px;
     }
@@ -438,45 +438,7 @@
       border-color: rgba(251,191,36,0.35);
       color: #fcd34d;
     }
-    .btn-whatsapp{
-      background: #25D366;
-      color: #0b2210 !important;
-      font-weight: 600;
-      border: none;
-      border-radius: 6px;
-      padding: 0.45rem 0.85rem;
-      font-size: 0.75rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.45rem;
-      text-decoration: none !important;
-      transition: all 0.2s ease;
-      cursor: pointer;
-    }
-    .btn-whatsapp:hover{
-      background: #22bf5b;
-      color: #000 !important;
-      transform: translateY(-1px);
-    }
-    .btn-whatsapp-outline{
-      background: rgba(37,211,102,0.1);
-      color: #86efac !important;
-      border: 1px solid rgba(37,211,102,0.35);
-      border-radius: 6px;
-      padding: 0.35rem 0.7rem;
-      font-size: 0.72rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      text-decoration: none !important;
-      transition: all 0.2s ease;
-      cursor: pointer;
-    }
-    .btn-whatsapp-outline:hover{
-      background: rgba(37,211,102,0.2);
-      border-color: #25D366;
-      color: #fff !important;
-    }
+    
     .workflow-summary-box{
       background: rgba(201,169,110,0.06);
       border: 1px solid rgba(201,169,110,0.2);
@@ -1226,6 +1188,9 @@
       <div class="nav-item" onclick="switchNav('calendar-qadri')">
         <i class="fas fa-calendar-check"></i> Qadri Hall Cal
       </div>
+      <div class="nav-item" onclick="switchNav('calendar-combined')">
+        <i class="fas fa-calendar-week"></i> Combined Overview Cal
+      </div>
       <div class="nav-item" onclick="switchNav('bookings')">
         <i class="fas fa-book-open"></i> All Bookings
       </div>
@@ -1277,42 +1242,105 @@
 
       <!-- ════════ PAGE 1: OVERVIEW ════════ -->
       <section class="page active" id="page-overview">
+        <!-- VENUE & DATE FILTER BAR -->
+        <div class="card" style="margin-bottom:1.2rem;padding:0.9rem 1.2rem;">
+          <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-size:0.78rem;color:var(--wheat);font-weight:600;"><i class="fas fa-filter"></i> Venue:</span>
+              <select id="statFilterHall" class="filter-select" style="padding:0.35rem 0.75rem;font-size:0.78rem;" onchange="loadOverview()">
+                <option value="all">All Venues</option>
+                <option value="Evan-e-Hakimi">Evan-e-Hakimi (2nd Floor)</option>
+                <option value="Qadri Hall">Qadri Hall (3rd Floor)</option>
+              </select>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-size:0.78rem;color:var(--wheat);font-weight:600;">From:</span>
+              <input type="date" id="statFilterFrom" class="filter-input" style="padding:0.35rem 0.6rem;font-size:0.78rem;" onchange="loadOverview()">
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-size:0.78rem;color:var(--wheat);font-weight:600;">To:</span>
+              <input type="date" id="statFilterTo" class="filter-input" style="padding:0.35rem 0.6rem;font-size:0.78rem;" onchange="loadOverview()">
+            </div>
+            <button class="btn-quick" style="padding:0.35rem 0.8rem;font-size:0.75rem;" onclick="resetStatFilters()">Reset</button>
+            <div style="margin-left:auto;display:flex;gap:8px;">
+              <button class="action-btn" onclick="openDateBlockModal()"><i class="fas fa-lock"></i> Block Date</button>
+              <button class="btn-quick gold" onclick="openNewBookingModal()"><i class="fas fa-plus"></i> New Booking</button>
+            </div>
+          </div>
+        </div>
+
         <div class="stats-grid">
           <div class="stat-card">
-            <div class="stat-label">Events Today</div>
-            <div class="stat-value" id="kpiEventsToday">0</div>
-            <div class="stat-sub">Across all venues</div>
+            <div class="stat-label">Total Bookings</div>
+            <div class="stat-value" id="kpiTotalBookings">0</div>
+            <div class="stat-sub">Active contracted bookings</div>
+            <i class="fas fa-calendar-check stat-icon"></i>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Upcoming Events</div>
+            <div class="stat-value" id="kpiUpcoming" style="color:var(--wheat);">0</div>
+            <div class="stat-sub">Scheduled events</div>
             <i class="fas fa-calendar-day stat-icon"></i>
           </div>
           <div class="stat-card" onclick="switchNav('enquiries')" style="cursor:pointer;" title="Click to review pending enquiries">
             <div class="stat-label">Pending Enquiries</div>
             <div class="stat-value" id="kpiPending" style="color:#fcd34d;">0</div>
-            <div class="stat-sub">Click to review &amp; confirm &rarr;</div>
+            <div class="stat-sub">Review &amp; confirm &rarr;</div>
             <i class="fas fa-inbox stat-icon"></i>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Confirmed Bookings</div>
-            <div class="stat-value" id="kpiConfirmed" style="color:#86efac;">0</div>
-            <div class="stat-sub">Locked events</div>
-            <i class="fas fa-check-circle stat-icon"></i>
+            <div class="stat-label">Awaiting 40% Advance</div>
+            <div class="stat-value" id="kpiAwaitingAdvance" style="color:#fcd34d;">0</div>
+            <div class="stat-sub">Pending advance collection</div>
+            <i class="fas fa-hourglass-half stat-icon"></i>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Cash Collected</div>
-            <div class="stat-value" id="kpiCollected">₹0</div>
-            <div class="stat-sub">Advances &amp; full payments</div>
+            <div class="stat-label">40% Advance Collected</div>
+            <div class="stat-value" id="kpiAdvanceCollected" style="color:#60a5fa;">0</div>
+            <div class="stat-sub">Advance secured</div>
             <i class="fas fa-hand-holding-usd stat-icon"></i>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Balances Outstanding</div>
+            <div class="stat-label">Remaining 60% Pending</div>
+            <div class="stat-value" id="kpiBalancePending" style="color:#fca5a5;">0</div>
+            <div class="stat-sub">Balance due 2–3 days prior</div>
+            <i class="fas fa-clock stat-icon"></i>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Fully Paid Bookings</div>
+            <div class="stat-value" id="kpiFullyPaid" style="color:#86efac;">0</div>
+            <div class="stat-sub">100% settled</div>
+            <i class="fas fa-check-double stat-icon"></i>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Cancelled Bookings</div>
+            <div class="stat-value" id="kpiCancelled" style="color:rgba(245,240,232,0.4);">0</div>
+            <div class="stat-sub">Slots released</div>
+            <i class="fas fa-times-circle stat-icon"></i>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Contracted Revenue</div>
+            <div class="stat-value" id="kpiTotalAmount" style="color:var(--wheat);">₹0</div>
+            <div class="stat-sub">Total contracted value</div>
+            <i class="fas fa-file-invoice-dollar stat-icon"></i>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Actual Money Collected</div>
+            <div class="stat-value" id="kpiCollected" style="color:#86efac;">₹0</div>
+            <div class="stat-sub">Cash / UPI received</div>
+            <i class="fas fa-coins stat-icon"></i>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Outstanding Balance</div>
             <div class="stat-value" id="kpiOutstanding" style="color:#fca5a5;">₹0</div>
-            <div class="stat-sub">Remaining balance due</div>
+            <div class="stat-sub">Remaining balance to collect</div>
             <i class="fas fa-balance-scale stat-icon"></i>
           </div>
           <div class="stat-card">
             <div class="stat-label">Expenses (This Month)</div>
             <div class="stat-value" id="kpiMonthExpenses">₹0</div>
             <div class="stat-sub">Operational costs</div>
-            <i class="fas fa-file-invoice-dollar stat-icon"></i>
+            <i class="fas fa-receipt stat-icon"></i>
           </div>
         </div>
 
@@ -1456,9 +1484,18 @@
               <button class="cal-nav-btn" onclick="calNavMonth('hakimi', -1)"><i class="fas fa-chevron-left"></i> Prev</button>
               <button class="cal-nav-btn" onclick="calNavMonth('hakimi', 0)">Today</button>
               <button class="cal-nav-btn" onclick="calNavMonth('hakimi', 1)">Next <i class="fas fa-chevron-right"></i></button>
+              <button class="action-btn" onclick="openDateBlockModal('Evan-e-Hakimi')" style="margin-left:8px;"><i class="fas fa-lock"></i> Block Date</button>
+              <button class="btn-quick gold" onclick="openNewBookingModal('Evan-e-Hakimi')"><i class="fas fa-plus"></i> New Booking</button>
             </div>
           </div>
           <!-- Inline Stage Management Panel directly above calendar grid -->
+          
+          <!-- Color System Legend Bar -->
+          <div style="display:flex;gap:18px;align-items:center;justify-content:center;padding:0.65rem 1rem;background:rgba(255,255,255,0.02);border:1px solid rgba(201,169,110,0.15);border-radius:10px;margin-bottom:0.9rem;flex-wrap:wrap;font-size:0.75rem;">
+            <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#22c55e;margin-right:5px;"></span> <strong>Green:</strong> Fully Available (All Slots Open)</span>
+            <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#eab308;margin-right:5px;"></span> <strong>Yellow:</strong> Partially Booked (1+ Slot Open)</span>
+            <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#ef4444;margin-right:5px;"></span> <strong>Red:</strong> Fully Booked / Full Day Blocked</span>
+          </div>
           <div id="calHakimiStagePanel" class="cal-stage-panel"></div>
           <div class="cal-grid-wrapper">
             <div class="cal-grid" id="calGridHakimi">
@@ -1480,9 +1517,18 @@
               <button class="cal-nav-btn" onclick="calNavMonth('qadri', -1)"><i class="fas fa-chevron-left"></i> Prev</button>
               <button class="cal-nav-btn" onclick="calNavMonth('qadri', 0)">Today</button>
               <button class="cal-nav-btn" onclick="calNavMonth('qadri', 1)">Next <i class="fas fa-chevron-right"></i></button>
+              <button class="action-btn" onclick="openDateBlockModal('Qadri Hall')" style="margin-left:8px;"><i class="fas fa-lock"></i> Block Date</button>
+              <button class="btn-quick gold" onclick="openNewBookingModal('Qadri Hall')"><i class="fas fa-plus"></i> New Booking</button>
             </div>
           </div>
           <!-- Inline Stage Management Panel directly above calendar grid -->
+          
+          <!-- Color System Legend Bar -->
+          <div style="display:flex;gap:18px;align-items:center;justify-content:center;padding:0.65rem 1rem;background:rgba(255,255,255,0.02);border:1px solid rgba(201,169,110,0.15);border-radius:10px;margin-bottom:0.9rem;flex-wrap:wrap;font-size:0.75rem;">
+            <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#22c55e;margin-right:5px;"></span> <strong>Green:</strong> Fully Available (All Slots Open)</span>
+            <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#eab308;margin-right:5px;"></span> <strong>Yellow:</strong> Partially Booked (1+ Slot Open)</span>
+            <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#ef4444;margin-right:5px;"></span> <strong>Red:</strong> Fully Booked / Full Day Blocked</span>
+          </div>
           <div id="calQadriStagePanel" class="cal-stage-panel"></div>
           <div class="cal-grid-wrapper">
             <div class="cal-grid" id="calGridQadri">
@@ -1492,7 +1538,44 @@
         </div>
       </section>
 
-      <!-- ════════ PAGE 4: ALL BOOKINGS ════════ -->
+      <!-- ════════ PAGE: COMBINED OVERVIEW CALENDAR ════════ -->
+      <section class="page" id="page-calendar-combined">
+        <div class="card">
+          <div class="cal-header">
+            <div>
+              <span class="badge" style="background:rgba(201,169,110,0.18);border:1px solid rgba(201,169,110,0.4);color:var(--wheat);margin-bottom:4px;">Combined Venues Overview</span>
+              <div class="cal-title" id="calCombinedTitle">All Halls &bull; October 2026</div>
+            </div>
+            <div class="cal-nav-btns">
+              <button class="cal-nav-btn" onclick="calNavMonth('combined', -1)"><i class="fas fa-chevron-left"></i> Prev</button>
+              <button class="cal-nav-btn" onclick="calNavMonth('combined', 0)">Today</button>
+              <button class="cal-nav-btn" onclick="calNavMonth('combined', 1)">Next <i class="fas fa-chevron-right"></i></button>
+              <button class="action-btn" onclick="openDateBlockModal()" style="margin-left:8px;"><i class="fas fa-lock"></i> Block Date</button>
+              <button class="btn-quick gold" onclick="openNewBookingModal()"><i class="fas fa-plus"></i> New Booking</button>
+            </div>
+          </div>
+
+          <!-- Color System Legend Bar -->
+          <div style="display:flex;gap:18px;align-items:center;justify-content:center;padding:0.7rem 1rem;background:rgba(255,255,255,0.02);border:1px solid rgba(201,169,110,0.15);border-radius:10px;margin-bottom:1rem;flex-wrap:wrap;font-size:0.75rem;">
+            <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#22c55e;margin-right:5px;"></span> <strong>Green:</strong> Fully Available (All Slots Open)</span>
+            <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#eab308;margin-right:5px;"></span> <strong>Yellow:</strong> Partially Booked (1+ Bookable Slot Remains)</span>
+            <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#ef4444;margin-right:5px;"></span> <strong>Red:</strong> Fully Booked / Full Day Blocked</span>
+            <span style="margin-left:auto;display:flex;gap:8px;">
+              <span class="badge badge-hakimi" style="font-size:0.65rem;">Evan-e-Hakimi</span>
+              <span class="badge badge-qadri" style="font-size:0.65rem;">Qadri Hall</span>
+            </span>
+          </div>
+
+          <div id="calCombinedStagePanel" class="cal-stage-panel"></div>
+          <div class="cal-grid-wrapper">
+            <div class="cal-grid" id="calGridCombined">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ════════ PAGE 5: ALL BOOKINGS ════════ -->
       <section class="page" id="page-bookings">
         <div class="status-tabs" id="bookingStatusTabs">
           <div class="tab-pill active" onclick="setBookingStatusTab('', this)"><i class="fas fa-layer-group"></i> All Bookings (<span id="countTabAll">0</span>)</div>
@@ -1534,7 +1617,7 @@
               <thead>
                 <tr>
                   <th>Customer</th>
-                  <th>WhatsApp / Phone</th>
+                  <th>Customer Mobile</th>
                   <th>Event Date</th>
                   <th>Venue</th>
                   <th>Slot &amp; Timing</th>
@@ -1907,12 +1990,10 @@
           </div>
         </div>
 
-        <!-- Post-Confirmation WhatsApp Link Area -->
-        <div id="wfPostActions" style="display:none;margin-top:1rem;background:rgba(37,211,102,0.1);border:1px solid rgba(37,211,102,0.3);border-radius:8px;padding:0.9rem;text-align:center;">
-          <div id="wfPostMessage" style="font-size:0.82rem;font-weight:600;color:#86efac;margin-bottom:0.6rem;"></div>
-          <a id="btnWfWhatsApp" href="#" target="_blank" class="btn-whatsapp">
-            <i class="fab fa-whatsapp" style="font-size:1rem;"></i> Send Prefilled WhatsApp Message
-          </a>
+        <!-- Post-Confirmation Status Area -->
+        <div id="wfPostActions" style="display:none;margin-top:1rem;background:rgba(201,169,110,0.12);border:1px solid rgba(201,169,110,0.35);border-radius:8px;padding:0.9rem;text-align:center;">
+          <div id="wfPostMessage" style="font-size:0.85rem;font-weight:600;color:var(--wheat);margin-bottom:0.4rem;"></div>
+          <div style="font-size:0.75rem;color:rgba(245,240,232,0.7);">The booking status has been updated. You can manage payment stages directly in the bookings registry.</div>
         </div>
       </div>
       <div class="modal-footer" id="wfFooterButtons">
@@ -2079,7 +2160,7 @@
               <input type="text" id="bName" class="form-ctrl" placeholder="e.g. Murtaza Bhai" required>
             </div>
             <div class="form-group">
-              <label for="bPhone">WhatsApp / Mobile *</label>
+              <label for="bPhone">Customer Mobile / Phone *</label>
               <input type="tel" id="bPhone" class="form-ctrl" placeholder="10-digit number" required>
             </div>
           </div>
@@ -2414,7 +2495,7 @@
       document.body.style.display = 'block';
     }
 
-    const VALID_NAV_TABS = ['overview', 'enquiries', 'calendar-hakimi', 'calendar-qadri', 'bookings', 'expenses', 'staff', 'reports'];
+    const VALID_NAV_TABS = ['overview', 'enquiries', 'calendar-hakimi', 'calendar-qadri', 'calendar-combined', 'bookings', 'expenses', 'staff', 'reports'];
 
     function getInitialTab() {
       const hash = (window.location.hash || '').replace(/^#/, '').trim();
@@ -2811,6 +2892,7 @@
       'enquiries': { title: 'New Customer Enquiries', sub: 'Review pending requests, select hall & slot, check live conflicts, and confirm or reject' },
       'calendar-hakimi': { title: 'Evan-e-Hakimi Calendar', sub: 'Hall 1 &bull; 2nd Floor &bull; Capacity: 35–40 Thals' },
       'calendar-qadri': { title: 'Qadri Hall Calendar', sub: 'Hall 2 &bull; 3rd Floor &bull; Manageable for approved future booking dates' },
+      'calendar-combined': { title: 'Combined Halls Overview Calendar', sub: 'Unified availability & schedule &bull; Evan-e-Hakimi (2nd Fl) &amp; Qadri Hall (3rd Fl)' },
       'bookings': { title: 'All Hall Bookings', sub: 'Complete booking registry, search &bull; filter &bull; conflict enforcement' },
       'expenses': { title: 'Expense Management', sub: 'Track utilities, maintenance, cleaning, supplies &bull; category breakdown' },
       'staff': { title: 'Staff & Payroll Directory', sub: 'Staff profiles &bull; verified salary disbursements &bull; active roles' },
@@ -2863,6 +2945,7 @@
       if (pageKey === 'enquiries') loadEnquiries();
       if (pageKey === 'calendar-hakimi') renderCalendar('hakimi');
       if (pageKey === 'calendar-qadri') renderCalendar('qadri');
+      if (pageKey === 'calendar-combined') renderCalendar('combined');
       if (pageKey === 'bookings') loadBookings();
       if (pageKey === 'expenses') loadExpenses();
       if (pageKey === 'staff') { loadStaff(); loadSalaryPayments(); }
@@ -2878,6 +2961,7 @@
 
     /* ════════ DATA STATE ════════ */
     let allBookings = [];
+    let allDateBlocks = [];
     let allEnquiriesList = [];
     let currentBookingTab = '';
     const CONFIRMED_STATUSES = ['confirmed', 'advance_verified', 'CONFIRMED_PENDING_ADVANCE', 'ADVANCE_PARTIALLY_PAID', 'ADVANCE_PAID', 'FULLY_PAID'];
@@ -2897,15 +2981,18 @@
 
     let calState = {
       hakimi: { year: new Date().getFullYear(), month: new Date().getMonth() },
-      qadri: { year: new Date().getFullYear(), month: new Date().getMonth() }
+      qadri: { year: new Date().getFullYear(), month: new Date().getMonth() },
+      combined: { year: new Date().getFullYear(), month: new Date().getMonth() }
     };
     let selectedCalendarBooking = {
       hakimi: null,
-      qadri: null
+      qadri: null,
+      combined: null
     };
     let calStageDrawerOpen = {
       hakimi: false,
-      qadri: false
+      qadri: false,
+      combined: false
     };
 
     function toggleCalendarDrawer(hallKey) {
@@ -3009,7 +3096,6 @@
           } else {
             recentTbody.innerHTML = pendingEnquiries.slice(0, 5).map(b => {
               const phoneClean = (b.phone || '').replace(/[^0-9]/g, '');
-              const waUrl = b.whatsapp?.confirmationUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
               return `
                 <tr>
                   <td><strong>${escapeHtml(b.customer_name || 'Guest')}</strong></td>
@@ -3047,9 +3133,9 @@
             const isPendingAdvance = b.status === 'CONFIRMED_PENDING_ADVANCE';
             const actionBtn = isPendingAdvance
               ? `<button class="btn-quick gold" style="padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="record40Advance(${b.id})" title="Received 40% Advance"><i class="fas fa-check"></i> Received 40% Advance</button>
-                 <a href="${b.whatsapp?.confirmationUrl || '#'}" target="_blank" class="btn-whatsapp" style="padding:0.25rem 0.55rem;font-size:0.68rem;text-decoration:none;display:inline-flex;align-items:center;gap:3px;" title="WhatsApp Advance Request"><i class="fab fa-whatsapp"></i> Advance Req</a>`
+                 `
               : `<button class="btn-quick" style="background:#22c55e;color:#0a1a12;padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="record60Balance(${b.id})" title="Received Remaining 60%"><i class="fas fa-check-double"></i> Received Remaining 60%</button>
-                 <a href="${b.whatsapp?.balanceReminderUrl || '#'}" target="_blank" class="btn-whatsapp" style="padding:0.25rem 0.55rem;font-size:0.68rem;text-decoration:none;display:inline-flex;align-items:center;gap:3px;" title="WhatsApp 60% Reminder"><i class="fab fa-whatsapp"></i> 60% Reminder</a>`;
+                 `;
 
             return `
               <tr>
@@ -3125,322 +3211,142 @@
       }
     }
 
-    function renderCalendarStagePanel(hallKey) {
-      const isHakimi = hallKey === 'hakimi';
-      const hallName = isHakimi ? 'Evan-e-Hakimi' : 'Qadri Hall';
-      const targetStage = document.getElementById(isHakimi ? 'calHakimiStagePanel' : 'calQadriStagePanel');
+        function renderCalendarStagePanel(hallKey) {
+      const targetStage = document.getElementById(
+        hallKey === 'hakimi' ? 'calHakimiStagePanel' : (hallKey === 'qadri' ? 'calQadriStagePanel' : 'calCombinedStagePanel')
+      );
       if (!targetStage) return;
 
       const st = calState[hallKey];
-      const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      const curYear = st.year;
+      const curMonth = st.month;
 
-      // Filter bookings for this hall and viewed month (ignore rejected/cancelled)
       const monthBookings = allBookings.filter(b => {
         if (!b.check_in) return false;
+        const [y, m] = b.check_in.split('-').map(Number);
         const bHall = (b.hall || 'Evan-e-Hakimi').toLowerCase();
-        const match = isHakimi ? (!bHall.includes('qadri')) : (bHall.includes('qadri'));
-        if (!match) return false;
-        if (REJECTED_STATUSES.includes(b.status)) return false;
-        const parts = b.check_in.split('-');
-        if (parts.length < 3) return false;
-        const bYear = parseInt(parts[0], 10);
-        const bMonth = parseInt(parts[1], 10) - 1;
-        return bYear === st.year && bMonth === st.month;
+        let matchHall = true;
+        if (hallKey === 'hakimi') matchHall = !bHall.includes('qadri');
+        else if (hallKey === 'qadri') matchHall = bHall.includes('qadri');
+        return matchHall && y === curYear && (m - 1) === curMonth && !REJECTED_STATUSES.includes(b.status);
       });
 
-      monthBookings.sort((a, b) => a.check_in.localeCompare(b.check_in) || (a.slot || '').localeCompare(b.slot || ''));
+      monthBookings.sort((a, b) => a.check_in.localeCompare(b.check_in));
 
       if (monthBookings.length === 0) {
-        selectedCalendarBooking[hallKey] = null;
-        targetStage.innerHTML = `
-          <div style="background:rgba(255,255,255,0.02);border:1px dashed rgba(245,240,232,0.15);border-radius:10px;padding:0.75rem 1.1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:0.85rem;">
-            <div style="font-size:0.82rem;color:rgba(245,240,232,0.7);display:flex;align-items:center;gap:8px;">
-              <i class="far fa-calendar-check" style="color:var(--wheat);"></i>
-              <span>No events scheduled in <strong>${monthNames[st.month]} ${st.year}</strong> for ${hallName}. Click any date below to add a booking.</span>
-            </div>
-            <button class="btn-quick gold" style="font-size:0.75rem;padding:0.3rem 0.75rem;" onclick="openNewBookingModal('${hallName}')">
-              <i class="fas fa-plus"></i> Quick Book
-            </button>
-          </div>
-        `;
+        targetStage.innerHTML = '';
         return;
       }
 
-      // Pick selected booking or default to first
       let b = monthBookings.find(x => x.id === selectedCalendarBooking[hallKey]);
       if (!b) {
         b = monthBookings[0];
         selectedCalendarBooking[hallKey] = b.id;
       }
-      currentStageBooking = b;
 
       const total = parseFloat(b.total_amount || 0);
       const advPaid = parseFloat(b.advancePaid || b.advance_paid || 0);
       const bal = Math.max(0, total - advPaid);
       const advReq = b.advance_amount ? parseFloat(b.advance_amount) : Math.round(total * 0.4);
-      const ref = b.booking_reference || `#${b.id}`;
       const isQadri = (b.hall || '').toLowerCase().includes('qadri');
       const hallLabel = isQadri ? 'Qadri Hall (3rd Floor)' : 'Evan-e-Hakimi (2nd Floor)';
-      const pkgLabel = 'Available';
-
       const isAdvReceived = advPaid >= advReq && advReq > 0;
       const isFullySettled = bal === 0;
 
-      const phoneClean = (b.phone || '').replace(/[^0-9]/g, '');
-      const waConfirmUrl = b.whatsapp?.confirmationUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
-      const waAdvReceiptUrl = b.whatsapp?.advanceReceiptUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
-      const waBalReminderUrl = b.whatsapp?.balanceReminderUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
-      const waFullReceiptUrl = b.whatsapp?.fullyPaidUrl || b.whatsapp?.fullPaymentReceiptUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
+      let stageActionBtn = '';
+      if (b.status === 'CONFIRMED_PENDING_ADVANCE') {
+        stageActionBtn = `
+          <button class="btn-quick gold" style="font-size:0.75rem;padding:0.3rem 0.75rem;" onclick="record40Advance(${b.id})">
+            <i class="fas fa-check"></i> Mark 40% Advance Collected (₹${advReq.toLocaleString('en-IN')})
+          </button>
+          <button class="action-btn del" style="font-size:0.75rem;padding:0.3rem 0.65rem;" onclick="openCancelModal(${b.id})">
+            <i class="fas fa-ban"></i> Cancel Booking
+          </button>
+        `;
+      } else if (b.status === 'ADVANCE_PAID' || b.status === 'ADVANCE_PARTIALLY_PAID') {
+        stageActionBtn = `
+          <button class="btn-quick" style="background:#22c55e;color:#0a1a12;font-size:0.75rem;padding:0.3rem 0.75rem;" onclick="record60Balance(${b.id})">
+            <i class="fas fa-check-double"></i> Mark Remaining 60% Collected (₹${bal.toLocaleString('en-IN')})
+          </button>
+          <button class="action-btn del" style="font-size:0.75rem;padding:0.3rem 0.65rem;" onclick="openCancelModal(${b.id})">
+            <i class="fas fa-ban"></i> Cancel Booking
+          </button>
+        `;
+      } else if (b.status === 'FULLY_PAID') {
+        stageActionBtn = `
+          <span style="color:#86efac;font-size:0.75rem;font-weight:600;"><i class="fas fa-check-double"></i> 100% Fully Settled</span>
+          <button class="action-btn del" style="font-size:0.75rem;padding:0.3rem 0.65rem;" onclick="openCancelModal(${b.id})">
+            <i class="fas fa-ban"></i> Cancel Booking
+          </button>
+        `;
+      }
 
-      const isDrawerOpen = calStageDrawerOpen[hallKey] === true;
-
-      // Customer dropdown options
       const customerDropdownOptions = monthBookings.map(mb => {
         const isSel = mb.id === b.id;
         const sIcon = CONFIRMED_STATUSES.includes(mb.status) ? '✓' : '⏳';
         return `<option value="${mb.id}" ${isSel ? 'selected' : ''}>${sIcon} ${formatDisplayDate(mb.check_in)} • ${escapeHtml(mb.customer_name || 'Guest')} (${mb.slot})</option>`;
       }).join('');
 
-      // Quick action button for the minimized bar
-      let quickMiniBtn = '';
-      if (b.status === 'CONFIRMED_PENDING_ADVANCE') {
-        quickMiniBtn = `
-          <button class="btn-quick gold" style="font-size:0.75rem;padding:0.28rem 0.65rem;" onclick="record40Advance(${b.id})" title="Receive 40% Advance">
-            <i class="fas fa-check"></i> Received 40% (₹${advReq.toLocaleString('en-IN')})
-          </button>
-          <a href="${waConfirmUrl}" target="_blank" class="btn-whatsapp" style="font-size:0.75rem;padding:0.28rem 0.65rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;" title="Send WhatsApp Advance Request">
-            <i class="fab fa-whatsapp"></i> WhatsApp Req
-          </a>
-        `;
-      } else if (b.status === 'ADVANCE_PAID' || b.status === 'ADVANCE_PARTIALLY_PAID') {
-        quickMiniBtn = `
-          <button class="btn-quick" style="background:#22c55e;color:#0a1a12;font-size:0.75rem;padding:0.28rem 0.65rem;" onclick="record60Balance(${b.id})" title="Receive Remaining 60%">
-            <i class="fas fa-check-double"></i> Received 60% (₹${bal.toLocaleString('en-IN')})
-          </button>
-          <a href="${waBalReminderUrl}" target="_blank" class="btn-whatsapp" style="font-size:0.75rem;padding:0.28rem 0.65rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;" title="Send WhatsApp 60% Reminder">
-            <i class="fab fa-whatsapp"></i> Remind 60%
-          </a>
-        `;
-      } else if (b.status === 'FULLY_PAID') {
-        quickMiniBtn = `
-          <span style="color:#86efac;font-size:0.75rem;font-weight:600;"><i class="fas fa-check-double"></i> Fully Paid</span>
-          <a href="${waFullReceiptUrl}" target="_blank" class="btn-whatsapp" style="font-size:0.75rem;padding:0.28rem 0.65rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;" title="Send WhatsApp Receipt">
-            <i class="fab fa-whatsapp"></i> Receipt
-          </a>
-        `;
-      }
-
-      // ── MINIMIZED DRAWER BAR (COMPACT MODE) ──
-      if (!isDrawerOpen) {
-        targetStage.innerHTML = `
-          <div class="cal-drawer-bar">
-            <!-- Left Info & Selector -->
-            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-              <span class="badge ${isQadri ? 'badge-qadri' : 'badge-hakimi'}" style="font-size:0.68rem;padding:3px 8px;">${hallLabel}</span>
-              ${monthBookings.length > 1 ? `
-                <select onchange="selectCalendarBooking('${hallKey}', parseInt(this.value, 10), false)" style="background:#140e08;border:1px solid rgba(201,169,110,0.3);color:var(--wheat);padding:0.3rem 0.6rem;border-radius:6px;font-size:0.75rem;cursor:pointer;max-width:280px;">
-                  ${customerDropdownOptions}
-                </select>
-              ` : `
-                <span style="font-size:0.82rem;font-weight:600;color:var(--cream);"><strong style="color:#fff;text-transform:uppercase;">${escapeHtml(b.customer_name || 'Guest')}</strong> (${b.slot})</span>
-              `}
-              <span class="badge badge-${b.status}" style="font-size:0.68rem;">${formatStatusLabel(b.status)}</span>
-              <div style="font-size:0.75rem;color:rgba(245,240,232,0.7);display:inline-flex;align-items:center;gap:6px;">
-                <span>Total: <strong style="color:var(--wheat);">₹${total.toLocaleString('en-IN')}</strong></span>
-                <span style="opacity:0.4;">|</span>
-                <span>40% Adv: <strong style="color:${isAdvReceived ? '#86efac' : '#fcd34d'};">₹${advPaid.toLocaleString('en-IN')}</strong></span>
-                <span style="opacity:0.4;">|</span>
-                <span>60% Bal: <strong style="color:${isFullySettled ? '#86efac' : '#fca5a5'};">₹${bal.toLocaleString('en-IN')}</strong></span>
-              </div>
-            </div>
-
-            <!-- Right Quick Actions & Expand Toggle -->
-            <div style="display:flex;align-items:center;gap:6px;">
-              ${quickMiniBtn}
-              <button type="button" class="action-btn" onclick="toggleCalendarDrawer('${hallKey}')" style="font-size:0.75rem;padding:0.32rem 0.75rem;display:inline-flex;align-items:center;gap:5px;border-color:rgba(201,169,110,0.35);color:var(--wheat);" title="Expand full stage details">
-                <i class="fas fa-chevron-down"></i> Expand Details
-              </button>
-            </div>
-          </div>
-        `;
-        return;
-      }
-
-      // ── EXPANDED DRAWER CARD (DETAILED MODE) ──
-      let actionBoxHtml = '';
-      if (b.status === 'CONFIRMED_PENDING_ADVANCE') {
-        actionBoxHtml = `
-          <div style="background:rgba(252,211,77,0.08);border:1px solid rgba(252,211,77,0.3);padding:0.9rem;border-radius:8px;margin-bottom:0.8rem;">
-            <div style="font-size:0.85rem;color:#fcd34d;font-weight:600;margin-bottom:4px;">
-              <i class="fas fa-hourglass-half"></i> Awaiting 40% Advance Payment
-            </div>
-            <div style="font-size:0.75rem;color:var(--cream);opacity:0.85;margin-bottom:0.7rem;">
-              Kindly pay 40% advance (₹${advReq.toLocaleString('en-IN')}) within 24 hours to secure this booking slot.
-            </div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <button class="btn-quick gold" style="font-size:0.82rem;padding:0.45rem 0.9rem;" onclick="record40Advance(${b.id})">
-                <i class="fas fa-check"></i> Received 40% Advance (₹${advReq.toLocaleString('en-IN')})
-              </button>
-              <a href="${waConfirmUrl}" target="_blank" class="btn-whatsapp" style="font-size:0.82rem;padding:0.45rem 0.9rem;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
-                <i class="fab fa-whatsapp"></i> Send 40% Advance Request WhatsApp
-              </a>
-            </div>
-          </div>
-        `;
-      } else if (b.status === 'ADVANCE_PAID' || b.status === 'ADVANCE_PARTIALLY_PAID') {
-        actionBoxHtml = `
-          <div style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.3);padding:0.9rem;border-radius:8px;margin-bottom:0.8rem;">
-            <div style="font-size:0.85rem;color:#93c5fd;font-weight:600;margin-bottom:4px;">
-              <i class="fas fa-check-circle"></i> 40% Advance Secured &bull; 60% Balance Due
-            </div>
-            <div style="font-size:0.75rem;color:var(--cream);opacity:0.85;margin-bottom:0.7rem;">
-              The remaining 60% balance of <strong>₹${bal.toLocaleString('en-IN')}</strong> is payable at Hakimi Tower, 2nd Floor, to Aliasgar Challawala, 2–3 days before the function.
-            </div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <button class="btn-quick" style="background:#22c55e;color:#0a1a12;font-size:0.82rem;padding:0.45rem 0.9rem;" onclick="record60Balance(${b.id})">
-                <i class="fas fa-check-double"></i> Received Remaining 60% (₹${bal.toLocaleString('en-IN')})
-              </button>
-              <a href="${waBalReminderUrl}" target="_blank" class="btn-whatsapp" style="font-size:0.82rem;padding:0.45rem 0.9rem;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
-                <i class="fab fa-whatsapp"></i> Send 60% Reminder WhatsApp
-              </a>
-              <a href="${waAdvReceiptUrl}" target="_blank" class="btn-whatsapp-outline" style="font-size:0.82rem;padding:0.45rem 0.9rem;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
-                <i class="fab fa-whatsapp"></i> Resend 40% Advance Receipt
-              </a>
-            </div>
-          </div>
-        `;
-      } else if (b.status === 'FULLY_PAID') {
-        actionBoxHtml = `
-          <div style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.35);padding:0.9rem;border-radius:8px;margin-bottom:0.8rem;">
-            <div style="font-size:0.88rem;color:#86efac;font-weight:700;margin-bottom:4px;">
-              <i class="fas fa-check-double"></i> Booking Fully Paid &amp; Settled (₹${total.toLocaleString('en-IN')})
-            </div>
-            <div style="font-size:0.75rem;color:var(--cream);opacity:0.85;margin-bottom:0.7rem;">
-              All dues cleared. Outstanding balance is ₹0.
-            </div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <a href="${waFullReceiptUrl}" target="_blank" class="btn-whatsapp" style="font-size:0.82rem;padding:0.45rem 0.9rem;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
-                <i class="fab fa-whatsapp"></i> Send Full Settlement Receipt WhatsApp
-              </a>
-            </div>
-          </div>
-        `;
-      } else if (ENQUIRY_STATUSES.includes(b.status)) {
-        actionBoxHtml = `
-          <div style="background:rgba(217,119,6,0.1);border:1px solid rgba(217,119,6,0.3);padding:0.9rem;border-radius:8px;margin-bottom:0.8rem;">
-            <div style="font-size:0.85rem;color:#fbbf24;font-weight:600;margin-bottom:4px;">
-              <i class="fas fa-inbox"></i> Website Enquiry Pending Review
-            </div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:0.6rem;">
-              <button class="btn-quick gold" style="font-size:0.82rem;padding:0.45rem 0.9rem;" onclick="openEnquiryWorkflow(${b.id});">
-                <i class="fas fa-check"></i> Review &amp; Accept Enquiry
-              </button>
-              <button class="action-btn del" style="font-size:0.82rem;padding:0.45rem 0.9rem;" onclick="rejectEnquiryPrompt(${b.id});">
-                <i class="fas fa-times"></i> Reject Enquiry
-              </button>
-            </div>
-          </div>
-        `;
-      }
-
       targetStage.innerHTML = `
-        <div class="cal-stage-card">
-          <!-- Top Row: Customer Dropdown Selector & Collapse Toggle -->
-          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:1rem;padding-bottom:0.75rem;border-bottom:1px solid rgba(255,255,255,0.08);">
-            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-              ${monthBookings.length > 1 ? `
-                <span style="font-size:0.72rem;color:rgba(245,240,232,0.6);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;"><i class="fas fa-calendar-alt" style="color:var(--wheat);"></i> Customer (${monthBookings.findIndex(x=>x.id===b.id)+1} of ${monthBookings.length}):</span>
-                <select onchange="selectCalendarBooking('${hallKey}', parseInt(this.value, 10), true)" style="background:#140e08;border:1px solid rgba(201,169,110,0.3);color:var(--wheat);padding:0.3rem 0.6rem;border-radius:6px;font-size:0.75rem;cursor:pointer;max-width:320px;">
-                  ${customerDropdownOptions}
-                </select>
-              ` : `
-                <div style="font-size:1.05rem;font-weight:700;color:#fff;text-transform:uppercase;">
-                  ${escapeHtml(b.customer_name || 'Guest')}
-                </div>
-              `}
-              <span class="badge ${isQadri ? 'badge-qadri' : 'badge-hakimi'}">${hallLabel}</span>
-              <span class="badge badge-${b.status}">${formatStatusLabel(b.status)}</span>
-            </div>
-            <div style="display:flex;gap:6px;align-items:center;">
-              <button type="button" class="action-btn" style="font-size:0.75rem;padding:0.35rem 0.75rem;" onclick="openEditBookingModal(${b.id})"><i class="fas fa-edit"></i> Edit</button>
-              <button type="button" class="action-btn del" style="font-size:0.75rem;padding:0.35rem 0.75rem;" onclick="deleteBooking(${b.id})"><i class="fas fa-trash"></i> Cancel</button>
-              <button type="button" class="action-btn" onclick="toggleCalendarDrawer('${hallKey}')" style="font-size:0.75rem;padding:0.35rem 0.75rem;background:rgba(255,255,255,0.04);border-color:rgba(201,169,110,0.35);color:var(--wheat);" title="Collapse Drawer">
-                <i class="fas fa-chevron-up"></i> Collapse
-              </button>
+        <div class="cal-drawer-bar" style="margin-bottom:1rem;background:rgba(201,169,110,0.06);border:1px solid rgba(201,169,110,0.25);border-radius:10px;padding:0.8rem 1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <span class="badge ${isQadri ? 'badge-qadri' : 'badge-hakimi'}" style="font-size:0.7rem;">${hallLabel}</span>
+            <select onchange="selectCalendarBooking('${hallKey}', parseInt(this.value, 10), false)" style="background:#140e08;border:1px solid rgba(201,169,110,0.3);color:var(--wheat);padding:0.3rem 0.6rem;border-radius:6px;font-size:0.75rem;cursor:pointer;max-width:280px;">
+              ${customerDropdownOptions}
+            </select>
+            <span class="badge badge-${b.status}" style="font-size:0.7rem;">${formatStatusLabel(b.status)}</span>
+            <span style="font-size:0.75rem;color:rgba(245,240,232,0.85);">
+              Customer: <strong style="color:var(--wheat);">${escapeHtml(b.customer_name)}</strong> &bull; 
+              <a href="tel:${b.phone}" style="color:var(--cream);text-decoration:none;"><i class="fas fa-phone-alt" style="font-size:0.68rem;margin-right:3px;"></i>${b.phone}</a>
+            </span>
+            <div style="font-size:0.75rem;color:rgba(245,240,232,0.7);display:inline-flex;gap:6px;">
+              <span>Total: <strong style="color:var(--wheat);">₹${total.toLocaleString('en-IN')}</strong></span>
+              <span style="opacity:0.4;">|</span>
+              <span>40% Adv: <strong style="color:${isAdvReceived ? '#86efac' : '#fcd34d'};">₹${advPaid.toLocaleString('en-IN')}</strong></span>
+              <span style="opacity:0.4;">|</span>
+              <span>60% Bal: <strong style="color:${isFullySettled ? '#86efac' : '#fca5a5'};">₹${bal.toLocaleString('en-IN')}</strong></span>
             </div>
           </div>
-
-          <!-- If multiple customers, show the customer header below the dropdown -->
-          ${monthBookings.length > 1 ? `
-            <div style="margin-bottom:0.9rem;font-size:1.05rem;font-weight:700;color:#fff;text-transform:uppercase;">
-              ${escapeHtml(b.customer_name || 'Guest')}
-            </div>
-          ` : ''}
-
-          <!-- Details Row -->
-          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:0.6rem;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.8rem;margin-bottom:1rem;font-size:0.75rem;">
-            <div><span style="opacity:0.6;display:block;font-size:0.65rem;text-transform:uppercase;">Phone</span><a href="tel:${b.phone}" style="color:var(--cream);text-decoration:none;">${escapeHtml(b.phone || '—')}</a></div>
-            <div><span style="opacity:0.6;display:block;font-size:0.65rem;text-transform:uppercase;">Date</span><strong style="color:#fcd34d;">${formatDisplayDate(b.check_in)}</strong></div>
-            <div><span style="opacity:0.6;display:block;font-size:0.65rem;text-transform:uppercase;">Slot</span><strong style="text-transform:capitalize;">${b.slot || '—'}</strong></div>
-            <div><span style="opacity:0.6;display:block;font-size:0.65rem;text-transform:uppercase;">Pantry</span><strong>${pkgLabel}</strong></div>
-            <div><span style="opacity:0.6;display:block;font-size:0.65rem;text-transform:uppercase;">Guests</span><span>${b.guests ? `${b.guests} guests` : 'Not specified'}</span></div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            ${stageActionBtn}
           </div>
-
-          <!-- 3 Financial Tracking Cards -->
-          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(120px, 1fr));gap:0.6rem;margin-bottom:1rem;">
-            <div style="background:rgba(217,119,6,0.08);border:1px solid rgba(217,119,6,0.25);border-radius:8px;padding:0.7rem;text-align:center;">
-              <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;opacity:0.7;margin-bottom:2px;">Total Quoted</div>
-              <div style="font-size:1.1rem;font-weight:700;color:var(--wheat);">₹${total.toLocaleString('en-IN')}</div>
-              <div style="font-size:0.65rem;opacity:0.6;">Full Event</div>
-            </div>
-            <div style="background:rgba(255,255,255,0.03);border:1px solid ${isAdvReceived ? 'rgba(34,197,94,0.4)' : 'rgba(252,211,77,0.4)'};border-radius:8px;padding:0.7rem;text-align:center;">
-              <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;opacity:0.7;margin-bottom:2px;">Advance (40%)</div>
-              <div style="font-size:1.1rem;font-weight:700;color:#fcd34d;">₹${advPaid.toLocaleString('en-IN')}${advPaid < advReq ? ` (Req: ₹${advReq.toLocaleString('en-IN')})` : ''}</div>
-              <div style="margin-top:2px;">${isAdvReceived ? '<span style="color:#86efac;font-size:0.75rem;"><i class="fas fa-check-circle"></i> 40% Received</span>' : '<span style="color:#fcd34d;font-size:0.75rem;"><i class="fas fa-clock"></i> 40% Pending</span>'}</div>
-            </div>
-            <div style="background:rgba(255,255,255,0.03);border:1px solid ${isFullySettled ? 'rgba(34,197,94,0.4)' : 'rgba(239,68,68,0.4)'};border-radius:8px;padding:0.7rem;text-align:center;">
-              <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;opacity:0.7;margin-bottom:2px;">Balance (60%)</div>
-              <div style="font-size:1.1rem;font-weight:700;color:var(--cream);">₹${bal.toLocaleString('en-IN')}</div>
-              <div style="margin-top:2px;">${isFullySettled ? '<span style="color:#86efac;font-size:0.75rem;"><i class="fas fa-check-double"></i> Fully Settled</span>' : '<span style="color:#fca5a5;font-size:0.75rem;"><i class="fas fa-exclamation-circle"></i> 60% Due</span>'}</div>
-            </div>
-          </div>
-
-          <!-- Dynamic Action Box -->
-          ${actionBoxHtml}
         </div>
       `;
     }
 
     async function renderCalendar(hallKey) {
       const isHakimi = hallKey === 'hakimi';
-      const hallName = isHakimi ? 'Evan-e-Hakimi' : 'Qadri Hall';
-      const targetTitle = document.getElementById(isHakimi ? 'calHakimiTitle' : 'calQadriTitle');
-      const targetGrid = document.getElementById(isHakimi ? 'calGridHakimi' : 'calGridQadri');
+      const isQadri = hallKey === 'qadri';
+      const isCombined = hallKey === 'combined';
+
+      const hallName = isHakimi ? 'Evan-e-Hakimi' : (isQadri ? 'Qadri Hall' : 'Combined Overview');
+      const targetTitle = document.getElementById(
+        isHakimi ? 'calHakimiTitle' : (isQadri ? 'calQadriTitle' : 'calCombinedTitle')
+      );
+      const targetGrid = document.getElementById(
+        isHakimi ? 'calGridHakimi' : (isQadri ? 'calGridQadri' : 'calGridCombined')
+      );
+
+      if (!targetTitle || !targetGrid) return;
 
       const st = calState[hallKey];
       const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
       targetTitle.innerHTML = `${hallName} &bull; ${monthNames[st.month]} ${st.year}`;
 
-      // Refresh bookings if needed
-      if (allBookings.length === 0) {
-        const res = await authFetch('/api/bookings');
-        allBookings = await res.json();
+      // Fetch bookings and date blocks if needed
+      if (allBookings.length === 0 || allDateBlocks.length === 0) {
+        const [bRes, blockRes] = await Promise.all([
+          authFetch('/api/bookings'),
+          authFetch('/api/date-blocks')
+        ]);
+        allBookings = await bRes.json();
+        const blkData = await blockRes.json();
+        allDateBlocks = blkData.dateBlocks || [];
       }
 
-      // Map bookings for this hall and month
       const firstDayOfMonth = new Date(st.year, st.month, 1).getDay();
       const daysInMonth = new Date(st.year, st.month + 1, 0).getDate();
       const todayStr = new Date().toISOString().split('T')[0];
-
-      const dayMap = {};
-      allBookings.forEach(b => {
-        const bHall = (b.hall || 'Evan-e-Hakimi').toLowerCase();
-        const match = isHakimi ? (!bHall.includes('qadri')) : (bHall.includes('qadri'));
-        if (match && b.check_in && !REJECTED_STATUSES.includes(b.status)) {
-          if (!dayMap[b.check_in]) dayMap[b.check_in] = [];
-          dayMap[b.check_in].push(b);
-        }
-      });
 
       let html = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => `<div class="cal-day-name">${d}</div>`).join('');
 
@@ -3451,33 +3357,151 @@
       for (let day = 1; day <= daysInMonth; day++) {
         const dateStr = `${st.year}-${String(st.month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const isToday = dateStr === todayStr;
-        const bList = dayMap[dateStr] || [];
-        const isDaySelected = bList.some(b => b.id === selectedCalendarBooking[hallKey]);
 
-        let pillHtml = '';
-        bList.forEach(b => {
-          const sCls = 'slot-' + (b.slot || 'morning');
-          const isConf = CONFIRMED_STATUSES.includes(b.status);
-          const icon = isConf ? '✓ ' : '⏳ ';
-          const isSelected = b.id === selectedCalendarBooking[hallKey];
-          pillHtml += `
-            <div class="slot-pill ${sCls} ${isSelected ? 'active-stage-pill' : ''}" 
-                 onclick="event.stopPropagation(); selectCalendarBooking('${hallKey}', ${b.id}, true);" 
-                 title="${escapeHtml(b.customer_name)} (${b.slot}) &bull; ${formatStatusLabel(b.status)} &bull; Click to view stage details">
-              ${icon}${escapeHtml(b.customer_name || 'Booked')} (${b.slot})
-            </div>`;
+        if (isCombined) {
+          // Render combined cell showing status of BOTH halls
+          const hakimiBlock = allDateBlocks.find(db => db.block_date === dateStr && db.hall === 'Evan-e-Hakimi');
+          const qadriBlock = allDateBlocks.find(db => db.block_date === dateStr && db.hall === 'Qadri Hall');
+
+          const hakimiBookings = allBookings.filter(b => (!b.hall || b.hall.toLowerCase().includes('hakimi')) && b.check_in === dateStr && !REJECTED_STATUSES.includes(b.status));
+          const qadriBookings = allBookings.filter(b => b.hall && b.hall.toLowerCase().includes('qadri') && b.check_in === dateStr && !REJECTED_STATUSES.includes(b.status));
+
+          // Calculate Hakimi availability
+          let hakimiColor = '#22c55e', hakimiLabel = 'Avail';
+          if (hakimiBlock) { hakimiColor = '#ef4444'; hakimiLabel = 'Blocked'; }
+          else {
+            const hasFull = hakimiBookings.some(b => b.slot === 'fullday');
+            const hasMorn = hakimiBookings.some(b => b.slot === 'morning' || b.slot === 'majlis');
+            const hasEve = hakimiBookings.some(b => b.slot === 'evening');
+            if (hasFull || (hasMorn && hasEve)) { hakimiColor = '#ef4444'; hakimiLabel = 'Booked'; }
+            else if (hasMorn || hasEve) { hakimiColor = '#eab308'; hakimiLabel = 'Partial'; }
+          }
+
+          // Calculate Qadri availability
+          let qadriColor = '#22c55e', qadriLabel = 'Avail';
+          if (dateStr < '2026-11-21') { qadriColor = '#64748b'; qadriLabel = 'Opening Nov 21'; }
+          else if (qadriBlock) { qadriColor = '#ef4444'; qadriLabel = 'Blocked'; }
+          else {
+            const hasFull = qadriBookings.some(b => b.slot === 'fullday');
+            const hasMorn = qadriBookings.some(b => b.slot === 'morning' || b.slot === 'majlis');
+            const hasEve = qadriBookings.some(b => b.slot === 'evening');
+            if (hasFull || (hasMorn && hasEve)) { qadriColor = '#ef4444'; qadriLabel = 'Booked'; }
+            else if (hasMorn || hasEve) { qadriColor = '#eab308'; qadriLabel = 'Partial'; }
+          }
+
+          html += `
+            <div class="cal-cell ${isToday ? 'today' : ''}" style="min-height:100px;display:flex;flex-direction:column;justify-content:space-between;padding:6px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span class="cal-day-num">${day}</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:4px;margin-top:4px;">
+                <div style="background:${hakimiColor}15;border:1px solid ${hakimiColor}55;color:${hakimiColor};padding:2px 5px;border-radius:4px;font-size:0.62rem;display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="switchNav('calendar-hakimi')">
+                  <span>EH:</span><strong>${hakimiLabel}</strong>
+                </div>
+                <div style="background:${qadriColor}15;border:1px solid ${qadriColor}55;color:${qadriColor};padding:2px 5px;border-radius:4px;font-size:0.62rem;display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="switchNav('calendar-qadri')">
+                  <span>QH:</span><strong>${qadriLabel}</strong>
+                </div>
+              </div>
+            </div>
+          `;
+          continue;
+        }
+
+        // Single Hall Calendar Calculation
+        const targetHallName = isHakimi ? 'Evan-e-Hakimi' : 'Qadri Hall';
+        const dayBlock = allDateBlocks.find(db => db.block_date === dateStr && db.hall === targetHallName);
+        const dayBookings = allBookings.filter(b => {
+          const bHall = (b.hall || 'Evan-e-Hakimi').toLowerCase();
+          const match = isHakimi ? (!bHall.includes('qadri')) : (bHall.includes('qadri'));
+          return match && b.check_in === dateStr && !REJECTED_STATUSES.includes(b.status);
         });
 
+        const isPreOpening = isQadri && dateStr < '2026-11-21';
+        let colorCode = '#22c55e'; // GREEN
+        let statusBadgeText = '🟢 Available';
+        let statusClass = 'status-green';
+
+        if (isPreOpening) {
+          colorCode = '#64748b';
+          statusBadgeText = 'Opening Nov 21';
+          statusClass = 'status-grey';
+        } else if (dayBlock) {
+          colorCode = '#ef4444'; // RED
+          statusBadgeText = '🔴 Blocked';
+          statusClass = 'status-red';
+        } else {
+          const hasFull = dayBookings.some(b => b.slot === 'fullday');
+          const hasMorning = dayBookings.some(b => b.slot === 'morning' || b.slot === 'majlis');
+          const hasEvening = dayBookings.some(b => b.slot === 'evening');
+
+          if (hasFull || (hasMorning && hasEvening)) {
+            colorCode = '#ef4444'; // RED
+            statusBadgeText = '🔴 Fully Booked';
+            statusClass = 'status-red';
+          } else if (hasMorning || hasEvening) {
+            colorCode = '#eab308'; // YELLOW
+            statusBadgeText = `🟡 Partial (${hasMorning ? 'Eve Open' : 'Morn Open'})`;
+            statusClass = 'status-yellow';
+          }
+        }
+
+        // Booking chips
+        let pillsHtml = '';
+        if (dayBlock) {
+          pillsHtml += `
+            <div style="background:rgba(239,68,68,0.18);border:1px solid rgba(239,68,68,0.4);color:#fca5a5;padding:2px 5px;border-radius:4px;font-size:0.6rem;margin-top:2px;">
+              Blocked: ${escapeHtml(dayBlock.reason || 'Admin Block')}
+              <button onclick="event.stopPropagation(); unblockDate(${dayBlock.id}, '${targetHallName}', '${dateStr}');" style="background:none;border:none;color:#fff;cursor:pointer;margin-left:4px;" title="Unblock Date">&times;</button>
+            </div>
+          `;
+        } else {
+          dayBookings.forEach(b => {
+            const isConf = CONFIRMED_STATUSES.includes(b.status);
+            const icon = isConf ? '✓' : '⏳';
+            const isSelected = b.id === selectedCalendarBooking[hallKey];
+            pillsHtml += `
+              <div class="slot-pill slot-${b.slot} ${isSelected ? 'active-stage-pill' : ''}" 
+                   onclick="event.stopPropagation(); selectCalendarBooking('${hallKey}', ${b.id}, true);"
+                   style="font-size:0.62rem;padding:2px 5px;margin-top:2px;"
+                   title="${escapeHtml(b.customer_name)} (${b.slot}) &bull; ${formatStatusLabel(b.status)}">
+                ${icon} ${escapeHtml(b.customer_name || 'Booked')} (${b.slot})
+              </div>
+            `;
+          });
+        }
+
         html += `
-          <div class="cal-cell ${isToday ? 'today' : ''} ${isDaySelected ? 'active-stage-cell' : ''}" onclick="handleCalendarDateClick('${hallName}', '${dateStr}')">
-            <div class="cal-day-num">${day}</div>
-            ${pillHtml}
+          <div class="cal-cell ${isToday ? 'today' : ''} ${statusClass}" 
+               style="border-top:3px solid ${colorCode};cursor:pointer;min-height:95px;"
+               onclick="handleCalendarDateClick('${targetHallName}', '${dateStr}', ${dayBookings.length > 0})">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span class="cal-day-num">${day}</span>
+              <span style="font-size:0.58rem;font-weight:600;color:${colorCode};">${statusBadgeText}</span>
+            </div>
+            ${pillsHtml}
           </div>
         `;
       }
 
       targetGrid.innerHTML = html;
       renderCalendarStagePanel(hallKey);
+    }
+
+    function handleCalendarDateClick(hallName, dateStr, hasBookings) {
+      const isHakimi = hallName.toLowerCase().includes('hakimi');
+      const hallKey = isHakimi ? 'hakimi' : 'qadri';
+
+      const dayBookings = allBookings.filter(b => {
+        const bHall = (b.hall || 'Evan-e-Hakimi').toLowerCase();
+        const match = isHakimi ? (!bHall.includes('qadri')) : (bHall.includes('qadri'));
+        return match && b.check_in === dateStr && !REJECTED_STATUSES.includes(b.status);
+      });
+
+      if (dayBookings.length > 0) {
+        selectCalendarBooking(hallKey, dayBookings[0].id, true);
+      } else {
+        openDateQuickBook(hallName, dateStr, 'morning');
+      }
     }
 
     function handleCalendarDateClick(hallName, dateStr) {
@@ -3546,9 +3570,6 @@
           const isConfirmed = CONFIRMED_STATUSES.includes(b.status);
           const isRejected = REJECTED_STATUSES.includes(b.status);
           const phoneClean = (b.phone || '').replace(/[^0-9]/g, '');
-          const waApprovalUrl = b.whatsapp?.confirmationUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
-          const waRejectionUrl = b.whatsapp?.rejectionUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
-
           let actionsHtml = '';
           if (isPending) {
             actionsHtml = `
@@ -3564,9 +3585,7 @@
               <button class="btn-quick gold" style="padding:0.28rem 0.55rem;font-size:0.68rem;" onclick="record40Advance(${b.id})" title="Received 40% Advance">
                 <i class="fas fa-check"></i> Received 40% Advance
               </button>
-              <a href="${waApprovalUrl}" target="_blank" class="btn-whatsapp" style="padding:0.28rem 0.55rem;font-size:0.68rem;text-decoration:none;display:inline-flex;align-items:center;gap:3px;" title="Send WhatsApp 40% Advance Request">
-                <i class="fab fa-whatsapp"></i> Advance Req
-              </a>
+              
               <button class="action-btn" style="padding:0.28rem 0.45rem;font-size:0.68rem;" onclick="openBookingStage(${b.id})" title="Manage Booking"><i class="fas fa-eye"></i></button>
             `;
           } else if (b.status === 'ADVANCE_PAID' || b.status === 'ADVANCE_PARTIALLY_PAID') {
@@ -3574,24 +3593,18 @@
               <button class="btn-quick" style="background:#22c55e;color:#0a1a12;padding:0.28rem 0.55rem;font-size:0.68rem;" onclick="record60Balance(${b.id})" title="Received Remaining 60%">
                 <i class="fas fa-check-double"></i> Received Remaining 60%
               </button>
-              <a href="${b.whatsapp?.balanceReminderUrl || '#'}" target="_blank" class="btn-whatsapp" style="padding:0.28rem 0.55rem;font-size:0.68rem;text-decoration:none;display:inline-flex;align-items:center;gap:3px;" title="Send WhatsApp 60% Reminder">
-                <i class="fab fa-whatsapp"></i> 60% Reminder
-              </a>
+              
               <button class="action-btn" style="padding:0.28rem 0.45rem;font-size:0.68rem;" onclick="openBookingStage(${b.id})" title="Manage Booking"><i class="fas fa-eye"></i></button>
             `;
           } else if (b.status === 'FULLY_PAID') {
             actionsHtml = `
               <span class="badge" style="background:rgba(34,197,94,0.18);color:#86efac;border:1px solid rgba(34,197,94,0.4);font-size:0.68rem;padding:3px 6px;">Fully Paid ✓</span>
-              <a href="${b.whatsapp?.fullyPaidUrl || '#'}" target="_blank" class="btn-whatsapp" style="padding:0.28rem 0.55rem;font-size:0.68rem;text-decoration:none;display:inline-flex;align-items:center;gap:3px;" title="Send WhatsApp Full Settlement Receipt">
-                <i class="fab fa-whatsapp"></i> Full Receipt
-              </a>
+              
               <button class="action-btn" style="padding:0.28rem 0.45rem;font-size:0.68rem;" onclick="openBookingStage(${b.id})" title="Manage Booking"><i class="fas fa-eye"></i></button>
             `;
           } else if (isRejected) {
             actionsHtml = `
-              <a href="${waRejectionUrl}" target="_blank" class="btn-whatsapp-outline" style="padding:0.28rem 0.55rem;font-size:0.68rem;color:#fca5a5;border-color:rgba(239,68,68,0.35);background:rgba(239,68,68,0.08);text-decoration:none;display:inline-flex;align-items:center;gap:3px;" title="Send WhatsApp Regret Message">
-                <i class="fab fa-whatsapp"></i> Send Regret WhatsApp
-              </a>
+              
             `;
           } else {
             actionsHtml = `
@@ -3644,16 +3657,13 @@
 
       // Populate customer summary header
       const phoneClean = (b.phone || '').replace(/[^0-9]/g, '');
-      const waUrl = b.whatsapp?.confirmationUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
       document.getElementById('wfCustomerSummary').innerHTML = `
         <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.4rem;">
           <div>
             <strong style="font-size:0.95rem;color:var(--wheat);">${escapeHtml(b.customer_name || 'Valued Guest')}</strong>
             <span style="font-size:0.75rem;color:rgba(245,240,232,0.6);margin-left:8px;">&bull; ${escapeHtml(b.phone)}</span>
           </div>
-          <a href="${waUrl}" target="_blank" class="btn-whatsapp-outline" style="font-size:0.68rem;padding:3px 8px;">
-            <i class="fab fa-whatsapp"></i> Direct WhatsApp
-          </a>
+          
         </div>
         <div><strong>Occasion:</strong> ${escapeHtml(b.occasion || 'Not specified')} | <strong>Expected Guests:</strong> ${b.guests || 'Not specified'}</div>
         ${b.notes ? `<div style="margin-top:4px;color:rgba(245,240,232,0.75);"><i class="fas fa-comment-dots" style="color:var(--wheat);"></i> <em>"${escapeHtml(b.notes)}"</em></div>` : ''}
@@ -3866,14 +3876,6 @@
             </div>
           `;
 
-          const waLink = document.getElementById('btnWfWhatsApp');
-          waLink.href = data.booking.whatsapp?.confirmationUrl || '#';
-          waLink.innerHTML = `<i class="fab fa-whatsapp" style="font-size:1.1rem;"></i> Send Ready Approval Message via WhatsApp`;
-
-          if (data.booking.whatsapp?.confirmationUrl) {
-            window.open(data.booking.whatsapp.confirmationUrl, '_blank');
-          }
-
           loadOverview();
           loadEnquiries();
           loadBookings();
@@ -3900,7 +3902,7 @@
         title: 'Reject Booking Enquiry',
         icon: 'fas fa-ban',
         danger: true,
-        message: 'Enter rejection reason (will be formatted into customer WhatsApp notification message):',
+        message: 'Enter rejection reason for official record:',
         customer: custName,
         date: date,
         hall: hall,
@@ -3941,16 +3943,9 @@
             </div>
           `;
 
-          const waLink = document.getElementById('btnWfWhatsApp');
-          waLink.href = data.booking.whatsapp?.rejectionUrl || '#';
-          waLink.className = 'btn-whatsapp-outline';
-          waLink.style.borderColor = '#ef4444';
-          waLink.style.color = '#fca5a5';
-          waLink.innerHTML = `<i class="fab fa-whatsapp"></i> Send Ready Regret Message via WhatsApp`;
+          
 
-          if (data.booking.whatsapp?.rejectionUrl) {
-            window.open(data.booking.whatsapp.rejectionUrl, '_blank');
-          }
+          
 
           loadOverview();
           loadEnquiries();
@@ -3971,7 +3966,7 @@
         title: 'Reject Booking Enquiry',
         icon: 'fas fa-ban',
         danger: true,
-        message: `Reject enquiry #${bookingId} for <strong>${escapeHtml(custName)}</strong>? Enter the reason to send via WhatsApp:`,
+        message: `Reject enquiry #${bookingId} for <strong>${escapeHtml(custName)}</strong>? Enter the reason for rejection:`,
         customer: custName,
         date: b?.check_in,
         hall: b?.hall,
@@ -3996,9 +3991,7 @@
 
         if (res.ok && data.success) {
           showToast(`Enquiry #${bookingId} marked as rejected`);
-          if (data.booking.whatsapp?.rejectionUrl) {
-            window.open(data.booking.whatsapp.rejectionUrl, '_blank');
-          }
+          
           loadOverview();
           loadEnquiries();
           loadBookings();
@@ -4049,9 +4042,7 @@
           const data = await res.json();
           if (res.ok && data.success) {
             showToast(data.message || '40% advance received successfully!');
-            if (data.booking?.whatsapp?.advanceReceiptUrl) {
-              window.open(data.booking.whatsapp.advanceReceiptUrl, '_blank');
-            }
+            
             closeModal('modalBookingStage');
             allBookings = [];
             loadOverview();
@@ -4105,9 +4096,7 @@
           const data = await res.json();
           if (res.ok && data.success) {
             showToast(data.message || 'Remaining 60% balance received! Booking is now fully paid.');
-            if (data.booking?.whatsapp?.fullyPaidUrl) {
-              window.open(data.booking.whatsapp.fullyPaidUrl, '_blank');
-            }
+            
             closeModal('modalBookingStage');
             allBookings = [];
             loadOverview();
@@ -4178,11 +4167,6 @@
 
       const actionsContainer = document.getElementById('stageActionButtons');
       const phoneClean = (b.phone || '').replace(/[^0-9]/g, '');
-      const waConfirmUrl = b.whatsapp?.confirmationUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
-      const waAdvReceiptUrl = b.whatsapp?.advanceReceiptUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
-      const waBalReminderUrl = b.whatsapp?.balanceReminderUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
-      const waFullReceiptUrl = b.whatsapp?.fullyPaidUrl || b.whatsapp?.fullPaymentReceiptUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
-
       if (b.status === 'CONFIRMED_PENDING_ADVANCE') {
         actionsContainer.innerHTML = `
           <div style="background:rgba(252,211,77,0.08);border:1px solid rgba(252,211,77,0.3);padding:0.9rem;border-radius:8px;margin-bottom:0.8rem;">
@@ -4196,9 +4180,7 @@
               <button class="btn-quick gold" style="font-size:0.82rem;padding:0.45rem 0.9rem;" onclick="record40Advance(${b.id})">
                 <i class="fas fa-check"></i> Received 40% Advance (₹${advReq.toLocaleString('en-IN')})
               </button>
-              <a href="${waConfirmUrl}" target="_blank" class="btn-whatsapp" style="font-size:0.82rem;padding:0.45rem 0.9rem;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
-                <i class="fab fa-whatsapp"></i> Send 40% Advance Request WhatsApp
-              </a>
+              
             </div>
           </div>
         `;
@@ -4215,12 +4197,8 @@
               <button class="btn-quick" style="background:#22c55e;color:#0a1a12;font-size:0.82rem;padding:0.45rem 0.9rem;" onclick="record60Balance(${b.id})">
                 <i class="fas fa-check-double"></i> Received Remaining 60% (₹${bal.toLocaleString('en-IN')})
               </button>
-              <a href="${waBalReminderUrl}" target="_blank" class="btn-whatsapp" style="font-size:0.82rem;padding:0.45rem 0.9rem;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
-                <i class="fab fa-whatsapp"></i> Send 60% Reminder WhatsApp
-              </a>
-              <a href="${waAdvReceiptUrl}" target="_blank" class="btn-whatsapp-outline" style="font-size:0.82rem;padding:0.45rem 0.9rem;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
-                <i class="fab fa-whatsapp"></i> Resend 40% Advance Receipt
-              </a>
+              
+              
             </div>
           </div>
         `;
@@ -4234,9 +4212,7 @@
               All dues cleared. Outstanding balance is ₹0.
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <a href="${waFullReceiptUrl}" target="_blank" class="btn-whatsapp" style="font-size:0.82rem;padding:0.45rem 0.9rem;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
-                <i class="fab fa-whatsapp"></i> Send Full Settlement Receipt WhatsApp
-              </a>
+              
             </div>
           </div>
         `;
@@ -4276,6 +4252,118 @@
       document.querySelectorAll('#bookingStatusTabs .tab-pill').forEach(el => el.classList.remove('active'));
       if (tabEl) tabEl.classList.add('active');
       loadBookings();
+    }
+
+    
+    /* ════════ DATE BLOCKING SYSTEM ════════ */
+    function openDateBlockModal(hall = 'Evan-e-Hakimi', date = '') {
+      document.getElementById('blockHall').value = hall;
+      if (date) document.getElementById('blockDate').value = date;
+      document.getElementById('blockReason').value = '';
+      openModal('modalDateBlock');
+    }
+
+    async function handleDateBlockSubmit(event) {
+      event.preventDefault();
+      const hall = document.getElementById('blockHall').value;
+      const block_date = document.getElementById('blockDate').value;
+      const reason = document.getElementById('blockReason').value.trim() || 'Admin Block';
+
+      try {
+        const res = await authFetch('/api/date-blocks', {
+          method: 'POST',
+          body: { hall, block_date, reason }
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast(`Date ${block_date} successfully blocked for ${hall}`);
+          closeModal('modalDateBlock');
+          allDateBlocks = [];
+          loadOverview();
+          renderCalendar('hakimi');
+          renderCalendar('qadri');
+        } else {
+          showToast(data.error || 'Failed to block date', true);
+        }
+      } catch (err) {
+        showToast('Error: ' + err.message, true);
+      }
+    }
+
+    async function unblockDate(id, hall, date) {
+      if (!confirm(`Are you sure you want to unblock ${date} for ${hall}?`)) return;
+      try {
+        const res = await authFetch(`/api/date-blocks/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast(`Date ${date} unblocked successfully`);
+          allDateBlocks = [];
+          loadOverview();
+          renderCalendar('hakimi');
+          renderCalendar('qadri');
+        } else {
+          showToast(data.error || 'Failed to unblock date', true);
+        }
+      } catch (err) {
+        showToast('Error: ' + err.message, true);
+      }
+    }
+
+    /* ════════ BOOKING CANCELLATION SYSTEM ════════ */
+    function openCancelModal(bookingId) {
+      let b = allBookings.find(x => x.id === bookingId);
+      if (!b) return;
+
+      document.getElementById('cancelBookingId').value = b.id;
+      document.getElementById('cancelReason').value = '';
+      document.getElementById('cancelRefundStatus').value = 'none';
+      document.getElementById('cancelRefundAmount').value = 0;
+
+      const total = parseFloat(b.total_amount || 0);
+      const paid = parseFloat(b.advancePaid || b.advance_paid || 0);
+
+      document.getElementById('cancelBookingSummary').innerHTML = `
+        <div><strong>Booking Ref:</strong> ${b.booking_reference || '#' + b.id}</div>
+        <div><strong>Customer:</strong> ${escapeHtml(b.customer_name || 'Guest')} (${b.phone})</div>
+        <div><strong>Venue &amp; Slot:</strong> ${escapeHtml(b.hall || 'Evan-e-Hakimi')} &bull; ${b.slot} on ${formatDisplayDate(b.check_in)}</div>
+        <div style="margin-top:4px;"><strong>Contracted Total:</strong> ₹${total.toLocaleString('en-IN')} &bull; <strong>Advance Collected:</strong> ₹${paid.toLocaleString('en-IN')}</div>
+      `;
+
+      openModal('modalCancelBooking');
+    }
+
+    async function handleCancelBookingSubmit(event) {
+      event.preventDefault();
+      const bookingId = document.getElementById('cancelBookingId').value;
+      const reason = document.getElementById('cancelReason').value.trim();
+      const refund_status = document.getElementById('cancelRefundStatus').value;
+      const refund_amount = parseFloat(document.getElementById('cancelRefundAmount').value) || 0;
+
+      if (!reason) {
+        showToast('Please provide a cancellation reason', true);
+        return;
+      }
+
+      try {
+        const res = await authFetch(`/api/bookings/${bookingId}/cancel`, {
+          method: 'POST',
+          body: { reason, refund_status, refund_amount }
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast(data.message || 'Booking cancelled and slot released successfully');
+          closeModal('modalCancelBooking');
+          allBookings = [];
+          loadOverview();
+          loadBookings();
+          renderCalendar('hakimi');
+          renderCalendar('qadri');
+        } else {
+          showToast(data.error || 'Failed to cancel booking', true);
+        }
+      } catch (err) {
+        showToast('Error: ' + err.message, true);
+      }
     }
 
     /* ════════ 4. BOOKINGS MANAGEMENT ════════ */
@@ -4320,36 +4408,25 @@
             : '';
 
           const phoneClean = (b.phone || '').replace(/[^0-9]/g, '');
-          const waUrl = b.whatsapp?.confirmationUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
-          const waAdvReceiptUrl = b.whatsapp?.advanceReceiptUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
-          const waBalReminderUrl = b.whatsapp?.balanceReminderUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
-          const waFullReceiptUrl = b.whatsapp?.fullyPaidUrl || b.whatsapp?.fullPaymentReceiptUrl || `https://wa.me/91${phoneClean.slice(-10)}`;
-
           let stageButtons = '';
           if (b.status === 'CONFIRMED_PENDING_ADVANCE') {
             stageButtons = `
               <button class="btn-quick gold" style="padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="record40Advance(${b.id})" title="Received 40% Advance">
                 <i class="fas fa-check"></i> Received 40% Advance
               </button>
-              <a href="${waUrl}" target="_blank" class="btn-whatsapp" style="padding:0.25rem 0.55rem;font-size:0.68rem;text-decoration:none;display:inline-flex;align-items:center;gap:3px;" title="Send WhatsApp 40% Advance Request">
-                <i class="fab fa-whatsapp"></i> Req
-              </a>
+              
             `;
           } else if (b.status === 'ADVANCE_PAID' || b.status === 'ADVANCE_PARTIALLY_PAID') {
             stageButtons = `
               <button class="btn-quick" style="background:#22c55e;color:#0a1a12;padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="record60Balance(${b.id})" title="Received Remaining 60%">
                 <i class="fas fa-check-double"></i> Received Remaining 60%
               </button>
-              <a href="${waBalReminderUrl}" target="_blank" class="btn-whatsapp" style="padding:0.25rem 0.55rem;font-size:0.68rem;text-decoration:none;display:inline-flex;align-items:center;gap:3px;" title="WhatsApp 60% Reminder">
-                <i class="fab fa-whatsapp"></i> 60% Reminder
-              </a>
+              
             `;
           } else if (b.status === 'FULLY_PAID') {
             stageButtons = `
               <span class="badge" style="background:rgba(34,197,94,0.18);color:#86efac;border:1px solid rgba(34,197,94,0.4);font-size:0.68rem;padding:3px 6px;">Fully Paid ✓</span>
-              <a href="${waFullReceiptUrl}" target="_blank" class="btn-whatsapp" style="padding:0.25rem 0.55rem;font-size:0.68rem;text-decoration:none;display:inline-flex;align-items:center;gap:3px;" title="WhatsApp Settlement Receipt">
-                <i class="fab fa-whatsapp"></i> Receipt
-              </a>
+              
             `;
           } else if (ENQUIRY_STATUSES.includes(b.status)) {
             stageButtons = `
@@ -4368,7 +4445,7 @@
               <td>
                 <div style="display:flex;align-items:center;gap:6px;">
                   <a href="tel:${b.phone}" style="color:var(--cream);text-decoration:none;">${b.phone}</a>
-                  <a href="${waUrl}" target="_blank" class="btn-whatsapp-outline" style="padding:2px 6px;font-size:0.65rem;" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                  
                 </div>
               </td>
               <td style="white-space:nowrap;"><strong>${formatDisplayDate(b.check_in)}</strong></td>
@@ -4386,7 +4463,7 @@
                   ${stageButtons}
                   <button class="action-btn pay" onclick="openBookingStage(${b.id})" title="View Stage Details & Actions"><i class="fas fa-eye"></i></button>
                   <button class="action-btn" onclick="openEditBookingModal(${b.id})" title="Edit Details"><i class="fas fa-edit"></i></button>
-                  <button class="action-btn del" onclick="deleteBooking(${b.id})" title="Cancel Booking"><i class="fas fa-trash"></i></button>
+                  <button class="action-btn del" onclick="openCancelModal(${b.id})" title="Cancel Booking &amp; Release Slot"><i class="fas fa-ban"></i></button>
                 </div>
               </td>
             </tr>
@@ -5219,5 +5296,85 @@
       });
     } catch (_) {}
   </script>
+
+  <!-- ════════ MODAL: BLOCK A FULL DAY ════════ -->
+  <div class="modal-overlay" id="modalDateBlock">
+    <div class="modal-box" style="max-width:480px;">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fas fa-ban" style="color:#ef4444;"></i> Block Hall Date</h3>
+        <button class="modal-close" onclick="closeModal('modalDateBlock')">&times;</button>
+      </div>
+      <form id="formDateBlock" onsubmit="handleDateBlockSubmit(event)">
+        <div class="modal-body">
+          <p style="font-size:0.8rem;color:rgba(245,240,232,0.7);line-height:1.6;margin-bottom:1rem;">
+            Blocking a date will mark it as <strong>Fully Booked (Red)</strong> on both public and admin calendars and prevent any bookings from being scheduled on that date.
+          </p>
+          <div class="form-group" style="margin-bottom:1rem;">
+            <label for="blockHall">Venue *</label>
+            <select id="blockHall" class="form-ctrl" required>
+              <option value="Evan-e-Hakimi">Evan-e-Hakimi (2nd Floor)</option>
+              <option value="Qadri Hall">Qadri Hall (3rd Floor)</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:1rem;">
+            <label for="blockDate">Date to Block *</label>
+            <input type="date" id="blockDate" class="form-ctrl" required>
+          </div>
+          <div class="form-group" style="margin-bottom:1rem;">
+            <label for="blockReason">Reason for Blocking</label>
+            <input type="text" id="blockReason" class="form-ctrl" placeholder="e.g. Venue Maintenance, Private Family Function, Renovation">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="action-btn" onclick="closeModal('modalDateBlock')">Cancel</button>
+          <button type="submit" class="btn-quick" style="background:#ef4444;color:#fff;"><i class="fas fa-ban"></i> Block Full Day</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ════════ MODAL: CANCEL BOOKING ════════ -->
+  <div class="modal-overlay" id="modalCancelBooking">
+    <div class="modal-box" style="max-width:520px;">
+      <div class="modal-header">
+        <h3 class="modal-title" style="color:#fca5a5;"><i class="fas fa-times-circle"></i> Cancel Booking</h3>
+        <button class="modal-close" onclick="closeModal('modalCancelBooking')">&times;</button>
+      </div>
+      <form id="formCancelBooking" onsubmit="handleCancelBookingSubmit(event)">
+        <input type="hidden" id="cancelBookingId">
+        <div class="modal-body">
+          <div id="cancelBookingSummary" style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:10px;padding:1rem;margin-bottom:1.2rem;font-size:0.82rem;line-height:1.7;">
+            <!-- Rendered by JS -->
+          </div>
+          <div class="form-group" style="margin-bottom:1rem;">
+            <label for="cancelReason">Cancellation Reason *</label>
+            <textarea id="cancelReason" class="form-ctrl" rows="2" placeholder="e.g. Customer cancelled due to personal family emergency" required></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="cancelRefundStatus">Refund Status</label>
+              <select id="cancelRefundStatus" class="form-ctrl">
+                <option value="none">No Refund (Per Venue Policy)</option>
+                <option value="pending">Refund Pending Approval</option>
+                <option value="refunded">Refund Issued</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="cancelRefundAmount">Refund Amount (₹)</label>
+              <input type="number" id="cancelRefundAmount" class="form-ctrl" value="0" min="0">
+            </div>
+          </div>
+          <p style="font-size:0.75rem;color:rgba(245,240,232,0.6);line-height:1.5;margin:0.5rem 0 0;">
+            <i class="fas fa-info-circle"></i> Cancelling immediately releases the time slot on both public and admin calendars while preserving payment audit records.
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="action-btn" onclick="closeModal('modalCancelBooking')">Keep Booking</button>
+          <button type="submit" class="btn-quick" style="background:#ef4444;color:#fff;"><i class="fas fa-times"></i> Confirm Cancellation</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
 </body>
 </html>

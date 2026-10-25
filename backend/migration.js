@@ -52,7 +52,15 @@ async function migrate() {
       { name: 'rejection_reason', def: 'TEXT' },
       { name: 'confirmed_at', def: 'TIMESTAMP' },
       { name: 'rejected_at', def: 'TIMESTAMP' },
-      { name: 'updated_at', def: 'TIMESTAMP' }
+      { name: 'updated_at', def: 'TIMESTAMP' },
+      { name: 'start_time', def: 'TEXT' },
+      { name: 'end_time', def: 'TEXT' },
+      { name: 'cancellation_reason', def: 'TEXT' },
+      { name: 'cancelled_at', def: 'TIMESTAMP' },
+      { name: 'cancelled_by', def: 'TEXT' },
+      { name: 'refund_status', def: "TEXT DEFAULT 'none'" },
+      { name: 'refund_amount', def: 'REAL DEFAULT 0' },
+      { name: 'created_by', def: "TEXT DEFAULT 'admin'" }
     ];
 
     for (const col of bookingColsToAdd) {
@@ -195,6 +203,22 @@ async function migrate() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // 7. Create date_blocks table for admin full-day blocking
+    console.log('Ensuring date_blocks table exists...');
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS date_blocks (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        hall TEXT NOT NULL,
+        block_date TEXT NOT NULL,
+        reason TEXT,
+        created_by TEXT DEFAULT 'admin',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    await db.execute(`CREATE UNIQUE INDEX IF NOT EXISTS idx_date_blocks_hall_date ON date_blocks(hall, block_date)`);
+    await db.execute(`CREATE INDEX IF NOT EXISTS idx_bookings_date_hall ON bookings(check_in, hall)`);
+    await db.execute(`CREATE INDEX IF NOT EXISTS idx_bookings_status ON bookings(status)`);
 
     console.log('✅ Turso migration completed successfully!');
   } catch (err) {
