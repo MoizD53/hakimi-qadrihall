@@ -251,7 +251,7 @@ app.post('/api/admin/login', loginLimiter, (req, res) => {
   }
 
   const validUsername = process.env.ADMIN_USERNAME || 'admin';
-  const validPassword = process.env.ADMIN_PASSWORD || 'admin2026';
+  const validPassword = process.env.ADMIN_PASSWORD || 'admin@hakimi53';
 
   if (username !== validUsername || password !== validPassword) {
     return res.status(401).json({ error: 'Invalid username or password. Please verify your credentials.' });
