@@ -1547,10 +1547,6 @@
       <div class="nav-item active" onclick="switchNav('overview')">
         <i class="fas fa-chart-pie"></i> Overview
       </div>
-      <div class="nav-item" onclick="switchNav('enquiries')">
-        <i class="fas fa-inbox"></i> New Enquiries
-        <span class="badge" id="navEnquiryBadge" style="margin-left:auto;background:rgba(252,211,77,0.18);border:1px solid rgba(252,211,77,0.4);color:#fcd34d;font-size:0.65rem;padding:2px 7px;border-radius:10px;font-weight:700;">0</span>
-      </div>
       <div class="nav-item" onclick="switchNav('calendar-hakimi')">
         <i class="fas fa-calendar-alt"></i> Evan-e-Hakimi Cal
       </div>
@@ -1651,12 +1647,6 @@
             <div class="stat-value" id="kpiUpcoming" style="color:var(--wheat);">0</div>
             <div class="stat-sub">Scheduled events</div>
             <i class="fas fa-calendar-day stat-icon"></i>
-          </div>
-          <div class="stat-card" onclick="switchNav('enquiries')" style="cursor:pointer;" title="Click to review pending enquiries">
-            <div class="stat-label">Pending Enquiries</div>
-            <div class="stat-value" id="kpiPending" style="color:#fcd34d;">0</div>
-            <div class="stat-sub">Review &amp; confirm &rarr;</div>
-            <i class="fas fa-inbox stat-icon"></i>
           </div>
           <div class="stat-card">
             <div class="stat-label">Awaiting 40% Advance</div>
@@ -1764,46 +1754,6 @@
               </thead>
               <tbody id="tblUpcomingEvents">
                 <tr><td colspan="9" style="text-align:center;padding:1.5rem;color:rgba(245,240,232,0.3);">Loading upcoming events...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <!-- ════════ PAGE: DEDICATED NEW ENQUIRIES ════════ -->
-      <section class="page" id="page-enquiries">
-        <div class="filter-toolbar">
-          <input type="text" id="filterEnquirySearch" class="filter-input search-input" placeholder="Search customer, phone, occasion..." oninput="debounceLoadEnquiries()">
-          <select id="filterEnquiryHall" class="filter-select" onchange="loadEnquiries()">
-            <option value="">All Requested Venues</option>
-            <option value="Evan-e-Hakimi">Evan-e-Hakimi (2nd Floor)</option>
-            <option value="Qadri Hall">Qadri Hall (3rd Floor)</option>
-          </select>
-          <select id="filterEnquiryStatus" class="filter-select" onchange="loadEnquiries()">
-            <option value="pending_only">Pending Review (New Enquiries)</option>
-            <option value="rejected_only">Rejected Enquiries</option>
-            <option value="all">All Enquiries &amp; History</option>
-          </select>
-          <button class="btn-quick gold" style="margin-left:auto;" onclick="openNewBookingModal()"><i class="fas fa-plus"></i> New Booking</button>
-        </div>
-
-        <div class="card">
-          <div class="tbl-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Customer</th>
-                  <th>Phone</th>
-                  <th>Event Date</th>
-                  <th>Hall</th>
-                  <th>Slot &amp; Timing</th>
-                  <th>Special Notes</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="tblEnquiriesBody">
-                <tr><td colspan="8" style="text-align:center;padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Loading enquiries...</td></tr>
               </tbody>
             </table>
           </div>
@@ -2843,7 +2793,7 @@
       document.body.style.display = 'block';
     }
 
-    const VALID_NAV_TABS = ['overview', 'enquiries', 'calendar-hakimi', 'calendar-qadri', 'calendar-combined', 'bookings', 'expenses', 'staff', 'reports'];
+    const VALID_NAV_TABS = ['overview', 'calendar-hakimi', 'calendar-qadri', 'calendar-combined', 'bookings', 'expenses', 'staff', 'reports'];
 
     function getInitialTab() {
       const hash = (window.location.hash || '').replace(/^#/, '').trim();
@@ -3268,7 +3218,6 @@
     /* ════════ NAVIGATION & TABS ════════ */
     const pageTitles = {
       'overview': { title: 'Overview', sub: '' },
-      'enquiries': { title: 'New Customer Enquiries', sub: 'Review pending requests, select hall & slot, check live conflicts, and confirm or reject' },
       'calendar-hakimi': { title: 'Evan-e-Hakimi Calendar', sub: 'Hall 1 &bull; 2nd Floor &bull; Capacity: 35–40 Thals' },
       'calendar-qadri': { title: 'Qadri Hall Calendar', sub: 'Hall 2 &bull; 3rd Floor &bull; Manageable for approved future booking dates' },
       'calendar-combined': { title: 'Combined Halls Overview Calendar', sub: 'Unified availability & schedule &bull; Evan-e-Hakimi (2nd Fl) &amp; Qadri Hall (3rd Fl)' },
@@ -3321,7 +3270,6 @@
 
       // Trigger lazy page loaders
       if (pageKey === 'overview') loadOverview();
-      if (pageKey === 'enquiries') loadEnquiries();
       if (pageKey === 'calendar-hakimi') renderCalendar('hakimi');
       if (pageKey === 'calendar-qadri') renderCalendar('qadri');
       if (pageKey === 'calendar-combined') renderCalendar('combined');
@@ -3960,6 +3908,8 @@
     }
 
     async function loadEnquiries() {
+      const tbody = document.getElementById('tblEnquiriesBody');
+      if (!tbody) return;
       const search = document.getElementById('filterEnquirySearch')?.value || '';
       const hall = document.getElementById('filterEnquiryHall')?.value || '';
       const stMode = document.getElementById('filterEnquiryStatus')?.value || 'pending_only';
