@@ -3995,6 +3995,20 @@ function updateDateInspector(dateStr, info) {
   const evening = slots.evening || { available: true, label: 'Available (6:30 PM – 10:30 PM)' };
   const fullday = slots.fullday || { available: true, label: 'Available (10:00 AM – 10:00 PM)' };
 
+  const morningText = morning.available ? 'Available' : (info.is_blocked ? 'Blocked' : 'Booked');
+  const eveningText = evening.available ? 'Available' : (info.is_blocked ? 'Blocked' : 'Booked');
+
+  let fulldayText = 'Available';
+  if (!fullday.available) {
+    if (info.is_blocked) {
+      fulldayText = 'Blocked';
+    } else if (fullday.booked) {
+      fulldayText = 'Booked';
+    } else {
+      fulldayText = 'Not Available';
+    }
+  }
+
   const slotsGrid = document.getElementById('inspSlotsGrid');
   slotsGrid.innerHTML = `
     <div class="slot-item-card">
@@ -4004,7 +4018,7 @@ function updateDateInspector(dateStr, info) {
       </div>
       <div class="slot-item-status ${morning.available ? 'open' : 'taken'}">
         <span class="dot"></span>
-        ${morning.available ? 'Available' : 'Booked'}
+        ${morningText}
       </div>
     </div>
     <div class="slot-item-card">
@@ -4014,7 +4028,7 @@ function updateDateInspector(dateStr, info) {
       </div>
       <div class="slot-item-status ${evening.available ? 'open' : 'taken'}">
         <span class="dot"></span>
-        ${evening.available ? 'Available' : 'Booked'}
+        ${eveningText}
       </div>
     </div>
     <div class="slot-item-card">
@@ -4024,7 +4038,7 @@ function updateDateInspector(dateStr, info) {
       </div>
       <div class="slot-item-status ${fullday.available ? 'open' : 'taken'}">
         <span class="dot"></span>
-        ${fullday.available ? 'Available' : 'Reserved'}
+        ${fulldayText}
       </div>
     </div>
   `;

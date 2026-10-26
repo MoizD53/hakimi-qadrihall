@@ -215,6 +215,52 @@ it('Different halls (Evan-e-Hakimi vs Qadri Hall) can hold simultaneous events w
   assert.strictEqual(checkHallConflict(hakimiFullDay, qadriFullDay), false);
 });
 
+it('Calendar Availability: Single slot booking (evening only) marks day yellow (partial) and full day as Not Available', () => {
+  const bList = [{ slot: 'evening' }];
+  let morningOccupied = false;
+  let eveningOccupied = false;
+  let hasFullDayBooking = false;
+  let majlisOccupied = false;
+
+  bList.forEach(b => {
+    const bs = String(b.slot).toLowerCase();
+    if (bs === 'fullday') {
+      hasFullDayBooking = true;
+      morningOccupied = true;
+      eveningOccupied = true;
+    } else if (bs === 'morning') {
+      morningOccupied = true;
+    } else if (bs === 'evening') {
+      eveningOccupied = true;
+    }
+  });
+
+  const fullDayOccupied = hasFullDayBooking || morningOccupied || eveningOccupied || majlisOccupied;
+  let color = 'green';
+  let status = 'available';
+
+  if (bList.length === 0) {
+    color = 'green';
+    status = 'available';
+  } else if (hasFullDayBooking || (morningOccupied && eveningOccupied)) {
+    color = 'red';
+    status = 'booked';
+  } else if (morningOccupied && !eveningOccupied) {
+    color = 'yellow';
+    status = 'partial';
+  } else if (eveningOccupied && !morningOccupied) {
+    color = 'yellow';
+    status = 'partial';
+  }
+
+  assert.strictEqual(color, 'yellow', 'Date with only evening booked must be yellow');
+  assert.strictEqual(status, 'partial', 'Date status must be partial');
+  assert.strictEqual(morningOccupied, false, 'Morning slot must be free');
+  assert.strictEqual(eveningOccupied, true, 'Evening slot must be occupied');
+  assert.strictEqual(hasFullDayBooking, false, 'Full day must NOT be flagged as booked');
+  assert.strictEqual(fullDayOccupied, true, 'Full day must be occupied/unavailable for new bookings');
+});
+
 // ── TEST GROUP 3: HALL MANAGEMENT VALIDATION ──
 console.log('\n🏛️ Group 3: Hall Management & Multi-Venue Support');
 

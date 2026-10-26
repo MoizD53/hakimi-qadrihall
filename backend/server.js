@@ -582,9 +582,9 @@ async function getHallAvailabilityRange(hallName, startDate, endDate) {
         block_reason: blk.reason || 'Blocked by administration',
         block_id: blk.id,
         slots: {
-          morning: { available: false, label: 'Blocked by Admin' },
-          evening: { available: false, label: 'Blocked by Admin' },
-          fullday: { available: false, label: 'Blocked by Admin' }
+          morning: { available: false, booked: false, label: 'Blocked by Admin' },
+          evening: { available: false, booked: false, label: 'Blocked by Admin' },
+          fullday: { available: false, booked: false, label: 'Blocked by Admin' }
         },
         bookings: []
       };
@@ -603,9 +603,9 @@ async function getHallAvailabilityRange(hallName, startDate, endDate) {
         is_blocked: true,
         block_reason: 'Bookings open from 21 Nov 2026',
         slots: {
-          morning: { available: false, label: 'Opens 21 Nov 2026' },
-          evening: { available: false, label: 'Opens 21 Nov 2026' },
-          fullday: { available: false, label: 'Opens 21 Nov 2026' }
+          morning: { available: false, booked: false, label: 'Opens 21 Nov 2026' },
+          evening: { available: false, booked: false, label: 'Opens 21 Nov 2026' },
+          fullday: { available: false, booked: false, label: 'Opens 21 Nov 2026' }
         },
         bookings: []
       };
@@ -617,42 +617,33 @@ async function getHallAvailabilityRange(hallName, startDate, endDate) {
 
     let morningOccupied = false;
     let eveningOccupied = false;
-    let fullDayOccupied = false;
+    let hasFullDayBooking = false;
     let majlisOccupied = false;
 
     bList.forEach(b => {
       const bs = String(b.slot).toLowerCase();
       if (bs === 'fullday') {
-        fullDayOccupied = true;
+        hasFullDayBooking = true;
         morningOccupied = true;
         eveningOccupied = true;
       } else if (bs === 'morning') {
         morningOccupied = true;
-        fullDayOccupied = true;
       } else if (bs === 'evening') {
         eveningOccupied = true;
-        fullDayOccupied = true;
       } else if (bs === 'majlis') {
         majlisOccupied = true;
         const bStart = b.start_time || '10:30';
         const bEnd = b.end_time || '14:30';
         if (timeRangesOverlap(bStart, bEnd, WEBSITE_SLOT_HOURS.morning.start, WEBSITE_SLOT_HOURS.morning.end)) {
           morningOccupied = true;
-          fullDayOccupied = true;
         }
         if (timeRangesOverlap(bStart, bEnd, WEBSITE_SLOT_HOURS.evening.start, WEBSITE_SLOT_HOURS.evening.end)) {
           eveningOccupied = true;
-          fullDayOccupied = true;
-        }
-        if (timeRangesOverlap(bStart, bEnd, WEBSITE_SLOT_HOURS.fullday.start, WEBSITE_SLOT_HOURS.fullday.end)) {
-          fullDayOccupied = true;
         }
       }
     });
 
-    if (morningOccupied && eveningOccupied) {
-      fullDayOccupied = true;
-    }
+    const fullDayOccupied = hasFullDayBooking || morningOccupied || eveningOccupied || majlisOccupied;
 
     let color = 'green';
     let status = 'available';
@@ -662,7 +653,7 @@ async function getHallAvailabilityRange(hallName, startDate, endDate) {
       color = 'green';
       status = 'available';
       label = 'Fully Available';
-    } else if (fullDayOccupied || (morningOccupied && eveningOccupied)) {
+    } else if (hasFullDayBooking || (morningOccupied && eveningOccupied)) {
       color = 'red';
       status = 'booked';
       label = 'Fully Booked';
@@ -678,6 +669,10 @@ async function getHallAvailabilityRange(hallName, startDate, endDate) {
       color = 'yellow';
       status = 'partial';
       label = 'Partially Booked (Custom Timings)';
+    } else {
+      color = 'yellow';
+      status = 'partial';
+      label = 'Partially Booked';
     }
 
     days[dateStr] = {
@@ -690,15 +685,18 @@ async function getHallAvailabilityRange(hallName, startDate, endDate) {
       slots: {
         morning: {
           available: !morningOccupied,
-          label: morningOccupied ? 'Booked (10:30 AM – 2:30 PM)' : 'Available (10:30 AM – 2:30 PM)'
+          booked: hasFullDayBooking || morningOccupied,
+          label: morningOccupied ? 'Booked (10:30 AM – 2:30 PM)' : (hasFullDayBooking ? 'Blocked by Full Day' : 'Available (10:30 AM – 2:30 PM)')
         },
         evening: {
           available: !eveningOccupied,
-          label: eveningOccupied ? 'Booked (6:30 PM – 10:30 PM)' : 'Available (6:30 PM – 10:30 PM)'
+          booked: hasFullDayBooking || eveningOccupied,
+          label: eveningOccupied ? 'Booked (6:30 PM – 10:30 PM)' : (hasFullDayBooking ? 'Blocked by Full Day' : 'Available (6:30 PM – 10:30 PM)')
         },
         fullday: {
           available: !fullDayOccupied,
-          label: !fullDayOccupied ? 'Available (10:00 AM – 10:00 PM)' : 'Unavailable'
+          booked: hasFullDayBooking,
+          label: !fullDayOccupied ? 'Available (10:00 AM – 10:00 PM)' : (hasFullDayBooking ? 'Booked (10:00 AM – 10:00 PM)' : 'Not Available')
         }
       },
       bookings: bList
