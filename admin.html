@@ -1454,6 +1454,316 @@
       font-size:1.1rem;cursor:pointer;line-height:1;padding:0 4px;
     }
     .btn-close-ios:hover{color:var(--cream);}
+
+    /* ── LUXURY ROUND CLOCK PICKER ── */
+    .luxury-clock-field-wrap {
+      position: relative;
+      cursor: pointer;
+      width: 100%;
+    }
+    .luxury-clock-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(22, 17, 12, 0.85);
+      border: 1px solid rgba(201, 169, 110, 0.3);
+      border-radius: 8px;
+      padding: 0.55rem 0.85rem;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+    .luxury-clock-btn:hover {
+      border-color: var(--wheat);
+      background: rgba(201, 169, 110, 0.1);
+      box-shadow: 0 0 12px rgba(201, 169, 110, 0.25);
+    }
+    .luxury-clock-val {
+      font-family: 'Cinzel', serif, sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--cream);
+      letter-spacing: 0.5px;
+    }
+    .luxury-clock-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: var(--wheat);
+      background: rgba(201, 169, 110, 0.12);
+      border: 1px solid rgba(201, 169, 110, 0.25);
+      padding: 2px 7px;
+      border-radius: 12px;
+    }
+
+    .rc-picker-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(8, 6, 4, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 10005;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .rc-picker-overlay.open {
+      display: flex;
+    }
+    .rc-dialog-box {
+      background: linear-gradient(160deg, #1c1712 0%, #120e0a 100%);
+      border: 1px solid rgba(201, 169, 110, 0.35);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 320px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.95), 0 0 25px rgba(201,169,110,0.15);
+      padding: 1.25rem;
+      animation: popIn 0.25s ease;
+      color: var(--cream);
+      user-select: none;
+    }
+    .rc-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid rgba(201, 169, 110, 0.15);
+    }
+    .rc-title {
+      font-size: 0.72rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: var(--wheat);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .rc-display-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(201, 169, 110, 0.25);
+      border-radius: 12px;
+      padding: 0.5rem 0.85rem;
+      margin-bottom: 0.9rem;
+    }
+    .rc-digital-time {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .rc-digit-btn {
+      font-family: 'Cinzel', serif, sans-serif;
+      font-size: 1.85rem;
+      font-weight: 700;
+      line-height: 1;
+      color: rgba(245, 240, 232, 0.4);
+      cursor: pointer;
+      padding: 3px 8px;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+    }
+    .rc-digit-btn.active {
+      color: #fff;
+      background: rgba(201, 169, 110, 0.25);
+      text-shadow: 0 0 12px rgba(201, 169, 110, 0.6);
+    }
+    .rc-colon {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--wheat);
+      margin-bottom: 4px;
+    }
+    .rc-ampm-switch {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 3px;
+      border-radius: 8px;
+      border: 1px solid rgba(201, 169, 110, 0.2);
+    }
+    .rc-ampm-btn {
+      background: none;
+      border: none;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: rgba(245, 240, 232, 0.45);
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .rc-ampm-btn.active {
+      background: linear-gradient(135deg, #e2b96a, #c9a96e);
+      color: #120e0a;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    }
+
+    /* ── CLOCK DIAL ── */
+    .rc-dial-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0.4rem 0 0.85rem;
+    }
+    .rc-clock-dial {
+      position: relative;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(circle at center, #261f18 0%, #130f0c 100%);
+      border: 2px solid rgba(201, 169, 110, 0.35);
+      box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.85), 0 8px 24px rgba(0, 0, 0, 0.6);
+      touch-action: none;
+      user-select: none;
+    }
+    .rc-center-pivot {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--wheat);
+      box-shadow: 0 0 10px var(--wheat);
+      z-index: 5;
+    }
+    .rc-hand-pointer {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 2px;
+      height: 80px;
+      background: linear-gradient(to top, rgba(201,169,110,0.2) 0%, #c9a96e 100%);
+      transform-origin: bottom center;
+      margin-left: -1px;
+      margin-top: -80px;
+      z-index: 3;
+      pointer-events: none;
+      transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .rc-hand-pointer.no-anim {
+      transition: none;
+    }
+    .rc-hand-tip-circle {
+      position: absolute;
+      top: -16px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #f0cf85 0%, #c9a96e 100%);
+      box-shadow: 0 0 14px rgba(201, 169, 110, 0.8);
+      z-index: 4;
+    }
+    .rc-dial-number {
+      position: absolute;
+      width: 32px;
+      height: 32px;
+      line-height: 32px;
+      text-align: center;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: rgba(245, 240, 232, 0.85);
+      transform: translate(-50%, -50%);
+      cursor: pointer;
+      z-index: 6;
+      border-radius: 50%;
+      transition: color 0.15s ease;
+    }
+    .rc-dial-number:hover {
+      color: #fff;
+    }
+    .rc-dial-number.active-target {
+      color: #120e0a !important;
+      font-weight: 800 !important;
+    }
+    .rc-minute-dot {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: rgba(201, 169, 110, 0.35);
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    /* ── PRESETS ── */
+    .rc-presets-tray {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      flex-wrap: wrap;
+      margin-bottom: 0.85rem;
+    }
+    .rc-preset-chip {
+      background: rgba(201, 169, 110, 0.08);
+      border: 1px solid rgba(201, 169, 110, 0.22);
+      color: var(--wheat);
+      padding: 3px 7px;
+      border-radius: 12px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    .rc-preset-chip:hover {
+      background: rgba(201, 169, 110, 0.25);
+      border-color: var(--wheat);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
+    /* ── FOOTER ACTIONS ── */
+    .rc-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      padding-top: 0.6rem;
+      border-top: 1px solid rgba(201, 169, 110, 0.15);
+    }
+    .rc-btn-cancel {
+      background: none;
+      border: 1px solid rgba(245, 240, 232, 0.2);
+      color: rgba(245, 240, 232, 0.7);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .rc-btn-cancel:hover {
+      border-color: rgba(245, 240, 232, 0.5);
+      color: #fff;
+    }
+    .rc-btn-apply {
+      background: linear-gradient(135deg, #e2b96a 0%, #c9a96e 100%);
+      border: none;
+      color: #120e0a;
+      padding: 6px 18px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(201, 169, 110, 0.3);
+      transition: all 0.2s ease;
+    }
+    .rc-btn-apply:hover {
+      background: linear-gradient(135deg, #f5d485 0%, #d4b476 100%);
+      box-shadow: 0 4px 18px rgba(201, 169, 110, 0.5);
+      transform: translateY(-1px);
+    }
   </style>
 </head>
 <body>
@@ -2234,14 +2544,30 @@
         </div>
 
         <!-- Dynamic Custom Timings Row for Workflow (Only Majlis) -->
-        <div class="form-row" id="rowWfCustomTimings" style="display:none;background:rgba(201,169,110,0.06);border:1px solid rgba(201,169,110,0.25);border-radius:8px;padding:0.75rem 0.9rem;margin-bottom:1rem;gap:1rem;">
+        <div class="form-row" id="rowWfCustomTimings" style="display:none;background:rgba(201,169,110,0.06);border:1px solid rgba(201,169,110,0.25);border-radius:10px;padding:0.85rem 1rem;margin-bottom:1rem;gap:1rem;">
           <div class="form-group" style="flex:1;margin-bottom:0;">
-            <label for="wfStartTime" style="color:var(--wheat);font-weight:600;font-size:0.75rem;"><i class="far fa-clock"></i> Start Time *</label>
-            <input type="time" id="wfStartTime" class="form-ctrl" style="color-scheme:dark;" onchange="triggerWorkflowAvailabilityCheck()">
+            <label style="color:var(--wheat);font-weight:600;font-size:0.75rem;letter-spacing:0.5px;display:flex;align-items:center;gap:5px;margin-bottom:6px;">
+              <i class="far fa-clock" style="color:var(--wheat);"></i> START TIME *
+            </label>
+            <div class="luxury-clock-field-wrap" onclick="openRoundClockPicker('wfStartTime', triggerWorkflowAvailabilityCheck)">
+              <input type="hidden" id="wfStartTime" value="11:00">
+              <div class="luxury-clock-btn" id="wfStartTimeBtn">
+                <div class="luxury-clock-val" id="wfStartTimeDisp">11:00 AM</div>
+                <div class="luxury-clock-chip"><i class="fas fa-clock"></i> 24h: <span id="wfStartTime24">11:00</span></div>
+              </div>
+            </div>
           </div>
           <div class="form-group" style="flex:1;margin-bottom:0;">
-            <label for="wfEndTime" style="color:var(--wheat);font-weight:600;font-size:0.75rem;"><i class="far fa-clock"></i> End Time *</label>
-            <input type="time" id="wfEndTime" class="form-ctrl" style="color-scheme:dark;" onchange="triggerWorkflowAvailabilityCheck()">
+            <label style="color:var(--wheat);font-weight:600;font-size:0.75rem;letter-spacing:0.5px;display:flex;align-items:center;gap:5px;margin-bottom:6px;">
+              <i class="far fa-clock" style="color:var(--wheat);"></i> END TIME *
+            </label>
+            <div class="luxury-clock-field-wrap" onclick="openRoundClockPicker('wfEndTime', triggerWorkflowAvailabilityCheck)">
+              <input type="hidden" id="wfEndTime" value="13:30">
+              <div class="luxury-clock-btn" id="wfEndTimeBtn">
+                <div class="luxury-clock-val" id="wfEndTimeDisp">01:30 PM</div>
+                <div class="luxury-clock-chip"><i class="fas fa-clock"></i> 24h: <span id="wfEndTime24">13:30</span></div>
+              </div>
+            </div>
           </div>
           <div style="width:100%;font-size:0.72rem;color:rgba(245,240,232,0.7);margin-top:2px;line-height:1.4;">
             <i class="fas fa-info-circle" style="color:var(--wheat);"></i> Overlapping website slots will automatically be marked as <strong>Booked</strong> on public calendars.
@@ -2471,14 +2797,30 @@
           </div>
 
           <!-- Dynamic Custom Timings Row (for Only Majlis) -->
-          <div class="form-row" id="rowCustomTimings" style="display:none;background:rgba(201,169,110,0.06);border:1px solid rgba(201,169,110,0.25);border-radius:8px;padding:0.75rem 0.9rem;margin-bottom:1rem;gap:1rem;">
+          <div class="form-row" id="rowCustomTimings" style="display:none;background:rgba(201,169,110,0.06);border:1px solid rgba(201,169,110,0.25);border-radius:10px;padding:0.85rem 1rem;margin-bottom:1rem;gap:1rem;">
             <div class="form-group" style="flex:1;margin-bottom:0;">
-              <label for="bStartTime" style="color:var(--wheat);font-weight:600;font-size:0.75rem;"><i class="far fa-clock"></i> Start Time *</label>
-              <input type="time" id="bStartTime" class="form-ctrl" style="color-scheme:dark;">
+              <label style="color:var(--wheat);font-weight:600;font-size:0.75rem;letter-spacing:0.5px;display:flex;align-items:center;gap:5px;margin-bottom:6px;">
+                <i class="far fa-clock" style="color:var(--wheat);"></i> START TIME *
+              </label>
+              <div class="luxury-clock-field-wrap" onclick="openRoundClockPicker('bStartTime')">
+                <input type="hidden" id="bStartTime" value="11:00">
+                <div class="luxury-clock-btn" id="bStartTimeBtn">
+                  <div class="luxury-clock-val" id="bStartTimeDisp">11:00 AM</div>
+                  <div class="luxury-clock-chip"><i class="fas fa-clock"></i> 24h: <span id="bStartTime24">11:00</span></div>
+                </div>
+              </div>
             </div>
             <div class="form-group" style="flex:1;margin-bottom:0;">
-              <label for="bEndTime" style="color:var(--wheat);font-weight:600;font-size:0.75rem;"><i class="far fa-clock"></i> End Time *</label>
-              <input type="time" id="bEndTime" class="form-ctrl" style="color-scheme:dark;">
+              <label style="color:var(--wheat);font-weight:600;font-size:0.75rem;letter-spacing:0.5px;display:flex;align-items:center;gap:5px;margin-bottom:6px;">
+                <i class="far fa-clock" style="color:var(--wheat);"></i> END TIME *
+              </label>
+              <div class="luxury-clock-field-wrap" onclick="openRoundClockPicker('bEndTime')">
+                <input type="hidden" id="bEndTime" value="13:30">
+                <div class="luxury-clock-btn" id="bEndTimeBtn">
+                  <div class="luxury-clock-val" id="bEndTimeDisp">01:30 PM</div>
+                  <div class="luxury-clock-chip"><i class="fas fa-clock"></i> 24h: <span id="bEndTime24">13:30</span></div>
+                </div>
+              </div>
             </div>
             <div style="width:100%;font-size:0.72rem;color:rgba(245,240,232,0.7);margin-top:2px;line-height:1.4;">
               <i class="fas fa-info-circle" style="color:var(--wheat);"></i> Overlapping website slots (Morning: 10:30 AM – 2:30 PM, Evening: 6:30 PM – 10:30 PM) will automatically be marked as <strong>Booked</strong> on public calendars.
@@ -2801,6 +3143,57 @@
           <button type="submit" class="btn-quick gold">Record Salary Payment</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Round-Shaped Luxury Analog Clock Picker Modal -->
+  <div class="rc-picker-overlay" id="modalRoundClockPicker" onclick="handleClockOverlayClick(event)">
+    <div class="rc-dialog-box" onclick="event.stopPropagation()">
+      <div class="rc-header">
+        <span class="rc-title"><i class="far fa-clock"></i> Select Time</span>
+        <button type="button" class="modal-close" onclick="closeRoundClockPicker()" style="font-size:1.1rem;cursor:pointer;">&times;</button>
+      </div>
+
+      <!-- Digital Display & AM/PM Switch -->
+      <div class="rc-display-card">
+        <div class="rc-digital-time">
+          <span id="rcHourNum" class="rc-digit-btn active" onclick="switchClockMode('hour')">11</span>
+          <span class="rc-colon">:</span>
+          <span id="rcMinuteNum" class="rc-digit-btn" onclick="switchClockMode('minute')">00</span>
+        </div>
+        <div class="rc-ampm-switch">
+          <button type="button" id="rcBtnAM" class="rc-ampm-btn active" onclick="setClockAMPM('AM')">AM</button>
+          <button type="button" id="rcBtnPM" class="rc-ampm-btn" onclick="setClockAMPM('PM')">PM</button>
+        </div>
+      </div>
+
+      <!-- Analog Round Dial -->
+      <div class="rc-dial-wrap">
+        <div class="rc-clock-dial" id="rcClockDial">
+          <div class="rc-center-pivot"></div>
+          <div class="rc-hand-pointer" id="rcHandPointer">
+            <div class="rc-hand-tip-circle"></div>
+          </div>
+          <div id="rcDialNumbersLayer"></div>
+        </div>
+      </div>
+
+      <!-- Presets Tray -->
+      <div class="rc-presets-tray">
+        <button type="button" class="rc-preset-chip" onclick="applyClockPreset('10:30 AM')">10:30 AM</button>
+        <button type="button" class="rc-preset-chip" onclick="applyClockPreset('11:00 AM')">11:00 AM</button>
+        <button type="button" class="rc-preset-chip" onclick="applyClockPreset('01:30 PM')">1:30 PM</button>
+        <button type="button" class="rc-preset-chip" onclick="applyClockPreset('02:30 PM')">2:30 PM</button>
+        <button type="button" class="rc-preset-chip" onclick="applyClockPreset('06:30 PM')">6:30 PM</button>
+        <button type="button" class="rc-preset-chip" onclick="applyClockPreset('07:00 PM')">7:00 PM</button>
+        <button type="button" class="rc-preset-chip" onclick="applyClockPreset('10:30 PM')">10:30 PM</button>
+      </div>
+
+      <!-- Actions -->
+      <div class="rc-actions">
+        <button type="button" class="rc-btn-cancel" onclick="closeRoundClockPicker()">Cancel</button>
+        <button type="button" class="rc-btn-apply" onclick="confirmRoundClockTime()">Set Time</button>
+      </div>
     </div>
   </div>
 
@@ -4076,10 +4469,11 @@
       document.getElementById('wfDate').value = b.check_in || new Date().toISOString().split('T')[0];
       document.getElementById('wfSlot').value = b.slot || 'morning';
       if (b.slot === 'majlis') {
-        const sInput = document.getElementById('wfStartTime');
-        const eInput = document.getElementById('wfEndTime');
-        if (sInput) sInput.value = b.start_time || '11:00';
-        if (eInput) eInput.value = b.end_time || '13:30';
+        setClockInputValue('wfStartTime', b.start_time || '11:00');
+        setClockInputValue('wfEndTime', b.end_time || '13:30');
+      } else {
+        setClockInputValue('wfStartTime', '11:00');
+        setClockInputValue('wfEndTime', '13:30');
       }
       document.getElementById('wfPackage').value = b.package || 'without_jaman';
       document.getElementById('wfGuests').value = b.guests || '';
@@ -4901,29 +5295,308 @@
       return sA < eB && eA > sB;
     }
 
+    /* ════════ LUXURY ROUND CLOCK PICKER ════════ */
+    let currentClockTargetId = null;
+    let currentClockCallback = null;
+    let currentClockMode = 'hour'; // 'hour' | 'minute'
+    let selectedHour = 11; // 1 to 12
+    let selectedMinute = 0; // 0 to 59
+    let selectedAMPM = 'AM'; // 'AM' | 'PM'
+    let isClockDragging = false;
+
+    function format24to12(val24) {
+      if (!val24) return '--:--';
+      const parts = String(val24).split(':');
+      let h = parseInt(parts[0], 10);
+      const m = String(parts[1] || '00').padStart(2, '0').slice(0, 2);
+      if (isNaN(h)) return val24;
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12 || 12;
+      return `${String(h).padStart(2, '0')}:${m} ${ampm}`;
+    }
+
+    function setClockInputValue(id, val24) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.value = val24 || '';
+      const disp = document.getElementById(id + 'Disp');
+      const chip = document.getElementById(id + '24');
+      if (disp) disp.textContent = format24to12(val24);
+      if (chip) chip.textContent = val24 || '--:--';
+    }
+
+    function parse24HourToClock(time24) {
+      if (!time24 || typeof time24 !== 'string' || !time24.includes(':')) {
+        return { hour: 11, minute: 0, ampm: 'AM' };
+      }
+      const parts = time24.split(':');
+      let h = parseInt(parts[0], 10);
+      let m = parseInt(parts[1], 10);
+      if (isNaN(h)) h = 11;
+      if (isNaN(m)) m = 0;
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      let h12 = h % 12;
+      if (h12 === 0) h12 = 12;
+      return { hour: h12, minute: m, ampm };
+    }
+
+    function openRoundClockPicker(targetId, callback) {
+      currentClockTargetId = targetId;
+      currentClockCallback = callback || null;
+      const currentVal = document.getElementById(targetId)?.value || '11:00';
+      const parsed = parse24HourToClock(currentVal);
+      selectedHour = parsed.hour;
+      selectedMinute = parsed.minute;
+      selectedAMPM = parsed.ampm;
+      currentClockMode = 'hour';
+
+      updateClockDigitalDisplay();
+      renderClockDial();
+
+      const modal = document.getElementById('modalRoundClockPicker');
+      if (modal) modal.classList.add('open');
+    }
+
+    function closeRoundClockPicker() {
+      const modal = document.getElementById('modalRoundClockPicker');
+      if (modal) modal.classList.remove('open');
+      currentClockTargetId = null;
+      currentClockCallback = null;
+      isClockDragging = false;
+    }
+
+    function handleClockOverlayClick(e) {
+      if (e.target.id === 'modalRoundClockPicker') {
+        closeRoundClockPicker();
+      }
+    }
+
+    function switchClockMode(mode) {
+      currentClockMode = mode;
+      updateClockDigitalDisplay();
+      renderClockDial();
+    }
+
+    function setClockAMPM(ampm) {
+      selectedAMPM = ampm;
+      updateClockDigitalDisplay();
+    }
+
+    function updateClockDigitalDisplay() {
+      const hEl = document.getElementById('rcHourNum');
+      const mEl = document.getElementById('rcMinuteNum');
+      const amBtn = document.getElementById('rcBtnAM');
+      const pmBtn = document.getElementById('rcBtnPM');
+
+      if (hEl) {
+        hEl.textContent = String(selectedHour).padStart(2, '0');
+        hEl.classList.toggle('active', currentClockMode === 'hour');
+      }
+      if (mEl) {
+        mEl.textContent = String(selectedMinute).padStart(2, '0');
+        mEl.classList.toggle('active', currentClockMode === 'minute');
+      }
+      if (amBtn) amBtn.classList.toggle('active', selectedAMPM === 'AM');
+      if (pmBtn) pmBtn.classList.toggle('active', selectedAMPM === 'PM');
+    }
+
+    function applyClockPreset(presetStr) {
+      const parts = presetStr.trim().split(' ');
+      const timeParts = parts[0].split(':');
+      selectedHour = parseInt(timeParts[0], 10) || 12;
+      selectedMinute = parseInt(timeParts[1], 10) || 0;
+      selectedAMPM = (parts[1] || 'AM').toUpperCase();
+      updateClockDigitalDisplay();
+      renderClockDial();
+    }
+
+    function renderClockDial(noAnim = false) {
+      const layer = document.getElementById('rcDialNumbersLayer');
+      const pointer = document.getElementById('rcHandPointer');
+      if (!layer || !pointer) return;
+
+      if (noAnim) pointer.classList.add('no-anim');
+      else pointer.classList.remove('no-anim');
+
+      const cx = 110;
+      const cy = 110;
+      const radius = 80;
+
+      let html = '';
+
+      if (currentClockMode === 'hour') {
+        const targetDeg = (selectedHour % 12) * 30;
+        pointer.style.transform = `rotate(${targetDeg}deg)`;
+
+        for (let h = 1; h <= 12; h++) {
+          const deg = (h % 12) * 30;
+          const rad = (deg * Math.PI) / 180;
+          const x = cx + radius * Math.sin(rad);
+          const y = cy - radius * Math.cos(rad);
+          const isActive = h === selectedHour;
+
+          html += `
+            <div class="rc-dial-number ${isActive ? 'active-target' : ''}" 
+                 style="left:${x}px; top:${y}px;"
+                 onclick="event.stopPropagation(); onClockHourSelected(${h})">
+              ${h}
+            </div>
+          `;
+        }
+      } else {
+        const targetDeg = selectedMinute * 6;
+        pointer.style.transform = `rotate(${targetDeg}deg)`;
+
+        // Draw numbers for 00, 05, 10, ... 55
+        for (let m = 0; m < 60; m += 5) {
+          const deg = m * 6;
+          const rad = (deg * Math.PI) / 180;
+          const x = cx + radius * Math.sin(rad);
+          const y = cy - radius * Math.cos(rad);
+          const isActive = Math.round(selectedMinute / 5) * 5 === m && Math.abs(selectedMinute - m) <= 2;
+
+          html += `
+            <div class="rc-dial-number ${isActive ? 'active-target' : ''}" 
+                 style="left:${x}px; top:${y}px;"
+                 onclick="event.stopPropagation(); onClockMinuteSelected(${m})">
+              ${String(m).padStart(2, '0')}
+            </div>
+          `;
+        }
+
+        // Draw subtle minute dots for intermediate ticks
+        for (let m = 0; m < 60; m++) {
+          if (m % 5 === 0) continue;
+          const deg = m * 6;
+          const rad = (deg * Math.PI) / 180;
+          const x = cx + radius * Math.sin(rad);
+          const y = cy - radius * Math.cos(rad);
+          html += `<div class="rc-minute-dot" style="left:${x}px; top:${y}px;"></div>`;
+        }
+      }
+
+      layer.innerHTML = html;
+    }
+
+    function onClockHourSelected(h) {
+      selectedHour = h;
+      updateClockDigitalDisplay();
+      renderClockDial();
+      setTimeout(() => {
+        if (currentClockMode === 'hour') {
+          switchClockMode('minute');
+        }
+      }, 200);
+    }
+
+    function onClockMinuteSelected(m) {
+      selectedMinute = m;
+      updateClockDigitalDisplay();
+      renderClockDial();
+    }
+
+    function confirmRoundClockTime() {
+      if (!currentClockTargetId) return;
+
+      let h24 = selectedHour % 12;
+      if (selectedAMPM === 'PM') h24 += 12;
+      const hh = String(h24).padStart(2, '0');
+      const mm = String(selectedMinute).padStart(2, '0');
+      const time24 = `${hh}:${mm}`;
+
+      setClockInputValue(currentClockTargetId, time24);
+
+      if (typeof currentClockCallback === 'function') {
+        currentClockCallback(time24);
+      }
+
+      closeRoundClockPicker();
+    }
+
+    function initClockDialInteractions() {
+      const dial = document.getElementById('rcClockDial');
+      if (!dial || dial._hasClockEvents) return;
+      dial._hasClockEvents = true;
+
+      function updateFromPointer(e, isEnd = false) {
+        const rect = dial.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        const dx = clientX - cx;
+        const dy = clientY - cy;
+
+        let deg = (Math.atan2(dy, dx) * 180) / Math.PI + 90;
+        if (deg < 0) deg += 360;
+
+        if (currentClockMode === 'hour') {
+          let h = Math.round(deg / 30) % 12;
+          if (h === 0) h = 12;
+          selectedHour = h;
+          updateClockDigitalDisplay();
+          renderClockDial(true);
+
+          if (isEnd) {
+            setTimeout(() => {
+              if (currentClockMode === 'hour') {
+                switchClockMode('minute');
+              }
+            }, 200);
+          }
+        } else {
+          let m = Math.round(deg / 6) % 60;
+          selectedMinute = m;
+          updateClockDigitalDisplay();
+          renderClockDial(true);
+        }
+      }
+
+      dial.addEventListener('pointerdown', (e) => {
+        isClockDragging = true;
+        dial.setPointerCapture(e.pointerId);
+        updateFromPointer(e, false);
+      });
+
+      dial.addEventListener('pointermove', (e) => {
+        if (!isClockDragging) return;
+        updateFromPointer(e, false);
+      });
+
+      dial.addEventListener('pointerup', (e) => {
+        if (!isClockDragging) return;
+        isClockDragging = false;
+        try { dial.releasePointerCapture(e.pointerId); } catch (_) {}
+        updateFromPointer(e, true);
+      });
+
+      dial.addEventListener('pointercancel', (e) => {
+        isClockDragging = false;
+        try { dial.releasePointerCapture(e.pointerId); } catch (_) {}
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initClockDialInteractions);
+    } else {
+      initClockDialInteractions();
+    }
+
     function onBookingSlotChange() {
       const slot = document.getElementById('bSlot').value;
       const customRow = document.getElementById('rowCustomTimings');
-      const startInput = document.getElementById('bStartTime');
-      const endInput = document.getElementById('bEndTime');
 
       if (slot === 'majlis') {
         if (customRow) {
           customRow.style.display = 'flex';
           customRow.style.flexWrap = 'wrap';
         }
-        if (startInput) {
-          startInput.required = true;
-          if (!startInput.value) startInput.value = '11:00';
-        }
-        if (endInput) {
-          endInput.required = true;
-          if (!endInput.value) endInput.value = '13:30';
-        }
+        const sVal = document.getElementById('bStartTime')?.value;
+        const eVal = document.getElementById('bEndTime')?.value;
+        setClockInputValue('bStartTime', sVal || '11:00');
+        setClockInputValue('bEndTime', eVal || '13:30');
       } else {
         if (customRow) customRow.style.display = 'none';
-        if (startInput) startInput.required = false;
-        if (endInput) endInput.required = false;
       }
       recalculatePriceHint();
     }
@@ -4985,8 +5658,8 @@
       updateBookingDateLimits();
       document.getElementById('bSlot').value = b.slot || 'morning';
       if (b.slot === 'majlis') {
-        document.getElementById('bStartTime').value = b.start_time || '11:00';
-        document.getElementById('bEndTime').value = b.end_time || '13:30';
+        setClockInputValue('bStartTime', b.start_time || '11:00');
+        setClockInputValue('bEndTime', b.end_time || '13:30');
       }
       onBookingSlotChange();
       document.getElementById('bPkg').value = b.package || 'without_jaman';
