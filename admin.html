@@ -1624,38 +1624,6 @@
           </div>
         </div>
 
-        <!-- NEW: PENDING CUSTOMER ENQUIRIES AWAITING ACTION -->
-        <div class="card">
-          <div class="card-header" style="justify-content:space-between;">
-            <div>
-              <span class="card-title" style="color:var(--wheat);"><i class="fas fa-inbox"></i> New Customer Enquiries (Pending Review)</span>
-              <div style="font-size:0.68rem;color:rgba(245,240,232,0.4);margin-top:2px;">Review details, verify live availability, confirm booking or reject</div>
-            </div>
-            <button class="btn-quick" onclick="switchNav('enquiries')" style="font-size:0.7rem;padding:0.35rem 0.8rem;">
-              All Enquiries <i class="fas fa-arrow-right"></i>
-            </button>
-          </div>
-          <div class="tbl-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Customer Name</th>
-                  <th>Phone</th>
-                  <th>Requested Date</th>
-                  <th>Requested Venue</th>
-                  <th>Slot &amp; Timing</th>
-                  <th>Catering</th>
-                  <th>Occasion</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="tblRecentEnquiries">
-                <tr><td colspan="8" style="text-align:center;padding:1.5rem;color:rgba(245,240,232,0.3);">No pending enquiries awaiting review.</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
         <!-- URGENT: Payments Due in Next 2-3 Days -->
         <div class="card">
           <div class="card-header">
@@ -3317,69 +3285,118 @@
     function loadCalendarQadri() { return renderCalendar('qadri'); }
 
     /* ════════ 1. OVERVIEW DATA ════════ */
+    function resetStatFilters() {
+      const h = document.getElementById('statFilterHall'); if (h) h.value = 'all';
+      const f = document.getElementById('statFilterFrom'); if (f) f.value = '';
+      const t = document.getElementById('statFilterTo'); if (t) t.value = '';
+      loadOverview();
+    }
+
     async function loadOverview() {
       try {
         const res = await authFetch('/api/bookings');
         allBookings = await res.json();
 
+        const hallVal = document.getElementById('statFilterHall')?.value || 'all';
+        const fromVal = document.getElementById('statFilterFrom')?.value;
+        const toVal = document.getElementById('statFilterTo')?.value;
+
+        let filtered = Array.isArray(allBookings) ? allBookings : [];
+        if (hallVal && hallVal !== 'all') {
+          const isQadri = hallVal.toLowerCase().includes('qadri');
+          filtered = filtered.filter(b => {
+            const h = (b.hall || 'Evan-e-Hakimi').toLowerCase();
+            return isQadri ? h.includes('qadri') : !h.includes('qadri');
+          });
+        }
+        if (fromVal) {
+          filtered = filtered.filter(b => (b.check_in || '') >= fromVal);
+        }
+        if (toVal) {
+          filtered = filtered.filter(b => (b.check_in || '') <= toVal);
+        }
+
         const todayStr = new Date().toISOString().split('T')[0];
         const twoDaysLater = new Date(Date.now() + 2 * 86400000).toISOString().split('T')[0];
         const sevenDaysLater = new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0];
 
-        let eventsToday = 0;
+        let totalBookings = 0;
+        let upcomingEvents = 0;
         let pendingCount = 0;
-        let confirmedCount = 0;
-        let advancePaidCount = 0;
+        let awaitingAdvance = 0;
+        let advanceCollected = 0;
+        let remainingBalancePending = 0;
         let fullyPaidCount = 0;
-        let rejectedCount = 0;
-        let totalCollected = 0;
-        let totalOutstanding = 0;
+        let cancelledCount = 0;
+        let totalContractedAmount = 0;
+        let actualCollectedAmount = 0;
 
         const duePayments = [];
-        const upcomingEvents = [];
-        const pendingEnquiries = [];
+        const upcomingEventsList = [];
 
-        allBookings.forEach(b => {
-          const isConfirmed = CONFIRMED_STATUSES.includes(b.status);
-          const isPending = ENQUIRY_STATUSES.includes(b.status);
-          const isRejected = REJECTED_STATUSES.includes(b.status);
-          const isFullyPaid = b.status === 'FULLY_PAID' || b.payment_status === 'fully_paid' || b.paymentStatus === 'fully_paid';
-          const isAdvPaid = ['ADVANCE_PAID', 'advance_verified', 'advance_paid', 'ADVANCE_PARTIALLY_PAID'].includes(b.status);
+        filtered.forEach(b => {
+          const s = String(b.status || '').toUpperCase();
+          const ps = String(b.payment_status || b.paymentStatus || '').toLowerCase();
+          const isCancelled = REJECTED_STATUSES.includes(b.status) || s === 'CANCELLED' || s === 'REJECTED';
+          const isPending = ENQUIRY_STATUSES.includes(b.status) || s === 'PENDING' || s === 'PENDING_APPROVAL';
 
           const total = parseFloat(b.total_amount || 0);
           const paid = parseFloat(b.advancePaid || b.advance_paid || 0);
           const balance = Math.max(0, total - paid);
 
+          if (isCancelled) {
+            cancelledCount++;
+            return;
+          }
+
+          totalBookings++;
+          totalContractedAmount += total;
+          actualCollectedAmount += paid;
+
+          if (b.check_in >= todayStr) {
+            upcomingEvents++;
+            if (b.check_in <= sevenDaysLater) {
+              upcomingEventsList.push(b);
+            }
+          }
+
           if (isPending) {
             pendingCount++;
-            pendingEnquiries.push(b);
-          } else if (isConfirmed) {
-            confirmedCount++;
-            if (isFullyPaid) fullyPaidCount++;
-            else if (isAdvPaid) advancePaidCount++;
-          }
-          if (isRejected) rejectedCount++;
-
-          if (isConfirmed) {
-            totalCollected += paid;
-            if (b.check_in === todayStr) eventsToday++;
+          } else if (ps === 'fully_paid' || s === 'FULLY_PAID' || (total > 0 && balance === 0)) {
+            fullyPaidCount++;
+          } else if (ps === 'advance_paid' || s === 'ADVANCE_PAID' || s === 'ADVANCE_VERIFIED' || paid > 0) {
+            advanceCollected++;
             if (balance > 0) {
-              totalOutstanding += balance;
-              if (b.check_in <= twoDaysLater) {
-                duePayments.push(b);
-              }
+              remainingBalancePending++;
             }
-            if (b.check_in >= todayStr && b.check_in <= sevenDaysLater) {
-              upcomingEvents.push(b);
-            }
+          } else {
+            awaitingAdvance++;
+          }
+
+          if (balance > 0 && b.check_in && b.check_in <= twoDaysLater) {
+            duePayments.push(b);
           }
         });
 
-        document.getElementById('kpiEventsToday').textContent = eventsToday;
-        document.getElementById('kpiPending').textContent = pendingCount;
-        document.getElementById('kpiConfirmed').textContent = confirmedCount;
-        document.getElementById('kpiCollected').textContent = '₹' + Math.round(totalCollected).toLocaleString('en-IN');
-        document.getElementById('kpiOutstanding').textContent = '₹' + Math.round(totalOutstanding).toLocaleString('en-IN');
+        const outstandingBalance = Math.max(0, totalContractedAmount - actualCollectedAmount);
+
+        // Safely update all 12 KPI cards in DOM
+        const setEl = (id, val) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = val;
+        };
+
+        setEl('kpiTotalBookings', totalBookings);
+        setEl('kpiUpcoming', upcomingEvents);
+        setEl('kpiPending', pendingCount);
+        setEl('kpiAwaitingAdvance', awaitingAdvance);
+        setEl('kpiAdvanceCollected', advanceCollected);
+        setEl('kpiBalancePending', remainingBalancePending);
+        setEl('kpiFullyPaid', fullyPaidCount);
+        setEl('kpiCancelled', cancelledCount);
+        setEl('kpiTotalAmount', '₹' + Math.round(totalContractedAmount).toLocaleString('en-IN'));
+        setEl('kpiCollected', '₹' + Math.round(actualCollectedAmount).toLocaleString('en-IN'));
+        setEl('kpiOutstanding', '₹' + Math.round(outstandingBalance).toLocaleString('en-IN'));
 
         const navBadge = document.getElementById('navEnquiryBadge');
         if (navBadge) {
@@ -3388,27 +3405,43 @@
         }
 
         // Update tab pill counts in All Bookings
-        const setElText = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
-        setElText('countTabAll', allBookings.length);
-        setElText('countTabEnquiries', pendingCount);
-        setElText('countTabPendingAdv', allBookings.filter(b => b.status === 'CONFIRMED_PENDING_ADVANCE').length);
-        setElText('countTabAdvancePaid', advancePaidCount);
-        setElText('countTabFullyPaid', fullyPaidCount);
-        setElText('countTabRejected', rejectedCount);
+        const totalAll = allBookings.length;
+        const allPending = allBookings.filter(b => ENQUIRY_STATUSES.includes(b.status)).length;
+        const allAdvPaid = allBookings.filter(b => ['ADVANCE_PAID', 'advance_verified', 'advance_paid'].includes(b.status)).length;
+        const allFullyPaid = allBookings.filter(b => b.status === 'FULLY_PAID' || b.payment_status === 'fully_paid').length;
+        const allRejected = allBookings.filter(b => REJECTED_STATUSES.includes(b.status)).length;
+
+        setEl('countTabAll', totalAll);
+        setEl('countTabEnquiries', allPending);
+        setEl('countTabPendingAdv', allBookings.filter(b => b.status === 'CONFIRMED_PENDING_ADVANCE').length);
+        setEl('countTabAdvancePaid', allAdvPaid);
+        setEl('countTabFullyPaid', allFullyPaid);
+        setEl('countTabRejected', allRejected);
 
         // Fetch monthly expenses for KPI
-        const expRes = await authFetch('/api/expenses/summary');
-        const expData = await expRes.json();
-        document.getElementById('kpiMonthExpenses').textContent = '₹' + Math.round(expData.thisMonthTotal || 0).toLocaleString('en-IN');
+        try {
+          const expRes = await authFetch('/api/expenses/summary');
+          if (expRes.ok) {
+            const expData = await expRes.json();
+            setEl('kpiMonthExpenses', '₹' + Math.round(expData.thisMonthTotal || 0).toLocaleString('en-IN'));
+          }
+        } catch (_) {}
 
-        // Render Recent Enquiries on Overview
-        const recentTbody = document.getElementById('tblRecentEnquiries');
-        if (recentTbody) {
-          if (pendingEnquiries.length === 0) {
-            recentTbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:1.5rem;color:rgba(245,240,232,0.4);">No pending enquiries awaiting review.</td></tr>`;
+        // Render Due Payments table
+        const dueTbody = document.getElementById('tblDuePayments');
+        if (dueTbody) {
+          if (duePayments.length === 0) {
+            dueTbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:1.5rem;color:rgba(245,240,232,0.4);">No urgent overdue balances found.</td></tr>`;
           } else {
-            recentTbody.innerHTML = pendingEnquiries.slice(0, 5).map(b => {
-              const phoneClean = (b.phone || '').replace(/[^0-9]/g, '');
+            dueTbody.innerHTML = duePayments.map(b => {
+              const total = parseFloat(b.total_amount || 0);
+              const advPaid = parseFloat(b.advancePaid || b.advance_paid || 0);
+              const bal = Math.max(0, total - advPaid);
+              const isPendingAdvance = b.status === 'CONFIRMED_PENDING_ADVANCE';
+              const actionBtn = isPendingAdvance
+                ? `<button class="btn-quick gold" style="padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="record40Advance(${b.id})" title="Received 40% Advance"><i class="fas fa-check"></i> Received 40% Advance</button>`
+                : `<button class="btn-quick" style="background:#22c55e;color:#0a1a12;padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="record60Balance(${b.id})" title="Received Remaining 60%"><i class="fas fa-check-double"></i> Received Remaining 60%</button>`;
+
               return `
                 <tr>
                   <td><strong>${escapeHtml(b.customer_name || 'Guest')}</strong></td>
@@ -3416,16 +3449,13 @@
                   <td style="color:#fcd34d;font-weight:600;white-space:nowrap;">${formatDisplayDate(b.check_in)}</td>
                   <td><span class="badge ${b.hall?.toLowerCase().includes('qadri')?'badge-qadri':'badge-hakimi'}">${escapeHtml(b.hall||'Evan-e-Hakimi')}</span></td>
                   <td>${b.slot}</td>
-                  <td style="font-size:0.7rem;">${b.package==='with_jaman'?'With Jaman':'Hall Only'}</td>
-                  <td>${escapeHtml(b.occasion || '—')}</td>
+                  <td>₹${total.toLocaleString('en-IN')}</td>
+                  <td>₹${advPaid.toLocaleString('en-IN')}</td>
+                  <td style="color:#fca5a5;font-weight:700;">₹${bal.toLocaleString('en-IN')}</td>
                   <td>
-                    <div style="display:flex;gap:4px;flex-wrap:wrap;">
-                      <button class="btn-quick gold" style="padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="openEnquiryWorkflow(${b.id})" title="Accept Enquiry">
-                        <i class="fas fa-check"></i> Accept
-                      </button>
-                      <button class="action-btn del" style="padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="rejectEnquiryPrompt(${b.id})" title="Reject Enquiry">
-                        <i class="fas fa-times"></i> Reject
-                      </button>
+                    <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;">
+                      ${actionBtn}
+                      <button class="action-btn pay" onclick="openBookingStage(${b.id})" title="Manage Booking Stage"><i class="fas fa-eye"></i></button>
                     </div>
                   </td>
                 </tr>
@@ -3434,63 +3464,28 @@
           }
         }
 
-        // Render Due Payments table
-        const dueTbody = document.getElementById('tblDuePayments');
-        if (duePayments.length === 0) {
-          dueTbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:1.5rem;color:rgba(245,240,232,0.4);">No urgent overdue balances found.</td></tr>`;
-        } else {
-          dueTbody.innerHTML = duePayments.map(b => {
-            const total = parseFloat(b.total_amount || 0);
-            const advPaid = parseFloat(b.advancePaid || b.advance_paid || 0);
-            const bal = Math.max(0, total - advPaid);
-            const isPendingAdvance = b.status === 'CONFIRMED_PENDING_ADVANCE';
-            const actionBtn = isPendingAdvance
-              ? `<button class="btn-quick gold" style="padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="record40Advance(${b.id})" title="Received 40% Advance"><i class="fas fa-check"></i> Received 40% Advance</button>
-                 `
-              : `<button class="btn-quick" style="background:#22c55e;color:#0a1a12;padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="record60Balance(${b.id})" title="Received Remaining 60%"><i class="fas fa-check-double"></i> Received Remaining 60%</button>
-                 `;
-
-            return `
-              <tr>
-                <td><strong>${escapeHtml(b.customer_name || 'Guest')}</strong></td>
-                <td><a href="tel:${b.phone}" style="color:var(--cream);text-decoration:none;">${b.phone}</a></td>
-                <td style="color:#fcd34d;font-weight:600;white-space:nowrap;">${formatDisplayDate(b.check_in)}</td>
-                <td><span class="badge ${b.hall?.toLowerCase().includes('qadri')?'badge-qadri':'badge-hakimi'}">${escapeHtml(b.hall||'Evan-e-Hakimi')}</span></td>
-                <td>${b.slot}</td>
-                <td>₹${total.toLocaleString('en-IN')}</td>
-                <td>₹${advPaid.toLocaleString('en-IN')}</td>
-                <td style="color:#fca5a5;font-weight:700;">₹${bal.toLocaleString('en-IN')}</td>
-                <td>
-                  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;">
-                    ${actionBtn}
-                    <button class="action-btn pay" onclick="openBookingStage(${b.id})" title="Manage Booking Stage"><i class="fas fa-eye"></i></button>
-                  </div>
-                </td>
-              </tr>
-            `;
-          }).join('');
-        }
-
         // Render Upcoming Events table
         const upTbody = document.getElementById('tblUpcomingEvents');
-        if (upcomingEvents.length === 0) {
-          upTbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:1.5rem;color:rgba(245,240,232,0.4);">No events scheduled in the next 7 days.</td></tr>`;
-        } else {
-          upTbody.innerHTML = upcomingEvents.map(b => {
-            return `
-              <tr>
-                <td style="white-space:nowrap;"><strong>${formatDisplayDate(b.check_in)}</strong></td>
-                <td><span class="badge ${b.hall?.toLowerCase().includes('qadri')?'badge-qadri':'badge-hakimi'}">${escapeHtml(b.hall||'Evan-e-Hakimi')}</span></td>
-                <td>${b.slot}</td>
-                <td><strong>${escapeHtml(b.customer_name||'Guest')}</strong></td>
-                <td>${b.phone}</td>
-                <td>${escapeHtml(b.occasion||'—')}</td>
-                <td>${b.guests || '—'}</td>
-                <td><span class="badge badge-${b.status}">${formatStatusLabel(b.status)}</span></td>
-                <td><span class="badge badge-${b.paymentStatus||b.payment_status||'not_paid'}">${b.paymentStatus||b.payment_status||'not_paid'}</span></td>
-              </tr>
-            `;
-          }).join('');
+        if (upTbody) {
+          if (upcomingEventsList.length === 0) {
+            upTbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:1.5rem;color:rgba(245,240,232,0.4);">No events scheduled in the next 7 days.</td></tr>`;
+          } else {
+            upTbody.innerHTML = upcomingEventsList.map(b => {
+              return `
+                <tr>
+                  <td style="white-space:nowrap;"><strong>${formatDisplayDate(b.check_in)}</strong></td>
+                  <td><span class="badge ${b.hall?.toLowerCase().includes('qadri')?'badge-qadri':'badge-hakimi'}">${escapeHtml(b.hall||'Evan-e-Hakimi')}</span></td>
+                  <td>${b.slot}</td>
+                  <td><strong>${escapeHtml(b.customer_name||'Guest')}</strong></td>
+                  <td>${b.phone}</td>
+                  <td>${escapeHtml(b.occasion||'—')}</td>
+                  <td>${b.guests || '—'}</td>
+                  <td><span class="badge badge-${b.status}">${formatStatusLabel(b.status)}</span></td>
+                  <td><span class="badge badge-${b.paymentStatus||b.payment_status||'not_paid'}">${b.paymentStatus||b.payment_status||'not_paid'}</span></td>
+                </tr>
+              `;
+            }).join('');
+          }
         }
       } catch (err) {
         console.error('Failed to load overview:', err);

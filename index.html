@@ -2835,6 +2835,7 @@
     .legend-dot.green { background: #22c55e; }
     .legend-dot.yellow { background: #eab308; }
     .legend-dot.red { background: #ef4444; }
+    .legend-dot.grey { background: #554c42; }
 
     /* Navigation Bar */
     .cal-nav-bar {
@@ -2939,24 +2940,28 @@
       border: none;
     }
     .cal-day-cell.cal-past-date {
-      background: rgba(14, 10, 7, 0.45);
-      border-color: rgba(201, 169, 110, 0.06);
-      cursor: not-allowed;
-      opacity: 0.42;
-      pointer-events: none;
+      background: rgba(14, 10, 7, 0.25) !important;
+      border: 1px solid rgba(255, 255, 255, 0.02) !important;
+      cursor: not-allowed !important;
+      opacity: 0.35 !important;
+      pointer-events: none !important;
+      box-shadow: none !important;
     }
     .cal-day-cell.cal-past-date .cal-date-number span {
-      color: #786b5e;
+      color: #61564a !important;
+      font-weight: 400 !important;
     }
     .cal-past-label {
-      font-size: 0.62rem;
-      letter-spacing: 0.3px;
-      color: #63574a;
+      font-size: 0.58rem;
+      letter-spacing: 0.4px;
+      color: #554c42;
       font-weight: 500;
+      text-transform: uppercase;
     }
     .cal-day-cell.cal-is-today {
-      border-color: rgba(201, 169, 110, 0.6);
-      box-shadow: inset 0 0 10px rgba(201, 169, 110, 0.08);
+      border: 1.5px solid var(--wheat) !important;
+      background: rgba(201, 169, 110, 0.08) !important;
+      box-shadow: 0 0 12px rgba(201, 169, 110, 0.15) !important;
     }
     .cal-day-cell:hover:not(.empty-pad):not(.cal-past-date) {
       background: rgba(201,169,110,0.06);
@@ -3481,15 +3486,19 @@
       <div class="cal-legend-bar">
         <div class="legend-item">
           <span class="legend-dot green"></span>
-          <span><strong>Green:</strong> Fully Available (All Slots Open)</span>
+          <span><strong>Green:</strong> Fully Available</span>
         </div>
         <div class="legend-item">
           <span class="legend-dot yellow"></span>
-          <span><strong>Yellow:</strong> Partially Booked (1+ Slot Available)</span>
+          <span><strong>Yellow:</strong> Partially Booked</span>
         </div>
         <div class="legend-item">
           <span class="legend-dot red"></span>
           <span><strong>Red:</strong> Fully Booked / Blocked</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot grey"></span>
+          <span><strong>Muted Grey:</strong> Past Date</span>
         </div>
       </div>
 
@@ -3881,7 +3890,7 @@ function renderCustomerGrid(daysMap) {
             <span>${day}</span>
           </div>
           <div class="cal-status-row">
-            <span class="cal-past-label">Past Date</span>
+            <span class="cal-past-label">Past</span>
           </div>
         </div>
       `;

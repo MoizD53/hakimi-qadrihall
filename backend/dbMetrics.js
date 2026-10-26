@@ -236,6 +236,9 @@ class DbMetricsManager {
       this.syncInterval = setInterval(() => {
         this.flush(client).catch(err => console.error('Error syncing DB metrics:', err.message));
       }, 60000);
+      if (this.syncInterval && this.syncInterval.unref) {
+        this.syncInterval.unref();
+      }
 
       // 4. Ensure process flush on exit
       const exitHandler = () => {
