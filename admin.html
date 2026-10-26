@@ -31,19 +31,37 @@
     }
     input[type="date"], input[type="time"], input[type="month"] {
       color-scheme: dark;
+      color: #f5f0e8 !important;
+    }
+    input[type="date"]::-webkit-datetime-edit,
+    input[type="date"]::-webkit-datetime-edit-fields-wrapper {
+      color: #f5f0e8 !important;
+    }
+    input[type="date"]::-webkit-datetime-edit-text {
+      color: rgba(201, 169, 110, 0.7) !important;
+    }
+    input[type="date"]::-webkit-datetime-edit-month-field,
+    input[type="date"]::-webkit-datetime-edit-day-field,
+    input[type="date"]::-webkit-datetime-edit-year-field {
+      color: #f5f0e8 !important;
     }
     input[type="date"]::-webkit-calendar-picker-indicator {
-      filter: invert(0.8) sepia(50%) saturate(400%) hue-rotate(5deg) brightness(95%);
-      cursor: pointer;
-      opacity: 0.85;
+      filter: invert(0.8) sepia(50%) saturate(400%) hue-rotate(5deg) brightness(95%) !important;
+      cursor: pointer !important;
+      opacity: 0.9 !important;
+      display: inline-block !important;
     }
 
     /* ── BESPOKE LUXURY HAKIMI FLATPICKR THEME ── */
+    .flatpickr-calendar,
+    .flatpickr-calendar * {
+      color-scheme: dark !important;
+    }
     .flatpickr-calendar {
       background: #140e09 !important;
-      border: 1px solid rgba(201, 169, 110, 0.3) !important;
+      border: 1px solid rgba(201, 169, 110, 0.35) !important;
       border-radius: 12px !important;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(201, 169, 110, 0.12) !important;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(201, 169, 110, 0.15) !important;
       font-family: 'DM Sans', sans-serif !important;
       color: #f5f0e8 !important;
       overflow: hidden !important;
@@ -67,7 +85,7 @@
     .flatpickr-months .flatpickr-month {
       color: #f5f0e8 !important;
       fill: #f5f0e8 !important;
-      height: 36px !important;
+      height: 38px !important;
     }
     .flatpickr-current-month {
       font-size: 1rem !important;
@@ -77,6 +95,7 @@
       align-items: center !important;
       justify-content: center !important;
       gap: 6px !important;
+      padding: 2px 0 !important;
     }
     .flatpickr-current-month .cur-month {
       font-family: 'Cormorant Garamond', Georgia, serif !important;
@@ -84,10 +103,71 @@
       font-weight: 600 !important;
       color: var(--wheat) !important;
     }
+    /* Software Theme Dark Espresso Month Dropdown */
+    .flatpickr-current-month .flatpickr-monthDropdown-months {
+      background: #18110b !important;
+      background-color: #18110b !important;
+      color: #e2b96a !important;
+      border: 1px solid rgba(201, 169, 110, 0.35) !important;
+      border-radius: 6px !important;
+      padding: 3px 8px !important;
+      font-family: 'DM Sans', sans-serif !important;
+      font-size: 0.92rem !important;
+      font-weight: 600 !important;
+      cursor: pointer !important;
+      outline: none !important;
+      color-scheme: dark !important;
+      transition: all 0.2s ease !important;
+    }
+    .flatpickr-current-month .flatpickr-monthDropdown-months:hover,
+    .flatpickr-current-month .flatpickr-monthDropdown-months:focus {
+      background: #241a10 !important;
+      background-color: #241a10 !important;
+      border-color: #e2b96a !important;
+      color: #f5f0e8 !important;
+    }
+    .flatpickr-current-month .flatpickr-monthDropdown-months option,
+    .flatpickr-current-month .flatpickr-monthDropdown-months .flatpickr-monthDropdown-month,
+    .flatpickr-monthDropdown-months option {
+      background: #140e09 !important;
+      background-color: #140e09 !important;
+      color: #f5f0e8 !important;
+      font-family: 'DM Sans', sans-serif !important;
+      font-size: 0.9rem !important;
+      font-weight: 500 !important;
+      padding: 8px 12px !important;
+    }
+    .flatpickr-current-month .flatpickr-monthDropdown-months option:checked,
+    .flatpickr-monthDropdown-months option:checked {
+      background: #2b1f13 !important;
+      background-color: #2b1f13 !important;
+      color: #e2b96a !important;
+      font-weight: 700 !important;
+    }
+    .flatpickr-current-month .numInputWrapper {
+      width: 76px !important;
+      display: inline-block !important;
+    }
     .flatpickr-current-month input.cur-year {
       font-family: 'DM Sans', sans-serif !important;
       font-weight: 600 !important;
-      color: var(--cream) !important;
+      font-size: 0.92rem !important;
+      color: #f5f0e8 !important;
+      background: #18110b !important;
+      border: 1px solid rgba(201, 169, 110, 0.35) !important;
+      border-radius: 6px !important;
+      padding: 3px 6px !important;
+      color-scheme: dark !important;
+    }
+    .flatpickr-current-month input.cur-year:focus {
+      border-color: #e2b96a !important;
+      background: #241a10 !important;
+    }
+    .flatpickr-current-month .numInputWrapper span.arrowUp:after {
+      border-bottom-color: #e2b96a !important;
+    }
+    .flatpickr-current-month .numInputWrapper span.arrowDown:after {
+      border-top-color: #e2b96a !important;
     }
     .flatpickr-months .flatpickr-prev-month,
     .flatpickr-months .flatpickr-next-month {
@@ -153,20 +233,30 @@
       border-color: transparent !important;
     }
     .form-ctrl.flatpickr-input,
-    input.flatpickr-input {
-      background: rgba(255, 255, 255, 0.035) !important;
-      border: 1px solid rgba(201, 169, 110, 0.2) !important;
+    input.flatpickr-input,
+    .filter-input {
+      background: rgba(255, 255, 255, 0.05) !important;
+      border: 1px solid rgba(201, 169, 110, 0.28) !important;
       border-radius: 8px !important;
-      color: var(--cream) !important;
+      color: #f5f0e8 !important;
+      -webkit-text-fill-color: #f5f0e8 !important;
       font-family: 'DM Sans', sans-serif !important;
-      padding: 0.6rem 0.85rem !important;
+      padding: 0.55rem 0.85rem !important;
       cursor: pointer !important;
     }
     .form-ctrl.flatpickr-input:focus,
-    input.flatpickr-input:focus {
+    input.flatpickr-input:focus,
+    .filter-input:focus {
       border-color: var(--wheat) !important;
-      box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.15) !important;
-      background: rgba(255, 255, 255, 0.055) !important;
+      box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.18) !important;
+      background: rgba(255, 255, 255, 0.08) !important;
+    }
+    .filter-input::placeholder,
+    .form-ctrl::placeholder,
+    input.flatpickr-input::placeholder {
+      color: rgba(245, 240, 232, 0.5) !important;
+      -webkit-text-fill-color: rgba(245, 240, 232, 0.5) !important;
+      opacity: 1 !important;
     }
     html{height:100%;}
     body{
@@ -1533,12 +1623,12 @@
               </select>
             </div>
             <div style="display:flex;align-items:center;gap:6px;">
-              <span style="font-size:0.78rem;color:var(--wheat);font-weight:600;">From:</span>
-              <input type="date" id="statFilterFrom" class="filter-input" style="padding:0.35rem 0.6rem;font-size:0.78rem;" onchange="loadOverview()">
+              <span style="font-size:0.78rem;color:var(--wheat);font-weight:600;"><i class="fas fa-calendar-alt"></i> From:</span>
+              <input type="date" id="statFilterFrom" class="filter-input" placeholder="From Date" style="padding:0.38rem 0.65rem;font-size:0.78rem;min-width:135px;background:rgba(255,255,255,0.06);border:1px solid rgba(201,169,110,0.3);color:#f5f0e8;" onchange="loadOverview()">
             </div>
             <div style="display:flex;align-items:center;gap:6px;">
-              <span style="font-size:0.78rem;color:var(--wheat);font-weight:600;">To:</span>
-              <input type="date" id="statFilterTo" class="filter-input" style="padding:0.35rem 0.6rem;font-size:0.78rem;" onchange="loadOverview()">
+              <span style="font-size:0.78rem;color:var(--wheat);font-weight:600;"><i class="fas fa-calendar-alt"></i> To:</span>
+              <input type="date" id="statFilterTo" class="filter-input" placeholder="To Date" style="padding:0.38rem 0.65rem;font-size:0.78rem;min-width:135px;background:rgba(255,255,255,0.06);border:1px solid rgba(201,169,110,0.3);color:#f5f0e8;" onchange="loadOverview()">
             </div>
             <button class="btn-quick" style="padding:0.35rem 0.8rem;font-size:0.75rem;" onclick="resetStatFilters()">Reset</button>
             <div style="margin-left:auto;display:flex;gap:8px;">
@@ -1930,8 +2020,14 @@
             <option value="Bank Transfer">Bank Transfer</option>
             <option value="Cheque">Cheque</option>
           </select>
-          <input type="date" id="filterExpFrom" class="filter-input" onchange="loadExpenses()" title="From Date">
-          <input type="date" id="filterExpTo" class="filter-input" onchange="loadExpenses()" title="To Date">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:0.78rem;color:var(--wheat);font-weight:600;"><i class="fas fa-calendar-alt"></i> From:</span>
+            <input type="date" id="filterExpFrom" class="filter-input" placeholder="From Date" onchange="loadExpenses()" title="From Date">
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:0.78rem;color:var(--wheat);font-weight:600;"><i class="fas fa-calendar-alt"></i> To:</span>
+            <input type="date" id="filterExpTo" class="filter-input" placeholder="To Date" onchange="loadExpenses()" title="To Date">
+          </div>
           <button class="btn-quick gold" style="margin-left:auto;" onclick="openNewExpenseModal()"><i class="fas fa-plus"></i> Add Expense</button>
         </div>
 
@@ -2046,8 +2142,14 @@
             <button class="cal-nav-btn" onclick="setReportPreset('last_month')">Last Month</button>
             <button class="cal-nav-btn" onclick="setReportPreset('last_3_months')">Last 3 Months</button>
             <button class="cal-nav-btn" onclick="setReportPreset('this_year')">This Year</button>
-            <input type="date" id="repFromDate" class="filter-input" title="From Date">
-            <input type="date" id="repToDate" class="filter-input" title="To Date">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-size:0.78rem;color:var(--wheat);font-weight:600;"><i class="fas fa-calendar-alt"></i> From:</span>
+              <input type="date" id="repFromDate" class="filter-input" placeholder="From Date" title="From Date">
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-size:0.78rem;color:var(--wheat);font-weight:600;"><i class="fas fa-calendar-alt"></i> To:</span>
+              <input type="date" id="repToDate" class="filter-input" placeholder="To Date" title="To Date">
+            </div>
             <select id="repHall" class="filter-select">
               <option value="all">All Halls</option>
               <option value="Evan-e-Hakimi">Evan-e-Hakimi</option>
@@ -2349,10 +2451,11 @@
         <!-- Dynamic Context-Aware Stage Actions -->
         <div id="stageActionButtons"></div>
       </div>
-      <div class="modal-footer" style="display:flex;justify-content:space-between;align-items:center;">
-        <div>
+      <div class="modal-footer" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <button type="button" class="action-btn" onclick="if(currentStageBooking){ closeModal('modalBookingStage'); openEditBookingModal(currentStageBooking.id); }"><i class="fas fa-edit"></i> Edit</button>
-          <button type="button" class="action-btn del" onclick="if(currentStageBooking){ closeModal('modalBookingStage'); deleteBooking(currentStageBooking.id); }"><i class="fas fa-trash"></i> Cancel</button>
+          <button type="button" class="action-btn del" style="background:rgba(239,68,68,0.18);border:1px solid rgba(239,68,68,0.4);color:#fca5a5;font-weight:600;" onclick="if(currentStageBooking){ closeModal('modalBookingStage'); openCancelModal(currentStageBooking.id); }"><i class="fas fa-ban"></i> Cancel Booking</button>
+          <button type="button" class="action-btn" style="opacity:0.65;" onclick="if(currentStageBooking){ closeModal('modalBookingStage'); deleteBooking(currentStageBooking.id); }" title="Permanently Delete Booking Record"><i class="fas fa-trash"></i> Delete</button>
         </div>
         <button type="button" class="action-btn" onclick="closeModal('modalBookingStage')">Close</button>
       </div>
@@ -2596,15 +2699,9 @@
             </div>
           </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label for="eReceipt">Receipt / Invoice Ref</label>
-              <input type="text" id="eReceipt" class="form-ctrl" placeholder="e.g. Bill #83921">
-            </div>
-            <div class="form-group">
-              <label for="eNotes">Notes</label>
-              <input type="text" id="eNotes" class="form-ctrl" placeholder="Additional details">
-            </div>
+          <div class="form-group">
+            <label for="eNotes">Notes</label>
+            <input type="text" id="eNotes" class="form-ctrl" placeholder="Additional details">
           </div>
         </div>
         <div class="modal-footer">
@@ -2628,18 +2725,18 @@
           <div class="form-row">
             <div class="form-group">
               <label for="sName">Full Name *</label>
-              <input type="text" id="sName" class="form-ctrl" placeholder="e.g. Shabbir Bhai" required>
+              <input type="text" id="sName" class="form-ctrl" required>
             </div>
             <div class="form-group">
               <label for="sPhone">Contact Number</label>
-              <input type="tel" id="sPhone" class="form-ctrl" placeholder="Phone number">
+              <input type="tel" id="sPhone" class="form-ctrl">
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group">
               <label for="sRole">Role / Designation *</label>
-              <input type="text" id="sRole" class="form-ctrl" placeholder="e.g. Hall Manager, Cleaner, Electrician" required>
+              <input type="text" id="sRole" class="form-ctrl" required>
             </div>
             <div class="form-group">
               <label for="sSalary">Monthly Salary (₹) *</label>
@@ -2663,7 +2760,7 @@
 
           <div class="form-group">
             <label for="sNotes">Notes</label>
-            <input type="text" id="sNotes" class="form-ctrl" placeholder="Duty hours, emergency contact...">
+            <input type="text" id="sNotes" class="form-ctrl">
           </div>
         </div>
         <div class="modal-footer">
@@ -3085,6 +3182,7 @@
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + (confirmModalOptions.confirmLoadingText || 'Processing...');
         try {
           await confirmModalOptions.onConfirm(inputValue);
+          isConfirmModalProcessing = false;
           closeConfirmModal(inputValue);
         } catch (err) {
           isConfirmModalProcessing = false;
@@ -3562,28 +3660,35 @@
       const isFullySettled = bal === 0;
 
       let stageActionBtn = '';
-      if (b.status === 'CONFIRMED_PENDING_ADVANCE') {
+      const isCancelled = REJECTED_STATUSES.includes(b.status);
+      if (isCancelled) {
         stageActionBtn = `
-          <button class="btn-quick gold" style="font-size:0.75rem;padding:0.3rem 0.75rem;" onclick="record40Advance(${b.id})">
-            <i class="fas fa-check"></i> Mark 40% Advance Collected (₹${advReq.toLocaleString('en-IN')})
-          </button>
-          <button class="action-btn del" style="font-size:0.75rem;padding:0.3rem 0.65rem;" onclick="openCancelModal(${b.id})">
-            <i class="fas fa-ban"></i> Cancel Booking
-          </button>
+          <span class="badge badge-CANCELLED" style="font-size:0.75rem;"><i class="fas fa-ban"></i> Cancelled</span>
         `;
-      } else if (b.status === 'ADVANCE_PAID' || b.status === 'ADVANCE_PARTIALLY_PAID') {
+      } else {
+        let payAction = '';
+        if (bal === 0 || b.status === 'FULLY_PAID') {
+          payAction = `<span style="color:#86efac;font-size:0.75rem;font-weight:600;"><i class="fas fa-check-double"></i> 100% Settled</span>`;
+        } else if (isAdvReceived || b.status === 'ADVANCE_PAID' || b.status === 'ADVANCE_PARTIALLY_PAID') {
+          payAction = `
+            <button class="btn-quick" style="background:#22c55e;color:#0a1a12;font-size:0.75rem;padding:0.32rem 0.75rem;" onclick="record60Balance(${b.id})">
+              <i class="fas fa-check-double"></i> Collect 60% Bal (₹${bal.toLocaleString('en-IN')})
+            </button>
+          `;
+        } else {
+          payAction = `
+            <button class="btn-quick gold" style="font-size:0.75rem;padding:0.32rem 0.75rem;" onclick="record40Advance(${b.id})">
+              <i class="fas fa-check"></i> Collect 40% Adv (₹${advReq.toLocaleString('en-IN')})
+            </button>
+          `;
+        }
+
         stageActionBtn = `
-          <button class="btn-quick" style="background:#22c55e;color:#0a1a12;font-size:0.75rem;padding:0.3rem 0.75rem;" onclick="record60Balance(${b.id})">
-            <i class="fas fa-check-double"></i> Mark Remaining 60% Collected (₹${bal.toLocaleString('en-IN')})
+          ${payAction}
+          <button class="action-btn" style="font-size:0.75rem;padding:0.32rem 0.65rem;" onclick="openBookingStage(${b.id})" title="View Details & Manage">
+            <i class="fas fa-eye"></i> Details
           </button>
-          <button class="action-btn del" style="font-size:0.75rem;padding:0.3rem 0.65rem;" onclick="openCancelModal(${b.id})">
-            <i class="fas fa-ban"></i> Cancel Booking
-          </button>
-        `;
-      } else if (b.status === 'FULLY_PAID') {
-        stageActionBtn = `
-          <span style="color:#86efac;font-size:0.75rem;font-weight:600;"><i class="fas fa-check-double"></i> 100% Fully Settled</span>
-          <button class="action-btn del" style="font-size:0.75rem;padding:0.3rem 0.65rem;" onclick="openCancelModal(${b.id})">
+          <button class="action-btn del" style="font-size:0.75rem;padding:0.32rem 0.75rem;background:rgba(239,68,68,0.18);border:1px solid rgba(239,68,68,0.4);color:#fca5a5;font-weight:600;" onclick="openCancelModal(${b.id})" title="Cancel Booking & Release Slot">
             <i class="fas fa-ban"></i> Cancel Booking
           </button>
         `;
@@ -5110,7 +5215,6 @@
       setDateVal('eDate', e.date);
       document.getElementById('ePayMethod').value = e.payment_method || 'Cash';
       document.getElementById('ePaidTo').value = e.paid_to || '';
-      document.getElementById('eReceipt').value = e.receipt_url || '';
       document.getElementById('eNotes').value = e.notes || '';
       openModal('modalExpense');
     }
@@ -5126,7 +5230,6 @@
         date: document.getElementById('eDate').value,
         payment_method: document.getElementById('ePayMethod').value,
         paid_to: document.getElementById('ePaidTo').value,
-        receipt_url: document.getElementById('eReceipt').value,
         notes: document.getElementById('eNotes').value
       };
 
@@ -5522,6 +5625,11 @@
       document.querySelectorAll('input[type="date"]').forEach(el => {
         if (el._flatpickr) return;
         const initialVal = el.value;
+        const idLower = (el.id || '').toLowerCase();
+        const placeholderText = idLower.includes('from') ? 'From Date' : (idLower.includes('to') ? 'To Date' : 'YYYY-MM-DD');
+        if (!el.getAttribute('placeholder')) {
+          el.setAttribute('placeholder', placeholderText);
+        }
         flatpickr(el, {
           dateFormat: 'Y-m-d',
           allowInput: true,
