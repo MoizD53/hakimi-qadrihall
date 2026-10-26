@@ -1018,6 +1018,11 @@ app.post('/api/bookings', async (req, res) => {
       return res.status(400).json({ error: 'Qadri Hall is available for events starting 21 November 2026. 20 November 2026 and earlier dates are not available.' });
     }
 
+    const todayKolkata = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
+    if (eventDate < todayKolkata) {
+      return res.status(400).json({ error: 'Cannot create bookings for past dates' });
+    }
+
     if (!/^[0-9]{10}$/.test(String(phone).replace(/[\s\-\+]/g, '').slice(-10))) {
       return res.status(400).json({ error: 'Phone number must be a valid 10-digit Indian mobile number' });
     }

@@ -2425,7 +2425,7 @@
           <div class="form-row">
             <div class="form-group">
               <label for="bHall">Select Venue *</label>
-              <select id="bHall" class="form-ctrl" required onchange="recalculatePriceHint()">
+              <select id="bHall" class="form-ctrl" required onchange="onBookingHallChange()">
                 <option value="Evan-e-Hakimi">Evan-e-Hakimi (2nd Floor)</option>
                 <option value="Qadri Hall">Qadri Hall (3rd Floor)</option>
               </select>
@@ -3855,23 +3855,6 @@
       renderCalendarStagePanel(hallKey);
     }
 
-    function handleCalendarDateClick(hallName, dateStr, hasBookings) {
-      const isHakimi = hallName.toLowerCase().includes('hakimi');
-      const hallKey = isHakimi ? 'hakimi' : 'qadri';
-
-      const dayBookings = allBookings.filter(b => {
-        const bHall = (b.hall || 'Evan-e-Hakimi').toLowerCase();
-        const match = isHakimi ? (!bHall.includes('qadri')) : (bHall.includes('qadri'));
-        return match && b.check_in === dateStr && !REJECTED_STATUSES.includes(b.status);
-      });
-
-      if (dayBookings.length > 0) {
-        selectCalendarBooking(hallKey, dayBookings[0].id, true);
-      } else {
-        openDateQuickBook(hallName, dateStr, 'morning');
-      }
-    }
-
     function handleCalendarDateClick(hallName, dateStr) {
       const isHakimi = hallName.toLowerCase().includes('hakimi');
       const hallKey = isHakimi ? 'hakimi' : 'qadri';
@@ -3891,9 +3874,24 @@
     }
 
     function openDateQuickBook(hallName, dateStr, preferredSlot = 'morning') {
+      const isQadri = (hallName || '').toLowerCase().includes('qadri');
+      const todayStr = getTodayKolkata();
+      const qadriOpening = '2026-11-21';
+      const minDate = isQadri ? (todayStr > qadriOpening ? todayStr : qadriOpening) : todayStr;
+
+      if (dateStr < todayStr) {
+        showToast('Cannot book past dates', true);
+        return;
+      }
+      if (isQadri && dateStr < qadriOpening) {
+        showToast('Qadri Hall bookings open from 21 November 2026 onwards', true);
+        return;
+      }
+
       openNewBookingModal();
       document.getElementById('bHall').value = hallName;
-      document.getElementById('bDate').value = dateStr;
+      updateBookingDateLimits();
+      setDateVal('bDate', dateStr);
       if (document.getElementById('bSlot')) {
         document.getElementById('bSlot').value = preferredSlot;
       }
@@ -4844,14 +4842,50 @@
       }
     }
 
+    function getTodayKolkata() {
+      return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
+    }
+
+    function updateBookingDateLimits() {
+      const hallEl = document.getElementById('bHall');
+      const bDateInput = document.getElementById('bDate');
+      if (!bDateInput) return;
+
+      const hall = hallEl ? hallEl.value : '';
+      const isQadri = (hall || '').toLowerCase().includes('qadri');
+      const todayStr = getTodayKolkata();
+      const qadriOpening = '2026-11-21';
+      const minDate = isQadri ? (todayStr > qadriOpening ? todayStr : qadriOpening) : todayStr;
+
+      bDateInput.min = minDate;
+      if (bDateInput._flatpickr) {
+        bDateInput._flatpickr.set('minDate', minDate);
+        if (bDateInput.value && bDateInput.value < minDate) {
+          setDateVal('bDate', minDate);
+          bDateInput._flatpickr.jumpToDate(minDate);
+        }
+      } else if (bDateInput.value && bDateInput.value < minDate) {
+        bDateInput.value = minDate;
+      }
+    }
+
+    function onBookingHallChange() {
+      updateBookingDateLimits();
+      recalculatePriceHint();
+    }
+
     function openNewBookingModal() {
       document.getElementById('formBooking').reset();
       document.getElementById('bEditId').value = '';
       document.getElementById('bookingModalTitle').textContent = 'Create Hall Booking';
       document.getElementById('rowInitialPayment').style.display = 'grid';
-      setDateVal('bDate');
+      document.getElementById('bHall').value = 'Evan-e-Hakimi';
+      const todayStr = getTodayKolkata();
+      setDateVal('bDate', todayStr);
+      updateBookingDateLimits();
       recalculatePriceHint();
       openModal('modalBooking');
+      setTimeout(updateBookingDateLimits, 60);
     }
 
     function openEditBookingModal(id) {
@@ -4861,6 +4895,7 @@
       document.getElementById('bookingModalTitle').textContent = 'Edit Booking #' + b.id;
       document.getElementById('bHall').value = b.hall || 'Evan-e-Hakimi';
       setDateVal('bDate', b.check_in);
+      updateBookingDateLimits();
       document.getElementById('bSlot').value = b.slot || 'morning';
       document.getElementById('bPkg').value = b.package || 'without_jaman';
       document.getElementById('bName').value = b.customer_name || '';
@@ -4873,6 +4908,7 @@
       document.getElementById('bNotes').value = b.notes || '';
       document.getElementById('rowInitialPayment').style.display = 'none'; // handled via payment modal
       openModal('modalBooking');
+      setTimeout(updateBookingDateLimits, 60);
     }
 
     function recalculatePriceHint() {
@@ -4923,6 +4959,17 @@
       if (!editId) {
         payload.advance_paid = parseFloat(document.getElementById('bAdvancePaid').value || 0);
         payload.payment_method = document.getElementById('bPayMethod').value;
+      }
+
+      const todayKolkata = getTodayKolkata();
+      const isQadri = (payload.hall || '').toLowerCase().includes('qadri');
+      if (!editId && payload.check_in < todayKolkata) {
+        showToast('Cannot create bookings for past dates', true);
+        return;
+      }
+      if (isQadri && payload.check_in < '2026-11-21') {
+        showToast('Qadri Hall bookings open from 21 November 2026 onwards', true);
+        return;
       }
 
       try {
@@ -5580,11 +5627,22 @@
         if (!el.getAttribute('placeholder')) {
           el.setAttribute('placeholder', placeholderText);
         }
+        let minDate = null;
+        if (el.id === 'bDate') {
+          const hallEl = document.getElementById('bHall');
+          const isQadri = hallEl && (hallEl.value || '').toLowerCase().includes('qadri');
+          const todayStr = getTodayKolkata();
+          minDate = isQadri ? (todayStr > '2026-11-21' ? todayStr : '2026-11-21') : todayStr;
+        } else if (el.id === 'blockDate') {
+          minDate = getTodayKolkata();
+        }
+
         flatpickr(el, {
           dateFormat: 'Y-m-d',
           allowInput: true,
           disableMobile: true,
           defaultDate: initialVal || null,
+          minDate: minDate,
           onChange: function(selectedDates, dateStr) {
             el.value = dateStr;
             el.dispatchEvent(new Event('change', { bubbles: true }));
