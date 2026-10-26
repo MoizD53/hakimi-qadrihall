@@ -112,11 +112,55 @@ it('From 2027-01-01: Only Majlis Slot is ₹15,000 with ₹6,000 advance (40%)',
 // ── TEST GROUP 2: CONFLICT DETECTION RULES ──
 console.log('\n🔒 Group 2: Slot Conflict Rules');
 
-function checkSlotConflict(slotA, slotB) {
+function timeRangesOverlap(startA, endA, startB, endB) {
+  if (!startA || !endA || !startB || !endB) return false;
+  const sA = String(startA).slice(0, 5);
+  const eA = String(endA).slice(0, 5);
+  const sB = String(startB).slice(0, 5);
+  const eB = String(endB).slice(0, 5);
+  return sA < eB && eA > sB;
+}
+
+const WEBSITE_SLOT_HOURS = {
+  morning: { start: '10:30', end: '14:30' },
+  evening: { start: '18:30', end: '22:30' },
+  fullday: { start: '10:00', end: '22:00' }
+};
+
+function checkSlotConflict(slotA, slotB, startA, endA, startB, endB) {
   const a = String(slotA).toLowerCase();
   const b = String(slotB).toLowerCase();
   if (a === 'fullday' || b === 'fullday') return true;
-  return a === b;
+  if (a === b && a !== 'majlis') return true;
+
+  if (a === 'majlis' && b === 'majlis') {
+    if (startA && endA && startB && endB) {
+      return timeRangesOverlap(startA, endA, startB, endB);
+    }
+    return true;
+  }
+
+  if (a === 'majlis') {
+    const sA = startA || '10:30';
+    const eA = endA || '14:30';
+    const standard = WEBSITE_SLOT_HOURS[b];
+    if (standard) {
+      return timeRangesOverlap(sA, eA, standard.start, standard.end);
+    }
+    return true;
+  }
+
+  if (b === 'majlis') {
+    const sB = startB || '10:30';
+    const eB = endB || '14:30';
+    const standard = WEBSITE_SLOT_HOURS[a];
+    if (standard) {
+      return timeRangesOverlap(standard.start, standard.end, sB, eB);
+    }
+    return true;
+  }
+
+  return false;
 }
 
 it('Full Day conflicts with Morning', () => {
@@ -144,6 +188,21 @@ it('Evening conflicts with another Evening', () => {
 it('Morning and Evening can coexist on same hall without conflict', () => {
   assert.strictEqual(checkSlotConflict('morning', 'evening'), false);
   assert.strictEqual(checkSlotConflict('evening', 'morning'), false);
+});
+
+it('Custom Timings (11:00-13:30) conflicts with Morning and leaves Evening open', () => {
+  assert.strictEqual(checkSlotConflict('morning', 'majlis', null, null, '11:00', '13:30'), true);
+  assert.strictEqual(checkSlotConflict('evening', 'majlis', null, null, '11:00', '13:30'), false);
+});
+
+it('Custom Timings (19:00-22:00) conflicts with Evening and leaves Morning open', () => {
+  assert.strictEqual(checkSlotConflict('morning', 'majlis', null, null, '19:00', '22:00'), false);
+  assert.strictEqual(checkSlotConflict('evening', 'majlis', null, null, '19:00', '22:00'), true);
+});
+
+it('Custom Timings spanning afternoon (13:00-19:00) conflicts with both Morning and Evening', () => {
+  assert.strictEqual(checkSlotConflict('morning', 'majlis', null, null, '13:00', '19:00'), true);
+  assert.strictEqual(checkSlotConflict('evening', 'majlis', null, null, '13:00', '19:00'), true);
 });
 
 it('Different halls (Evan-e-Hakimi vs Qadri Hall) can hold simultaneous events without conflict', () => {

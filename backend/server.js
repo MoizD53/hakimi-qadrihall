@@ -394,15 +394,64 @@ function calculateAdvanceAmount(totalPrice) {
   return Math.round(totalPrice * 0.40);
 }
 
-function checkSlotConflict(slotA, slotB) {
+function timeRangesOverlap(startA, endA, startB, endB) {
+  if (!startA || !endA || !startB || !endB) return false;
+  const sA = String(startA).slice(0, 5);
+  const eA = String(endA).slice(0, 5);
+  const sB = String(startB).slice(0, 5);
+  const eB = String(endB).slice(0, 5);
+  return sA < eB && eA > sB;
+}
+
+const WEBSITE_SLOT_HOURS = {
+  morning: { start: '10:30', end: '14:30' },
+  evening: { start: '18:30', end: '22:30' },
+  fullday: { start: '10:00', end: '22:00' }
+};
+
+function checkSlotConflict(slotA, slotB, startA, endA, startB, endB) {
   const a = String(slotA).toLowerCase();
   const b = String(slotB).toLowerCase();
+
+  // Full day conflicts with all slots on the same hall
   if (a === 'fullday' || b === 'fullday') return true;
-  return a === b;
+
+  // Same standard slot conflicts
+  if (a === b && a !== 'majlis') return true;
+
+  // Custom timings (majlis) checks
+  if (a === 'majlis' && b === 'majlis') {
+    if (startA && endA && startB && endB) {
+      return timeRangesOverlap(startA, endA, startB, endB);
+    }
+    return true;
+  }
+
+  if (a === 'majlis') {
+    const sA = startA || '10:30';
+    const eA = endA || '14:30';
+    const standard = WEBSITE_SLOT_HOURS[b];
+    if (standard) {
+      return timeRangesOverlap(sA, eA, standard.start, standard.end);
+    }
+    return true;
+  }
+
+  if (b === 'majlis') {
+    const sB = startB || '10:30';
+    const eB = endB || '14:30';
+    const standard = WEBSITE_SLOT_HOURS[a];
+    if (standard) {
+      return timeRangesOverlap(standard.start, standard.end, sB, eB);
+    }
+    return true;
+  }
+
+  return false;
 }
 
 // Concurrency-safe conflict verification helper using Turso/libSQL write transaction
-async function assertNoBookingConflict(tx, bookingId, overrideDate, overrideHall, overrideSlot) {
+async function assertNoBookingConflict(tx, bookingId, overrideDate, overrideHall, overrideSlot, overrideStartTime, overrideEndTime) {
   let target;
   if (bookingId) {
     const current = await tx.query('SELECT * FROM bookings WHERE id = ?', [bookingId]);
@@ -422,6 +471,8 @@ async function assertNoBookingConflict(tx, bookingId, overrideDate, overrideHall
     : String(rawDate).split('T')[0];
   const targetHall = (overrideHall || target.hall || 'Evan-e-Hakimi').trim().toLowerCase().includes('qadri') ? 'Qadri Hall' : 'Evan-e-Hakimi';
   const targetSlot = String(overrideSlot || target.slot || 'morning').toLowerCase().trim();
+  const targetStartTime = overrideStartTime !== undefined ? overrideStartTime : target.start_time;
+  const targetEndTime = overrideEndTime !== undefined ? overrideEndTime : target.end_time;
 
   if (targetHall === 'Qadri Hall' && targetDate < '2026-11-21') {
     const err = new Error('Qadri Hall is available for events starting 21 November 2026. 20 November 2026 and earlier dates are not available.');
@@ -445,13 +496,15 @@ async function assertNoBookingConflict(tx, bookingId, overrideDate, overrideHall
 
   // Query existing confirmed bookings inside the write transaction for the SAME hall
   const existingConfirmed = await tx.query(
-    `SELECT id, customer_name, slot, status, hall, booking_reference FROM bookings 
+    `SELECT id, customer_name, slot, status, hall, booking_reference, start_time, end_time FROM bookings 
      WHERE id != ? AND check_in = ? AND COALESCE(hall, 'Evan-e-Hakimi') = ? 
      AND status IN ('confirmed', 'advance_verified', 'CONFIRMED_PENDING_ADVANCE', 'ADVANCE_PARTIALLY_PAID', 'ADVANCE_PAID', 'FULLY_PAID')`,
     [bookingId || 0, targetDate, targetHall]
   );
 
-  const conflictingBooking = (existingConfirmed.rows || []).find(c => checkSlotConflict(targetSlot, c.slot));
+  const conflictingBooking = (existingConfirmed.rows || []).find(c => 
+    checkSlotConflict(targetSlot, c.slot, targetStartTime, targetEndTime, c.start_time, c.end_time)
+  );
   if (conflictingBooking) {
     const err = new Error(
       `Slot conflict: Booking #${conflictingBooking.id} (${conflictingBooking.customer_name}, slot: ${conflictingBooking.slot}${conflictingBooking.booking_reference ? ', ref: ' + conflictingBooking.booking_reference : ''}) is already confirmed on ${targetDate} for ${targetHall}. Cannot confirm a conflicting slot.`
@@ -470,7 +523,8 @@ async function getHallAvailabilityRange(hallName, startDate, endDate) {
   // 1. Fetch active bookings (cancelled and rejected bookings NEVER occupy slots)
   const bookingsRes = await db.query(
     `SELECT id, customer_name, phone, check_in as date, slot, status, payment_status, 
-            total_amount, advance_paid, balance_amount, booking_reference, occasion
+            total_amount, advance_paid, balance_amount, booking_reference, occasion,
+            start_time, end_time
      FROM bookings
      WHERE COALESCE(hall, 'Evan-e-Hakimi') = ?
        AND check_in >= ? AND check_in <= ?
@@ -560,14 +614,45 @@ async function getHallAvailabilityRange(hallName, startDate, endDate) {
     }
 
     const bList = bookingsByDate[dateStr] || [];
-    const morningBooking = bList.find(b => b.slot === 'morning' || b.slot === 'fullday');
-    const eveningBooking = bList.find(b => b.slot === 'evening' || b.slot === 'fullday');
-    const fulldayBooking = bList.find(b => b.slot === 'fullday');
-    const majlisBooking = bList.find(b => b.slot === 'majlis');
 
-    const morningOccupied = !!morningBooking;
-    const eveningOccupied = !!eveningBooking;
-    const fullDayOccupied = !!fulldayBooking || (morningOccupied && eveningOccupied);
+    let morningOccupied = false;
+    let eveningOccupied = false;
+    let fullDayOccupied = false;
+    let majlisOccupied = false;
+
+    bList.forEach(b => {
+      const bs = String(b.slot).toLowerCase();
+      if (bs === 'fullday') {
+        fullDayOccupied = true;
+        morningOccupied = true;
+        eveningOccupied = true;
+      } else if (bs === 'morning') {
+        morningOccupied = true;
+        fullDayOccupied = true;
+      } else if (bs === 'evening') {
+        eveningOccupied = true;
+        fullDayOccupied = true;
+      } else if (bs === 'majlis') {
+        majlisOccupied = true;
+        const bStart = b.start_time || '10:30';
+        const bEnd = b.end_time || '14:30';
+        if (timeRangesOverlap(bStart, bEnd, WEBSITE_SLOT_HOURS.morning.start, WEBSITE_SLOT_HOURS.morning.end)) {
+          morningOccupied = true;
+          fullDayOccupied = true;
+        }
+        if (timeRangesOverlap(bStart, bEnd, WEBSITE_SLOT_HOURS.evening.start, WEBSITE_SLOT_HOURS.evening.end)) {
+          eveningOccupied = true;
+          fullDayOccupied = true;
+        }
+        if (timeRangesOverlap(bStart, bEnd, WEBSITE_SLOT_HOURS.fullday.start, WEBSITE_SLOT_HOURS.fullday.end)) {
+          fullDayOccupied = true;
+        }
+      }
+    });
+
+    if (morningOccupied && eveningOccupied) {
+      fullDayOccupied = true;
+    }
 
     let color = 'green';
     let status = 'available';
@@ -589,10 +674,10 @@ async function getHallAvailabilityRange(hallName, startDate, endDate) {
       color = 'yellow';
       status = 'partial';
       label = 'Partially Booked (Morning Slot Open)';
-    } else if (majlisBooking) {
+    } else if (majlisOccupied) {
       color = 'yellow';
       status = 'partial';
-      label = 'Partially Booked (Majlis Occupied)';
+      label = 'Partially Booked (Custom Timings)';
     }
 
     days[dateStr] = {
@@ -612,8 +697,8 @@ async function getHallAvailabilityRange(hallName, startDate, endDate) {
           label: eveningOccupied ? 'Booked (6:30 PM – 10:30 PM)' : 'Available (6:30 PM – 10:30 PM)'
         },
         fullday: {
-          available: !morningOccupied && !eveningOccupied,
-          label: (!morningOccupied && !eveningOccupied) ? 'Available (10:00 AM – 10:00 PM)' : 'Unavailable'
+          available: !fullDayOccupied,
+          label: !fullDayOccupied ? 'Available (10:00 AM – 10:00 PM)' : 'Unavailable'
         }
       },
       bookings: bList
@@ -839,7 +924,7 @@ app.get('/api/bookings/check-availability', async (req, res) => {
 
     // Fetch all confirmed bookings on this date for both halls
     const result = await db.query(
-      `SELECT id, customer_name, slot, hall, status, booking_reference FROM bookings 
+      `SELECT id, customer_name, slot, hall, status, booking_reference, start_time, end_time FROM bookings 
        WHERE check_in = ? AND id != ?
        AND status IN ('confirmed', 'advance_verified', 'CONFIRMED_PENDING_ADVANCE', 'ADVANCE_PARTIALLY_PAID', 'ADVANCE_PAID', 'FULLY_PAID')`,
       [cleanDate, excludeId]
@@ -872,7 +957,7 @@ app.get('/api/bookings/check-availability', async (req, res) => {
 
       hBookings.forEach(b => {
         const bs = String(b.slot).toLowerCase();
-        const bInfo = { id: b.id, name: b.customer_name, ref: b.booking_reference, slot: b.slot };
+        const bInfo = { id: b.id, name: b.customer_name, ref: b.booking_reference, slot: b.slot, start_time: b.start_time, end_time: b.end_time };
 
         if (bs === 'fullday') {
           slots.fullday = { available: false, status: 'ALREADY_BOOKED', label: 'Full Day Booked', booking: bInfo };
@@ -886,8 +971,22 @@ app.get('/api/bookings/check-availability', async (req, res) => {
           slots.evening = { available: false, status: 'ALREADY_BOOKED', label: 'Evening Booked', booking: bInfo };
           slots.fullday = { available: false, status: 'CONFLICT_BLOCKED', label: 'Blocked by Evening', booking: bInfo };
         } else if (bs === 'majlis') {
-          slots.majlis = { available: false, status: 'ALREADY_BOOKED', label: 'Majlis Booked', booking: bInfo };
-          slots.fullday = { available: false, status: 'CONFLICT_BLOCKED', label: 'Blocked by Majlis', booking: bInfo };
+          const bStart = b.start_time || '10:30';
+          const bEnd = b.end_time || '14:30';
+          const overlapsMorning = timeRangesOverlap(bStart, bEnd, WEBSITE_SLOT_HOURS.morning.start, WEBSITE_SLOT_HOURS.morning.end);
+          const overlapsEvening = timeRangesOverlap(bStart, bEnd, WEBSITE_SLOT_HOURS.evening.start, WEBSITE_SLOT_HOURS.evening.end);
+          const overlapsFullday = timeRangesOverlap(bStart, bEnd, WEBSITE_SLOT_HOURS.fullday.start, WEBSITE_SLOT_HOURS.fullday.end);
+
+          if (overlapsMorning) {
+            slots.morning = { available: false, status: 'CONFLICT_BLOCKED', label: `Blocked by Majlis (${bStart}–${bEnd})`, booking: bInfo };
+          }
+          if (overlapsEvening) {
+            slots.evening = { available: false, status: 'CONFLICT_BLOCKED', label: `Blocked by Majlis (${bStart}–${bEnd})`, booking: bInfo };
+          }
+          if (overlapsFullday || overlapsMorning || overlapsEvening) {
+            slots.fullday = { available: false, status: 'CONFLICT_BLOCKED', label: `Blocked by Majlis (${bStart}–${bEnd})`, booking: bInfo };
+          }
+          slots.majlis = { available: false, status: 'ALREADY_BOOKED', label: `Majlis (${bStart}–${bEnd})`, booking: bInfo };
         }
       });
 
@@ -905,6 +1004,23 @@ app.get('/api/bookings/check-availability', async (req, res) => {
     if (cleanHall === 'Qadri Hall' && cleanDate < '2026-11-21') {
       isAvailable = false;
       slotStatus = 'UNAVAILABLE_DATE';
+    } else if (checkSlot === 'majlis' && (req.query.start_time || req.query.end_time)) {
+      const qStart = req.query.start_time || '10:30';
+      const qEnd = req.query.end_time || '14:30';
+      const isQadriTarget = cleanHall.toLowerCase().includes('qadri');
+      const hBookings = bookingsOnDate.filter(b => {
+        const isQ = (b.hall || 'Evan-e-Hakimi').toLowerCase().includes('qadri');
+        return isQadriTarget ? isQ : !isQ;
+      });
+      const conflict = hBookings.find(b => checkSlotConflict('majlis', b.slot, qStart, qEnd, b.start_time, b.end_time));
+      if (conflict) {
+        isAvailable = false;
+        slotStatus = 'CONFLICT_BLOCKED';
+        conflictBooking = { id: conflict.id, name: conflict.customer_name, ref: conflict.booking_reference, slot: conflict.slot, start_time: conflict.start_time, end_time: conflict.end_time };
+      } else {
+        isAvailable = true;
+        slotStatus = 'AVAILABLE';
+      }
     } else if (checkSlot) {
       const slotInfo = targetHallSlots[checkSlot];
       if (slotInfo) {
@@ -1059,7 +1175,7 @@ app.post('/api/bookings', async (req, res) => {
     tx = await db.transaction('write');
 
     // Recheck availability against existing confirmed bookings inside transaction
-    await assertNoBookingConflict(tx, null, eventDate, cleanHall, eventSlot);
+    await assertNoBookingConflict(tx, null, eventDate, cleanHall, eventSlot, start_time || null, end_time || null);
 
     const result = await tx.query(
       `INSERT INTO bookings (
@@ -1128,7 +1244,9 @@ app.post('/api/bookings/:id/confirm', requireAuth, async (req, res) => {
       phone, 
       occasion, 
       guests, 
-      notes 
+      notes,
+      start_time,
+      end_time
     } = req.body;
 
     tx = await db.transaction('write');
@@ -1144,9 +1262,11 @@ app.post('/api/bookings/:id/confirm', requireAuth, async (req, res) => {
     const targetHall = (hall || current.hall || 'Evan-e-Hakimi').trim().toLowerCase().includes('qadri') ? 'Qadri Hall' : 'Evan-e-Hakimi';
     const targetSlot = (slot || current.slot || 'morning').toLowerCase().trim();
     const targetPkg = pkg || current.package || 'without_jaman';
+    const targetStartTime = start_time !== undefined ? (start_time || null) : current.start_time;
+    const targetEndTime = end_time !== undefined ? (end_time || null) : current.end_time;
 
     // Concurrency-safe check against any other confirmed bookings inside the write transaction
-    await assertNoBookingConflict(tx, bookingId, targetDate, targetHall, targetSlot);
+    await assertNoBookingConflict(tx, bookingId, targetDate, targetHall, targetSlot, targetStartTime, targetEndTime);
 
     // Calculate final amounts
     const calculatedPrice = calculateHallPrice(targetSlot, targetPkg, targetDate);
@@ -1178,6 +1298,8 @@ app.post('/api/bookings/:id/confirm', requireAuth, async (req, res) => {
         occasion = ?,
         guests = ?,
         notes = ?,
+        start_time = ?,
+        end_time = ?,
         confirmed_at = CURRENT_TIMESTAMP,
         updated_at = CURRENT_TIMESTAMP
        WHERE id = ?`,
@@ -1197,6 +1319,8 @@ app.post('/api/bookings/:id/confirm', requireAuth, async (req, res) => {
         (occasion || current.occasion || 'Not specified').trim(),
         guests != null ? parseInt(guests, 10) : current.guests,
         (notes || current.notes || null),
+        targetStartTime,
+        targetEndTime,
         bookingId
       ]
     );
@@ -1424,7 +1548,9 @@ app.put('/api/bookings/:id', requireAuth, async (req, res) => {
       notes, 
       hall = 'Evan-e-Hakimi', 
       package: pkg = 'without_jaman',
-      status
+      status,
+      start_time,
+      end_time
     } = req.body;
 
     const bookingId = req.params.id;
@@ -1441,9 +1567,11 @@ app.put('/api/bookings/:id', requireAuth, async (req, res) => {
     }
     const current = cur.rows[0];
 
+    const targetStartTime = start_time !== undefined ? (start_time || null) : current.start_time;
+    const targetEndTime = end_time !== undefined ? (end_time || null) : current.end_time;
     const targetStatus = status || current.status;
     if (CONFIRMED_STATUSES.includes(targetStatus)) {
-      await assertNoBookingConflict(tx, bookingId, eventDate || current.check_in, cleanHall, eventSlot || current.slot);
+      await assertNoBookingConflict(tx, bookingId, eventDate || current.check_in, cleanHall, eventSlot || current.slot, targetStartTime, targetEndTime);
     }
 
     const totalAmount = price != null ? parseFloat(price) : current.total_amount;
@@ -1465,6 +1593,7 @@ app.put('/api/bookings/:id', requireAuth, async (req, res) => {
         customer_name = ?, phone = ?, email = ?, check_in = ?, check_out = ?,
         slot = ?, occasion = ?, total_amount = ?, advance_amount = ?, balance_amount = ?,
         payment_status = ?, guests = ?, notes = ?, hall = ?, package = ?, status = ?,
+        start_time = ?, end_time = ?,
         booking_reference = COALESCE(?, booking_reference),
         updated_at = CURRENT_TIMESTAMP
        WHERE id = ?`,
@@ -1485,6 +1614,8 @@ app.put('/api/bookings/:id', requireAuth, async (req, res) => {
         cleanHall,
         pkg || current.package,
         targetStatus,
+        targetStartTime,
+        targetEndTime,
         bookingRef,
         bookingId
       ]

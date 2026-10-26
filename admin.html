@@ -2233,6 +2233,21 @@
           </div>
         </div>
 
+        <!-- Dynamic Custom Timings Row for Workflow (Only Majlis) -->
+        <div class="form-row" id="rowWfCustomTimings" style="display:none;background:rgba(201,169,110,0.06);border:1px solid rgba(201,169,110,0.25);border-radius:8px;padding:0.75rem 0.9rem;margin-bottom:1rem;gap:1rem;">
+          <div class="form-group" style="flex:1;margin-bottom:0;">
+            <label for="wfStartTime" style="color:var(--wheat);font-weight:600;font-size:0.75rem;"><i class="far fa-clock"></i> Start Time *</label>
+            <input type="time" id="wfStartTime" class="form-ctrl" style="color-scheme:dark;" onchange="triggerWorkflowAvailabilityCheck()">
+          </div>
+          <div class="form-group" style="flex:1;margin-bottom:0;">
+            <label for="wfEndTime" style="color:var(--wheat);font-weight:600;font-size:0.75rem;"><i class="far fa-clock"></i> End Time *</label>
+            <input type="time" id="wfEndTime" class="form-ctrl" style="color-scheme:dark;" onchange="triggerWorkflowAvailabilityCheck()">
+          </div>
+          <div style="width:100%;font-size:0.72rem;color:rgba(245,240,232,0.7);margin-top:2px;line-height:1.4;">
+            <i class="fas fa-info-circle" style="color:var(--wheat);"></i> Overlapping website slots will automatically be marked as <strong>Booked</strong> on public calendars.
+          </div>
+        </div>
+
         <div class="form-row">
           <div class="form-group">
             <label for="wfPackage">Catering / Package *</label>
@@ -2439,7 +2454,7 @@
           <div class="form-row">
             <div class="form-group">
               <label for="bSlot">Time Slot *</label>
-              <select id="bSlot" class="form-ctrl" required onchange="recalculatePriceHint()">
+              <select id="bSlot" class="form-ctrl" required onchange="onBookingSlotChange()">
                 <option value="morning">Morning (10:30 AM – 2:30 PM)</option>
                 <option value="evening">Evening (6:30 PM – 10:30 PM)</option>
                 <option value="fullday">Full Day (10:00 AM – 10:00 PM)</option>
@@ -2452,6 +2467,21 @@
                 <option value="with_jaman">With Jaman (Dining Included)</option>
                 <option value="without_jaman">Without Jaman (Hall Only)</option>
               </select>
+            </div>
+          </div>
+
+          <!-- Dynamic Custom Timings Row (for Only Majlis) -->
+          <div class="form-row" id="rowCustomTimings" style="display:none;background:rgba(201,169,110,0.06);border:1px solid rgba(201,169,110,0.25);border-radius:8px;padding:0.75rem 0.9rem;margin-bottom:1rem;gap:1rem;">
+            <div class="form-group" style="flex:1;margin-bottom:0;">
+              <label for="bStartTime" style="color:var(--wheat);font-weight:600;font-size:0.75rem;"><i class="far fa-clock"></i> Start Time *</label>
+              <input type="time" id="bStartTime" class="form-ctrl" style="color-scheme:dark;">
+            </div>
+            <div class="form-group" style="flex:1;margin-bottom:0;">
+              <label for="bEndTime" style="color:var(--wheat);font-weight:600;font-size:0.75rem;"><i class="far fa-clock"></i> End Time *</label>
+              <input type="time" id="bEndTime" class="form-ctrl" style="color-scheme:dark;">
+            </div>
+            <div style="width:100%;font-size:0.72rem;color:rgba(245,240,232,0.7);margin-top:2px;line-height:1.4;">
+              <i class="fas fa-info-circle" style="color:var(--wheat);"></i> Overlapping website slots (Morning: 10:30 AM – 2:30 PM, Evening: 6:30 PM – 10:30 PM) will automatically be marked as <strong>Booked</strong> on public calendars.
             </div>
           </div>
 
@@ -3645,7 +3675,8 @@
       const customerDropdownOptions = monthBookings.map(mb => {
         const isSel = mb.id === b.id;
         const sIcon = CONFIRMED_STATUSES.includes(mb.status) ? '✓' : '⏳';
-        return `<option value="${mb.id}" ${isSel ? 'selected' : ''}>${sIcon} ${formatDisplayDate(mb.check_in)} • ${escapeHtml(mb.customer_name || 'Guest')} (${mb.slot})</option>`;
+        const slotDisplay = mb.slot === 'majlis' && mb.start_time ? `Majlis ${mb.start_time}–${mb.end_time}` : mb.slot;
+        return `<option value="${mb.id}" ${isSel ? 'selected' : ''}>${sIcon} ${formatDisplayDate(mb.check_in)} • ${escapeHtml(mb.customer_name || 'Guest')} (${slotDisplay})</option>`;
       }).join('');
 
       targetStage.innerHTML = `
@@ -3732,8 +3763,8 @@
           if (hakimiBlock) { hakimiColor = '#ef4444'; hakimiLabel = 'Blocked'; }
           else {
             const hasFull = hakimiBookings.some(b => b.slot === 'fullday');
-            const hasMorn = hakimiBookings.some(b => b.slot === 'morning' || b.slot === 'majlis');
-            const hasEve = hakimiBookings.some(b => b.slot === 'evening');
+            const hasMorn = hakimiBookings.some(b => b.slot === 'morning' || (b.slot === 'majlis' && timeRangesOverlap(b.start_time || '10:30', b.end_time || '14:30', '10:30', '14:30')));
+            const hasEve = hakimiBookings.some(b => b.slot === 'evening' || (b.slot === 'majlis' && timeRangesOverlap(b.start_time || '10:30', b.end_time || '14:30', '18:30', '22:30')));
             if (hasFull || (hasMorn && hasEve)) { hakimiColor = '#ef4444'; hakimiLabel = 'Booked'; }
             else if (hasMorn || hasEve) { hakimiColor = '#eab308'; hakimiLabel = 'Partial'; }
           }
@@ -3744,8 +3775,8 @@
           else if (qadriBlock) { qadriColor = '#ef4444'; qadriLabel = 'Blocked'; }
           else {
             const hasFull = qadriBookings.some(b => b.slot === 'fullday');
-            const hasMorn = qadriBookings.some(b => b.slot === 'morning' || b.slot === 'majlis');
-            const hasEve = qadriBookings.some(b => b.slot === 'evening');
+            const hasMorn = qadriBookings.some(b => b.slot === 'morning' || (b.slot === 'majlis' && timeRangesOverlap(b.start_time || '10:30', b.end_time || '14:30', '10:30', '14:30')));
+            const hasEve = qadriBookings.some(b => b.slot === 'evening' || (b.slot === 'majlis' && timeRangesOverlap(b.start_time || '10:30', b.end_time || '14:30', '18:30', '22:30')));
             if (hasFull || (hasMorn && hasEve)) { qadriColor = '#ef4444'; qadriLabel = 'Booked'; }
             else if (hasMorn || hasEve) { qadriColor = '#eab308'; qadriLabel = 'Partial'; }
           }
@@ -3795,8 +3826,8 @@
           statusClass = 'status-red';
         } else {
           const hasFull = dayBookings.some(b => b.slot === 'fullday');
-          const hasMorning = dayBookings.some(b => b.slot === 'morning' || b.slot === 'majlis');
-          const hasEvening = dayBookings.some(b => b.slot === 'evening');
+          const hasMorning = dayBookings.some(b => b.slot === 'morning' || (b.slot === 'majlis' && timeRangesOverlap(b.start_time || '10:30', b.end_time || '14:30', '10:30', '14:30')));
+          const hasEvening = dayBookings.some(b => b.slot === 'evening' || (b.slot === 'majlis' && timeRangesOverlap(b.start_time || '10:30', b.end_time || '14:30', '18:30', '22:30')));
 
           if (hasFull || (hasMorning && hasEvening)) {
             colorCode = '#ef4444'; // RED
@@ -3823,12 +3854,13 @@
             const isConf = CONFIRMED_STATUSES.includes(b.status);
             const icon = isConf ? '✓' : '⏳';
             const isSelected = b.id === selectedCalendarBooking[hallKey];
+            const slotDisplay = b.slot === 'majlis' && b.start_time ? `Majlis ${b.start_time}–${b.end_time}` : b.slot;
             pillsHtml += `
               <div class="slot-pill slot-${b.slot} ${isSelected ? 'active-stage-pill' : ''}" 
                    onclick="event.stopPropagation(); selectCalendarBooking('${hallKey}', ${b.id}, true);"
                    style="font-size:0.62rem;padding:2px 5px;margin-top:2px;"
-                   title="${escapeHtml(b.customer_name)} (${b.slot}) &bull; ${formatStatusLabel(b.status)}">
-                ${icon} ${escapeHtml(b.customer_name || 'Booked')} (${b.slot})
+                   title="${escapeHtml(b.customer_name)} (${slotDisplay}) &bull; ${formatStatusLabel(b.status)}">
+                ${icon} ${escapeHtml(b.customer_name || 'Booked')} (${slotDisplay})
               </div>
             `;
           });
@@ -4043,6 +4075,12 @@
 
       document.getElementById('wfDate').value = b.check_in || new Date().toISOString().split('T')[0];
       document.getElementById('wfSlot').value = b.slot || 'morning';
+      if (b.slot === 'majlis') {
+        const sInput = document.getElementById('wfStartTime');
+        const eInput = document.getElementById('wfEndTime');
+        if (sInput) sInput.value = b.start_time || '11:00';
+        if (eInput) eInput.value = b.end_time || '13:30';
+      }
       document.getElementById('wfPackage').value = b.package || 'without_jaman';
       document.getElementById('wfGuests').value = b.guests || '';
       document.getElementById('wfNotes').value = b.notes || '';
@@ -4073,6 +4111,12 @@
       const slot = document.getElementById('wfSlot').value;
       const bookingId = document.getElementById('wfBookingId').value;
 
+      const isMajlis = slot === 'majlis';
+      const customRow = document.getElementById('rowWfCustomTimings');
+      if (customRow) customRow.style.display = isMajlis ? 'flex' : 'none';
+      const startTime = isMajlis ? (document.getElementById('wfStartTime')?.value || '11:00') : '';
+      const endTime = isMajlis ? (document.getElementById('wfEndTime')?.value || '13:30') : '';
+
       if (!date) return;
 
       const ind = document.getElementById('wfAvailabilityIndicator');
@@ -4080,7 +4124,8 @@
       ind.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Checking live calendar conflicts...`;
 
       try {
-        const res = await authFetch(`/api/bookings/check-availability?date=${date}&hall=${encodeURIComponent(hall)}&slot=${slot}&excludeBookingId=${bookingId}`);
+        const timeParams = isMajlis && startTime && endTime ? `&start_time=${encodeURIComponent(startTime)}&end_time=${encodeURIComponent(endTime)}` : '';
+        const res = await authFetch(`/api/bookings/check-availability?date=${date}&hall=${encodeURIComponent(hall)}&slot=${slot}&excludeBookingId=${bookingId}${timeParams}`);
         const data = await res.json();
 
         isWfSlotAvailable = data.available;
@@ -4215,6 +4260,10 @@
           guests: guests ? parseInt(guests, 10) : 0,
           notes: notes || undefined
         };
+        if (slot === 'majlis') {
+          payload.start_time = document.getElementById('wfStartTime')?.value || '11:00';
+          payload.end_time = document.getElementById('wfEndTime')?.value || '13:30';
+        }
         if (!isNaN(customPrice) && customPrice > 0) {
           payload.price = customPrice;
           payload.advance_amount = Math.round(customPrice * 0.40);
@@ -4507,7 +4556,8 @@
       document.getElementById('stageModalHall').innerHTML = `<span class="badge ${isQadri ? 'badge-qadri' : 'badge-hakimi'}">${hallLabel}</span>`;
       document.getElementById('stageModalPhone').innerHTML = `<a href="tel:${b.phone}" style="color:var(--cream);">${b.phone}</a>`;
       document.getElementById('stageModalDate').textContent = formatDisplayDate(b.check_in);
-      document.getElementById('stageModalSlot').textContent = b.slot || '—';
+      const slotDisplay = b.slot === 'majlis' && b.start_time ? `Only Majlis (${b.start_time} – ${b.end_time})` : (b.slot || '—');
+      document.getElementById('stageModalSlot').textContent = slotDisplay;
       document.getElementById('stageModalPkg').textContent = pkgLabel;
       document.getElementById('stageModalGuests').textContent = b.guests ? `${b.guests} guests` : 'Not specified';
 
@@ -4842,6 +4892,42 @@
       }
     }
 
+    function timeRangesOverlap(startA, endA, startB, endB) {
+      if (!startA || !endA || !startB || !endB) return false;
+      const sA = String(startA).slice(0, 5);
+      const eA = String(endA).slice(0, 5);
+      const sB = String(startB).slice(0, 5);
+      const eB = String(endB).slice(0, 5);
+      return sA < eB && eA > sB;
+    }
+
+    function onBookingSlotChange() {
+      const slot = document.getElementById('bSlot').value;
+      const customRow = document.getElementById('rowCustomTimings');
+      const startInput = document.getElementById('bStartTime');
+      const endInput = document.getElementById('bEndTime');
+
+      if (slot === 'majlis') {
+        if (customRow) {
+          customRow.style.display = 'flex';
+          customRow.style.flexWrap = 'wrap';
+        }
+        if (startInput) {
+          startInput.required = true;
+          if (!startInput.value) startInput.value = '11:00';
+        }
+        if (endInput) {
+          endInput.required = true;
+          if (!endInput.value) endInput.value = '13:30';
+        }
+      } else {
+        if (customRow) customRow.style.display = 'none';
+        if (startInput) startInput.required = false;
+        if (endInput) endInput.required = false;
+      }
+      recalculatePriceHint();
+    }
+
     function getTodayKolkata() {
       return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
     }
@@ -4883,6 +4969,7 @@
       const todayStr = getTodayKolkata();
       setDateVal('bDate', todayStr);
       updateBookingDateLimits();
+      onBookingSlotChange();
       recalculatePriceHint();
       openModal('modalBooking');
       setTimeout(updateBookingDateLimits, 60);
@@ -4897,6 +4984,11 @@
       setDateVal('bDate', b.check_in);
       updateBookingDateLimits();
       document.getElementById('bSlot').value = b.slot || 'morning';
+      if (b.slot === 'majlis') {
+        document.getElementById('bStartTime').value = b.start_time || '11:00';
+        document.getElementById('bEndTime').value = b.end_time || '13:30';
+      }
+      onBookingSlotChange();
       document.getElementById('bPkg').value = b.package || 'without_jaman';
       document.getElementById('bName').value = b.customer_name || '';
       document.getElementById('bPhone').value = b.phone || '';
@@ -4959,6 +5051,24 @@
       if (!editId) {
         payload.advance_paid = parseFloat(document.getElementById('bAdvancePaid').value || 0);
         payload.payment_method = document.getElementById('bPayMethod').value;
+      }
+
+      if (payload.slot === 'majlis') {
+        const sTime = document.getElementById('bStartTime').value;
+        const eTime = document.getElementById('bEndTime').value;
+        if (!sTime || !eTime) {
+          showToast('Please specify start and end time for custom timing', true);
+          return;
+        }
+        if (sTime >= eTime) {
+          showToast('End time must be after start time', true);
+          return;
+        }
+        payload.start_time = sTime;
+        payload.end_time = eTime;
+      } else {
+        payload.start_time = null;
+        payload.end_time = null;
       }
 
       const todayKolkata = getTodayKolkata();
