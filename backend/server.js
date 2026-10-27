@@ -2774,12 +2774,20 @@ app.post('/api/staff/salary-payments', requireAuth, async (req, res) => {
 
     // 3. Atomically create linked operational expense
     const expDesc = `Staff Salary: ${staffName}${staffRole} — ${period.trim()}`;
-    await db.query(
-      `INSERT INTO expenses (description, hall, category, amount, date, payment_method, paid_to, notes, staff_id, salary_payment_id)
-       VALUES (?, 'Combined / Facility', 'Staff Salary', ?, ?, ?, ?, ?, ?, ?)
-       ON CONFLICT(salary_payment_id) DO UPDATE SET amount = excluded.amount, date = excluded.date, payment_method = excluded.payment_method`,
-      [expDesc, amt, pDate, payment_method, staffName, notes?.trim() || 'Staff monthly salary voucher', staff_id, paymentId]
-    );
+    const existingExp = await db.query('SELECT id FROM expenses WHERE salary_payment_id = ? LIMIT 1', [paymentId]);
+    if (existingExp.rows && existingExp.rows.length > 0) {
+      await db.query(
+        `UPDATE expenses SET amount = ?, date = ?, payment_method = ?, notes = ?, updated_at = CURRENT_TIMESTAMP
+         WHERE salary_payment_id = ?`,
+        [amt, pDate, payment_method, notes?.trim() || 'Staff monthly salary voucher', paymentId]
+      );
+    } else {
+      await db.query(
+        `INSERT INTO expenses (description, hall, category, amount, date, payment_method, paid_to, notes, staff_id, salary_payment_id)
+         VALUES (?, 'Combined / Facility', 'Staff Salary', ?, ?, ?, ?, ?, ?, ?)`,
+        [expDesc, amt, pDate, payment_method, staffName, notes?.trim() || 'Staff monthly salary voucher', staff_id, paymentId]
+      );
+    }
 
     // 4. Update staff salary status
     await db.query("UPDATE staff SET salary_status = 'paid' WHERE id = ?", [staff_id]);

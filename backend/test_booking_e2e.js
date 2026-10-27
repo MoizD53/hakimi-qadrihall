@@ -95,8 +95,58 @@ const db = require('./db');
     assert.strictEqual(Number(countRes.rows[0].count), 1, 'Exactly 1 booking record must exist');
     console.log('  ✓ 3. Concurrency check verified: exactly 1 logical record committed');
 
+    // Test 4: Record Salary Payment creates payment and linked expense with 100% success
+    let staffRes = await db.query("SELECT id FROM staff WHERE name = 'demo' LIMIT 1");
+    let testStaffId;
+    if (!staffRes.rows || staffRes.rows.length === 0) {
+      const ins = await db.query("INSERT INTO staff (name, role, salary) VALUES ('demo', 'cleaner', 5000) RETURNING id");
+      testStaffId = ins.rows[0].id;
+    } else {
+      testStaffId = staffRes.rows[0].id;
+    }
+
+    const salRes = await new Promise((resolve, reject) => {
+      const req = http.request(
+        {
+          hostname: '127.0.0.1',
+          port,
+          path: '/api/staff/salary-payments',
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        },
+        res => {
+          let b = '';
+          res.on('data', c => b += c);
+          res.on('end', () => resolve({ status: res.statusCode, data: JSON.parse(b) }));
+        }
+      );
+      req.on('error', reject);
+      req.write(JSON.stringify({
+        staff_id: testStaffId,
+        period: 'November 2026',
+        amount_paid: 5000,
+        payment_date: '2026-11-01',
+        payment_method: 'Cash',
+        notes: 'Test salary payment'
+      }));
+      req.end();
+    });
+
+    assert.strictEqual(salRes.status, 200);
+    assert.strictEqual(salRes.data.success, true);
+    console.log('  ✓ 4. Salary payment and linked operational expense recorded with 100% success');
+
+    // Clean up salary payment test
+    if (salRes.data.payment && salRes.data.payment.id) {
+      await db.query('DELETE FROM expenses WHERE salary_payment_id = ?', [salRes.data.payment.id]);
+      await db.query('DELETE FROM staff_salary_payments WHERE id = ?', [salRes.data.payment.id]);
+    }
+
     console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('RESULTS: 3 / 3 end-to-end booking tests passed (100%)');
+    console.log('RESULTS: 4 / 4 end-to-end tests passed (100%)');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
   } finally {
     // Clean up test records

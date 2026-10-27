@@ -3778,6 +3778,18 @@
 
     function loadCalendarHakimi() { return renderCalendar('hakimi'); }
     function loadCalendarQadri() { return renderCalendar('qadri'); }
+    function loadCalendarCombined() { return renderCalendar('combined'); }
+
+    function refreshAllActiveScreens() {
+      allBookings = [];
+      allDateBlocks = [];
+      loadOverview();
+      loadEnquiries();
+      loadBookings();
+      renderCalendar('hakimi');
+      renderCalendar('qadri');
+      renderCalendar('combined');
+    }
 
     /* ════════ 1. OVERVIEW DATA ════════ */
     function resetStatFilters() {
@@ -3980,7 +3992,7 @@
       const isQadri = (b.hall || '').toLowerCase().includes('qadri');
       const hallLabel = isQadri ? 'Qadri Hall (3rd Floor)' : 'Evan-e-Hakimi (2nd Floor)';
       const isAdvReceived = advPaid >= advReq && advReq > 0;
-      const isFullySettled = bal === 0;
+      const isFullySettled = bal === 0 || b.status === 'FULLY_PAID' || (b.payment_status || '').toLowerCase() === 'fully_paid';
 
       let stageActionBtn = '';
       const isCancelled = REJECTED_STATUSES.includes(b.status);
@@ -3990,7 +4002,7 @@
         `;
       } else {
         let payAction = '';
-        if (bal === 0 || b.status === 'FULLY_PAID') {
+        if (isFullySettled || bal === 0 || b.status === 'FULLY_PAID' || (b.payment_status || '').toLowerCase() === 'fully_paid') {
           payAction = `<span style="color:#86efac;font-size:0.75rem;font-weight:600;"><i class="fas fa-check-double"></i> 100% Settled</span>`;
         } else if (isAdvReceived || b.status === 'ADVANCE_PAID' || b.status === 'ADVANCE_PARTIALLY_PAID') {
           payAction = `
@@ -4031,7 +4043,7 @@
             <select onchange="selectCalendarBooking('${hallKey}', parseInt(this.value, 10), false)" style="background:#140e08;border:1px solid rgba(201,169,110,0.3);color:var(--wheat);padding:0.3rem 0.6rem;border-radius:6px;font-size:0.75rem;cursor:pointer;max-width:280px;">
               ${customerDropdownOptions}
             </select>
-            <span class="badge badge-${b.status}" style="font-size:0.7rem;">${formatStatusLabel(b.status)}</span>
+            <span class="badge ${isFullySettled ? 'badge-confirmed' : 'badge-' + b.status}" style="font-size:0.7rem;">${isFullySettled ? 'Fully Paid' : formatStatusLabel(b.status)}</span>
             <span style="font-size:0.75rem;color:rgba(245,240,232,0.85);">
               Customer: <strong style="color:var(--wheat);">${escapeHtml(b.customer_name)}</strong> &bull; 
               <a href="tel:${b.phone}" style="color:var(--cream);text-decoration:none;"><i class="fas fa-phone-alt" style="font-size:0.68rem;margin-right:3px;"></i>${b.phone}</a>
@@ -4041,7 +4053,7 @@
               <span style="opacity:0.4;">|</span>
               <span>40% Adv: <strong style="color:${isAdvReceived ? '#86efac' : '#fcd34d'};">₹${advPaid.toLocaleString('en-IN')}</strong></span>
               <span style="opacity:0.4;">|</span>
-              <span>60% Bal: <strong style="color:${isFullySettled ? '#86efac' : '#fca5a5'};">₹${bal.toLocaleString('en-IN')}</strong></span>
+              <span>60% Bal: <strong style="color:${isFullySettled ? '#86efac' : '#fca5a5'};">₹${(isFullySettled ? 0 : bal).toLocaleString('en-IN')}</strong></span>
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:8px;">
@@ -4807,12 +4819,7 @@
             showToast(data.message || '40% advance received successfully!');
             
             closeModal('modalBookingStage');
-            allBookings = [];
-            loadOverview();
-            loadEnquiries();
-            loadBookings();
-            loadCalendarHakimi();
-            loadCalendarQadri();
+            refreshAllActiveScreens();
           } else {
             showToast(data.error || 'Failed to record advance', true);
             throw new Error(data.error || 'Failed to record advance');
@@ -4861,12 +4868,7 @@
             showToast(data.message || 'Remaining 60% balance received! Booking is now fully paid.');
             
             closeModal('modalBookingStage');
-            allBookings = [];
-            loadOverview();
-            loadEnquiries();
-            loadBookings();
-            loadCalendarHakimi();
-            loadCalendarQadri();
+            refreshAllActiveScreens();
           } else {
             showToast(data.error || 'Failed to record balance', true);
             throw new Error(data.error || 'Failed to record balance');
@@ -5724,11 +5726,7 @@
           if (res.ok) {
             showToast(editId ? 'Booking updated successfully' : 'Booking created successfully');
             closeModal('modalBooking');
-            allBookings = [];
-            loadBookings();
-            loadOverview();
-            loadCalendarHakimi();
-            loadCalendarQadri();
+            refreshAllActiveScreens();
           } else {
             showToast(data.error || 'Failed to save booking', true);
           }
@@ -5761,11 +5759,7 @@
         const data = await res.json();
         if (res.ok) {
           showToast(`Booking #${id} updated to ${formatStatusLabel(newStatus)}`);
-          allBookings = [];
-          loadBookings();
-          loadOverview();
-          loadCalendarHakimi();
-          loadCalendarQadri();
+          refreshAllActiveScreens();
         } else {
           showToast(data.error || 'Failed to update status', true);
         }
@@ -5793,11 +5787,7 @@
           if (res.ok) {
             showToast(`Booking #${id} deleted`);
             closeModal('modalBookingStage');
-            allBookings = [];
-            loadBookings();
-            loadOverview();
-            loadCalendarHakimi();
-            loadCalendarQadri();
+            refreshAllActiveScreens();
           } else {
             showToast('Failed to delete booking', true);
             throw new Error('Failed to delete booking');
@@ -6452,9 +6442,9 @@
           allDateBlocks = [];
           if (currentNavKey === 'overview') loadOverview();
           else if (currentNavKey === 'bookings') loadBookings();
-          else if (currentNavKey === 'cal-hakimi') loadCalendarHakimi();
-          else if (currentNavKey === 'cal-qadri') loadCalendarQadri();
-          else if (currentNavKey === 'cal-combined') renderCalendar('combined');
+          else if (currentNavKey === 'calendar-hakimi') renderCalendar('hakimi');
+          else if (currentNavKey === 'calendar-qadri') renderCalendar('qadri');
+          else if (currentNavKey === 'calendar-combined') renderCalendar('combined');
         }
 
         if (expensesChanged) {
