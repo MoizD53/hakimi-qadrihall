@@ -30,7 +30,7 @@ async function checkInvalidation(sql) {
     return;
   }
 
-  // Domain-specific granular cache invalidation
+  // Domain-specific granular cache invalidation (synchronous in-memory, instant)
   let domain = 'global';
   if (upper.includes('EXPENSES')) {
     domain = 'expenses';
@@ -48,10 +48,11 @@ async function checkInvalidation(sql) {
     memoryCache.invalidateAll();
   }
 
-  // Synchronous atomic revision bump for real-time multi-device sync
-  try {
-    await bumpRevision(domain);
-  } catch (_) {}
+  // Non-blocking asynchronous revision bump for real-time multi-device sync
+  // Dispatched in background so user HTTP responses return in < 50ms without waiting for extra network hops
+  setImmediate(() => {
+    bumpRevision(domain).catch(() => {});
+  });
 }
 
 async function bumpRevision(domain) {
@@ -218,10 +219,17 @@ client.transaction = async function (mode = 'write') {
       const result = await origCommit();
       // Safely process cache invalidation and revision bumps ONLY AFTER the transaction has committed
       if (mutatedSqls.length > 0) {
+        const processedDomains = new Set();
         for (const s of mutatedSqls) {
-          try {
-            await checkInvalidation(s);
-          } catch (_) {}
+          const upper = String(s).toUpperCase().trim();
+          let dom = 'global';
+          if (upper.includes('EXPENSES')) dom = 'expenses';
+          else if (upper.includes('STAFF') || upper.includes('STAFF_SALARY_PAYMENTS')) dom = 'staff';
+          else if (upper.includes('DATE_BLOCKS') || upper.includes('BOOKINGS') || upper.includes('BOOKING_PAYMENTS')) dom = 'bookings';
+          if (!processedDomains.has(dom)) {
+            processedDomains.add(dom);
+            checkInvalidation(s).catch(() => {});
+          }
         }
       }
       return result;

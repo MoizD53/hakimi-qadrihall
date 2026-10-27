@@ -1188,6 +1188,12 @@ app.get('/api/bookings/check-availability', async (req, res) => {
     const checkSlot = slot ? String(slot).toLowerCase().trim() : null;
     const excludeId = excludeBookingId ? parseInt(excludeBookingId, 10) : 0;
 
+    const cacheKey = `avail:${cleanDate}:${cleanHall}:${checkSlot || 'all'}:${excludeId}:${req.query.start_time || ''}:${req.query.end_time || ''}`;
+    const cached = memoryCache.get(cacheKey);
+    if (cached) {
+      return res.json(cached);
+    }
+
     // Fetch all confirmed bookings on this date for both halls
     const result = await db.query(
       `SELECT id, customer_name, slot, hall, status, booking_reference, start_time, end_time FROM bookings 
@@ -1296,7 +1302,7 @@ app.get('/api/bookings/check-availability', async (req, res) => {
       }
     }
 
-    res.json({
+    const availPayload = {
       success: true,
       date: cleanDate,
       hall: cleanHall,
@@ -1310,7 +1316,9 @@ app.get('/api/bookings/check-availability', async (req, res) => {
         [cleanHall]: targetHallSlots,
         [otherHallName]: otherHallSlots
       }
-    });
+    };
+    memoryCache.set(cacheKey, availPayload, 60);
+    res.json(availPayload);
   } catch (err) {
     sendError(res, 500, 'Failed to check availability', err);
   }
@@ -2166,8 +2174,10 @@ app.delete('/api/bookings/:id', requireAuth, async (req, res) => {
     if (!cur.rows || cur.rows.length === 0) return res.status(404).json({ error: 'Booking not found' });
     const b = cur.rows[0];
 
-    await db.query('DELETE FROM booking_payments WHERE booking_id = ?', [req.params.id]);
-    await db.query('DELETE FROM bookings WHERE id = ?', [req.params.id]);
+    await db.batch([
+      { sql: 'DELETE FROM booking_payments WHERE booking_id = ?', args: [req.params.id] },
+      { sql: 'DELETE FROM bookings WHERE id = ?', args: [req.params.id] }
+    ], 'write');
 
     logAudit('booking_deleted', 'booking', req.params.id, `Deleted booking #${req.params.id} (${b.customer_name}, ${b.check_in}, ${b.hall})`, req.admin.username);
     res.json({ success: true });
@@ -2465,6 +2475,10 @@ app.delete('/api/date-blocks/:id', requireAuth, async (req, res) => {
 app.get('/api/expenses', requireAuth, async (req, res) => {
   try {
     const { category, payment_method, hall, from, to, search } = req.query;
+    const cacheKey = `expenses:${category || ''}:${payment_method || ''}:${hall || ''}:${from || ''}:${to || ''}:${search || ''}`;
+    const cached = memoryCache.get(cacheKey);
+    if (cached) return res.json(cached);
+
     let query = 'SELECT id as _id, * FROM expenses WHERE 1=1';
     const params = [];
 
@@ -2497,7 +2511,9 @@ app.get('/api/expenses', requireAuth, async (req, res) => {
     query += ' ORDER BY date DESC, created_at DESC';
 
     const result = await db.query(query, params);
-    res.json(result.rows || []);
+    const rows = result.rows || [];
+    memoryCache.set(cacheKey, rows, 300);
+    res.json(rows);
   } catch (err) {
     sendError(res, 500, 'Failed to fetch expenses', err);
   }
@@ -2506,32 +2522,33 @@ app.get('/api/expenses', requireAuth, async (req, res) => {
 // GET /api/expenses/summary — Summary metrics
 app.get('/api/expenses/summary', requireAuth, async (req, res) => {
   try {
+    const cached = memoryCache.get('summary:expenses');
+    if (cached) return res.json(cached);
+
     const now = new Date();
     const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
-    // This month total
-    const monthRes = await db.query(
-      "SELECT COALESCE(SUM(amount), 0) as total FROM expenses WHERE date LIKE ?",
-      [`${currentMonth}%`]
-    );
-    const thisMonthTotal = parseFloat(monthRes.rows[0]?.total || 0);
+    const batchRes = await db.batch([
+      { sql: "SELECT COALESCE(SUM(amount), 0) as total FROM expenses WHERE date LIKE ?", args: [`${currentMonth}%`] },
+      { sql: "SELECT category, COALESCE(SUM(amount), 0) as total, COUNT(*) as count FROM expenses GROUP BY category ORDER BY total DESC", args: [] },
+      { sql: "SELECT COALESCE(SUM(amount), 0) as total, COUNT(*) as count FROM expenses", args: [] }
+    ], 'read');
 
-    // Category breakdown
-    const catRes = await db.query(
-      "SELECT category, COALESCE(SUM(amount), 0) as total, COUNT(*) as count FROM expenses GROUP BY category ORDER BY total DESC"
-    );
+    const thisMonthTotal = parseFloat(batchRes[0].rows[0]?.total || 0);
+    const catRows = batchRes[1].rows || [];
+    const allTotalRow = batchRes[2].rows[0] || {};
 
-    // Total all time
-    const allRes = await db.query("SELECT COALESCE(SUM(amount), 0) as total, COUNT(*) as count FROM expenses");
-
-    res.json({
+    const summaryPayload = {
       success: true,
       currentMonth,
       thisMonthTotal,
-      allTimeTotal: parseFloat(allRes.rows[0]?.total || 0),
-      totalExpenseCount: parseInt(allRes.rows[0]?.count || 0, 10),
-      categoryBreakdown: catRes.rows || []
-    });
+      allTimeTotal: parseFloat(allTotalRow.total || 0),
+      totalExpenseCount: parseInt(allTotalRow.count || 0, 10),
+      categoryBreakdown: catRows
+    };
+
+    memoryCache.set('summary:expenses', summaryPayload, 300);
+    res.json(summaryPayload);
   } catch (err) {
     sendError(res, 500, 'Failed to fetch expense summary', err);
   }
@@ -2622,6 +2639,10 @@ app.delete('/api/expenses/:id', requireAuth, async (req, res) => {
 app.get('/api/staff', requireAuth, async (req, res) => {
   try {
     const { role, status, search } = req.query;
+    const cacheKey = `staff:${role || ''}:${status || ''}:${search || ''}`;
+    const cached = memoryCache.get(cacheKey);
+    if (cached) return res.json(cached);
+
     let query = 'SELECT id as _id, * FROM staff WHERE 1=1';
     const params = [];
 
@@ -2642,7 +2663,9 @@ app.get('/api/staff', requireAuth, async (req, res) => {
     query += ' ORDER BY created_at DESC';
 
     const result = await db.query(query, params);
-    res.json(result.rows || []);
+    const rows = result.rows || [];
+    memoryCache.set(cacheKey, rows, 300);
+    res.json(rows);
   } catch (err) {
     sendError(res, 500, 'Failed to fetch staff', err);
   }
@@ -2714,8 +2737,10 @@ app.delete('/api/staff/:id', requireAuth, async (req, res) => {
     if (!cur.rows || cur.rows.length === 0) return res.status(404).json({ error: 'Staff member not found' });
     const s = cur.rows[0];
 
-    await db.query('DELETE FROM staff_salary_payments WHERE staff_id = ?', [req.params.id]);
-    await db.query('DELETE FROM staff WHERE id = ?', [req.params.id]);
+    await db.batch([
+      { sql: 'DELETE FROM staff_salary_payments WHERE staff_id = ?', args: [req.params.id] },
+      { sql: 'DELETE FROM staff WHERE id = ?', args: [req.params.id] }
+    ], 'write');
 
     logAudit('staff_deleted', 'staff', req.params.id, `Deleted staff ${s.name} (${s.role})`, req.admin.username);
     res.json({ success: true });

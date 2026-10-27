@@ -3783,12 +3783,23 @@
     function refreshAllActiveScreens() {
       allBookings = [];
       allDateBlocks = [];
-      loadOverview();
-      loadEnquiries();
-      loadBookings();
-      renderCalendar('hakimi');
-      renderCalendar('qadri');
-      renderCalendar('combined');
+
+      // Target only the active screen immediately for instant sub-second response
+      if (currentNavKey === 'overview') loadOverview();
+      else if (currentNavKey === 'calendar-hakimi') renderCalendar('hakimi');
+      else if (currentNavKey === 'calendar-qadri') renderCalendar('qadri');
+      else if (currentNavKey === 'calendar-combined') renderCalendar('combined');
+      else if (currentNavKey === 'bookings') loadBookings();
+      else if (currentNavKey === 'enquiries') loadEnquiries();
+      else if (currentNavKey === 'expenses') loadExpenses();
+      else if (currentNavKey === 'staff') { loadStaff(); loadSalaryPayments(); }
+      else if (currentNavKey === 'reports') generateReports();
+      else loadBookings();
+
+      // Background update for overview counts without blocking current UI
+      if (currentNavKey !== 'overview') {
+        setTimeout(loadOverview, 400);
+      }
     }
 
     /* ════════ 1. OVERVIEW DATA ════════ */
@@ -3810,7 +3821,10 @@
         if (fromVal) q.append('fromDate', fromVal);
         if (toVal) q.append('toDate', toVal);
 
-        const res = await authFetch('/api/bookings/summary?' + q.toString());
+        const [res, expRes] = await Promise.all([
+          authFetch('/api/bookings/summary?' + q.toString()),
+          authFetch('/api/expenses/summary')
+        ]);
         const data = await res.json();
         if (!data || !data.success) return;
 
@@ -3832,6 +3846,13 @@
         setEl('kpiCollected', '₹' + Math.round(data.actualPaymentsCollected || 0).toLocaleString('en-IN'));
         setEl('kpiOutstanding', '₹' + Math.round(data.outstandingBalance || 0).toLocaleString('en-IN'));
 
+        if (expRes.ok) {
+          try {
+            const expData = await expRes.json();
+            setEl('kpiMonthExpenses', '₹' + Math.round(expData.thisMonthTotal || 0).toLocaleString('en-IN'));
+          } catch (_) {}
+        }
+
         const navBadge = document.getElementById('navEnquiryBadge');
         if (navBadge) {
           const pCount = data.awaitingAdvance || 0;
@@ -3848,15 +3869,6 @@
           setEl('countTabFullyPaid', data.tabCounts.countFullyPaid || 0);
           setEl('countTabRejected', data.tabCounts.countRejected || 0);
         }
-
-        // Fetch monthly expenses for KPI
-        try {
-          const expRes = await authFetch('/api/expenses/summary');
-          if (expRes.ok) {
-            const expData = await expRes.json();
-            setEl('kpiMonthExpenses', '₹' + Math.round(expData.thisMonthTotal || 0).toLocaleString('en-IN'));
-          }
-        } catch (_) {}
 
         // Render Due Payments table
         const dueTbody = document.getElementById('tblDuePayments');
@@ -5874,11 +5886,11 @@
       if (to) q.append('to', to);
 
       try {
-        const res = await authFetch('/api/expenses?' + q.toString());
+        const [res, sumRes] = await Promise.all([
+          authFetch('/api/expenses?' + q.toString()),
+          authFetch('/api/expenses/summary')
+        ]);
         allExpenses = await res.json();
-
-        // Update summary KPI
-        const sumRes = await authFetch('/api/expenses/summary');
         const sumData = await sumRes.json();
         document.getElementById('expThisMonthVal').textContent = '₹' + Math.round(sumData.thisMonthTotal || 0).toLocaleString('en-IN');
         document.getElementById('expThisMonthLbl').textContent = sumData.currentMonth;
@@ -5975,7 +5987,7 @@
             showToast(id ? 'Expense updated' : 'Expense recorded successfully');
             closeModal('modalExpense');
             loadExpenses();
-            loadOverview();
+            setTimeout(loadOverview, 300);
           } else {
             showToast(data.error || 'Failed to save expense', true);
           }
@@ -6004,7 +6016,7 @@
           if (res.ok) {
             showToast('Expense record deleted successfully');
             loadExpenses();
-            loadOverview();
+            setTimeout(loadOverview, 300);
           } else {
             showToast('Failed to delete expense', true);
             throw new Error('Failed to delete expense');
