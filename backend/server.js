@@ -2831,15 +2831,16 @@ app.get('/api/reports/summary', requireAuth, async (req, res) => {
     }
 
     // 1. Booking Performance (by Event Date in Period)
+    const confirmedStatusesSql = CONFIRMED_STATUSES.map(s => `'${s}'`).join(',');
     const bookingStatsRes = await db.query(`
       SELECT 
         COUNT(*) as total_bookings,
-        SUM(CASE WHEN status IN ('confirmed', 'advance_verified') THEN 1 ELSE 0 END) as confirmed_count,
-        SUM(CASE WHEN status IN ('pending', 'advance_requested', 'waiting', 'hold') THEN 1 ELSE 0 END) as pending_count,
-        SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) as rejected_count,
-        COALESCE(SUM(CASE WHEN status IN ('confirmed', 'advance_verified') THEN total_amount ELSE 0 END), 0) as expected_revenue,
-        COALESCE(SUM(CASE WHEN status IN ('confirmed', 'advance_verified') THEN advance_paid ELSE 0 END), 0) as booking_advances_paid,
-        COALESCE(SUM(CASE WHEN status IN ('confirmed', 'advance_verified') THEN (total_amount - advance_paid) ELSE 0 END), 0) as outstanding_balance
+        SUM(CASE WHEN status IN (${confirmedStatusesSql}) THEN 1 ELSE 0 END) as confirmed_count,
+        SUM(CASE WHEN status IN ('pending', 'NEW_ENQUIRY', 'UNDER_REVIEW', 'waiting', 'hold', 'advance_requested') THEN 1 ELSE 0 END) as pending_count,
+        SUM(CASE WHEN status IN ('rejected', 'REJECTED', 'cancelled', 'CANCELLED') THEN 1 ELSE 0 END) as rejected_count,
+        COALESCE(SUM(CASE WHEN status IN (${confirmedStatusesSql}) THEN total_amount ELSE 0 END), 0) as expected_revenue,
+        COALESCE(SUM(CASE WHEN status IN (${confirmedStatusesSql}) THEN advance_paid ELSE 0 END), 0) as booking_advances_paid,
+        COALESCE(SUM(CASE WHEN status IN (${confirmedStatusesSql}) THEN (total_amount - advance_paid) ELSE 0 END), 0) as outstanding_balance
       FROM bookings
       WHERE check_in >= ? AND check_in <= ? ${hallFilter}
     `, bookingParams);
@@ -2861,15 +2862,15 @@ app.get('/api/reports/summary', requireAuth, async (req, res) => {
       SELECT 
         COALESCE(hall, 'Evan-e-Hakimi') as hall_name,
         COUNT(*) as bookings_count,
-        SUM(CASE WHEN status IN ('confirmed', 'advance_verified') THEN 1 ELSE 0 END) as confirmed_bookings,
-        COALESCE(SUM(CASE WHEN status IN ('confirmed', 'advance_verified') THEN total_amount ELSE 0 END), 0) as revenue,
-        COALESCE(SUM(CASE WHEN status IN ('confirmed', 'advance_verified') THEN advance_paid ELSE 0 END), 0) as collected
+        SUM(CASE WHEN status IN (${confirmedStatusesSql}) THEN 1 ELSE 0 END) as confirmed_bookings,
+        COALESCE(SUM(CASE WHEN status IN (${confirmedStatusesSql}) THEN total_amount ELSE 0 END), 0) as revenue,
+        COALESCE(SUM(CASE WHEN status IN (${confirmedStatusesSql}) THEN advance_paid ELSE 0 END), 0) as collected
       FROM bookings
       WHERE check_in >= ? AND check_in <= ?
       GROUP BY hall
     `, [fromDate, toDate]);
 
-    // 4. Expenses Actually Paid in Period
+    // 4. Expenses Actually Paid in Period (source of truth for all operational expenses and linked salaries)
     const expenseBreakdownRes = await db.query(`
       SELECT 
         category, 
@@ -2883,7 +2884,7 @@ app.get('/api/reports/summary', requireAuth, async (req, res) => {
 
     const totalExpenses = (expenseBreakdownRes.rows || []).reduce((sum, r) => sum + parseFloat(r.total || 0), 0);
 
-    // 5. Staff Salaries Actually Paid in Period
+    // 5. Staff Salaries Actually Paid in Period (for metadata reporting)
     const staffSalaryRes = await db.query(`
       SELECT COALESCE(SUM(amount_paid), 0) as salaries_paid, COUNT(*) as payments_count
       FROM staff_salary_payments
@@ -2892,8 +2893,17 @@ app.get('/api/reports/summary', requireAuth, async (req, res) => {
 
     const staffSalariesPaid = parseFloat(staffSalaryRes.rows[0]?.salaries_paid || 0);
 
-    // 6. Net Cash Movement (Money collected - expenses paid - salaries paid)
-    const totalOutflow = totalExpenses + staffSalariesPaid;
+    // Any legacy salary payment without an operational expense record
+    const unlinkedSalariesRes = await db.query(`
+      SELECT COALESCE(SUM(p.amount_paid), 0) as unlinked_salaries
+      FROM staff_salary_payments p
+      WHERE p.payment_date >= ? AND p.payment_date <= ?
+        AND p.id NOT IN (SELECT salary_payment_id FROM expenses WHERE salary_payment_id IS NOT NULL)
+    `, [fromDate, toDate]);
+    const unlinkedSalaries = parseFloat(unlinkedSalariesRes.rows[0]?.unlinked_salaries || 0);
+
+    // 6. Net Cash Movement (Money collected - total outflow, without double-counting linked salaries)
+    const totalOutflow = totalExpenses + unlinkedSalaries;
     const netCashMovement = actualCashCollected - totalOutflow;
 
     // 7. Overdue Payments (events within 2 days or past with unpaid balances)
@@ -2904,7 +2914,7 @@ app.get('/api/reports/summary', requireAuth, async (req, res) => {
       SELECT id, customer_name, phone, check_in, slot, hall, total_amount, advance_paid, 
              ROUND(total_amount - advance_paid) as balance_due
       FROM bookings
-      WHERE status IN ('confirmed', 'advance_verified')
+      WHERE status IN (${confirmedStatusesSql})
         AND payment_status != 'fully_paid'
         AND check_in <= ?
         AND (total_amount - advance_paid) > 0

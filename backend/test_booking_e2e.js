@@ -145,8 +145,41 @@ const db = require('./db');
       await db.query('DELETE FROM staff_salary_payments WHERE id = ?', [salRes.data.payment.id]);
     }
 
+    // Test 5: Financial Dashboard aggregation: totalOutflow exactly matches sum of expense categories without double-counting linked salaries
+    const repRes = await new Promise((resolve, reject) => {
+      const req = http.request(
+        {
+          hostname: '127.0.0.1',
+          port,
+          path: '/api/reports/summary?from=2026-10-01&to=2026-10-31&hall=all',
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        },
+        res => {
+          let b = '';
+          res.on('data', c => b += c);
+          res.on('end', () => resolve({ status: res.statusCode, data: JSON.parse(b) }));
+        }
+      );
+      req.on('error', reject);
+      req.end();
+    });
+
+    assert.strictEqual(repRes.status, 200);
+    assert.strictEqual(repRes.data.success, true);
+    const sumCategories = repRes.data.expenseCategories.reduce((acc, c) => acc + parseFloat(c.total || 0), 0);
+    assert.strictEqual(repRes.data.summary.totalOutflow, sumCategories, 'Total outflow must equal the sum of expense categories');
+    assert.strictEqual(
+      repRes.data.summary.netCashMovement,
+      repRes.data.summary.actualCashCollected - repRes.data.summary.totalOutflow,
+      'Net cash movement must equal actual cash collected minus total outflow'
+    );
+    console.log('  ✓ 5. Financial Dashboard aggregation verified: zero double-counting between expenses and salaries');
+
     console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('RESULTS: 4 / 4 end-to-end tests passed (100%)');
+    console.log('RESULTS: 5 / 5 end-to-end tests passed (100%)');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
   } finally {
     // Clean up test records
