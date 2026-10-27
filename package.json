@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node backend/server.js",
     "migrate": "node backend/migration.js",
-    "test": "node backend/test_audit.js"
+    "test": "node backend/test_audit.js && node backend/test_idempotency.js && node backend/test_sync.js"
   },
   "dependencies": {
     "@libsql/client": "^0.18.0",

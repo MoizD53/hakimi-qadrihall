@@ -88,7 +88,111 @@ const apiLimiter = rateLimit({
 app.use('/api/', apiLimiter);
 
 /* ═══════════════════════════════════════════
-   HELPERS & AUDIT LOGGING
+   PERFORMANCE TRACKER & STRUCTURED LOGGING
+═══════════════════════════════════════════ */
+const perfMetricsHistory = [];
+const MAX_PERF_HISTORY = 300;
+
+function recordRequestPerf(metric) {
+  perfMetricsHistory.push(metric);
+  if (perfMetricsHistory.length > MAX_PERF_HISTORY) {
+    perfMetricsHistory.shift();
+  }
+}
+
+function calculatePercentiles(values) {
+  if (!values || values.length === 0) return { count: 0, min: 0, max: 0, avg: 0, p50: 0, p95: 0, p99: 0 };
+  const sorted = [...values].sort((a, b) => a - b);
+  const getP = (p) => {
+    const idx = Math.min(sorted.length - 1, Math.max(0, Math.floor((p / 100) * sorted.length)));
+    return sorted[idx];
+  };
+  const sum = sorted.reduce((a, b) => a + b, 0);
+  return {
+    count: sorted.length,
+    min: sorted[0],
+    max: sorted[sorted.length - 1],
+    avg: Number((sum / sorted.length).toFixed(1)),
+    p50: getP(50),
+    p95: getP(95),
+    p99: getP(99)
+  };
+}
+
+// Request-scoped performance middleware
+app.use((req, res, next) => {
+  const reqId = 'req-' + Math.random().toString(36).substring(2, 10);
+  req.id = reqId;
+  res.setHeader('X-Request-Id', reqId);
+  const t0 = Date.now();
+
+  const perfContext = {
+    requestId: reqId,
+    method: req.method,
+    url: req.originalUrl || req.url,
+    queryCount: 0,
+    dbDurationMs: 0,
+    rowsRead: 0,
+    rowsWritten: 0,
+    queries: []
+  };
+
+  db.perfStorage.run(perfContext, () => {
+    res.on('finish', () => {
+      const dur = Date.now() - t0;
+      res.setHeader('X-Response-Time', `${dur}ms`);
+      const metric = {
+        requestId: reqId,
+        method: req.method,
+        path: req.baseUrl + req.path,
+        statusCode: res.statusCode,
+        durationMs: dur,
+        dbQueries: perfContext.queryCount,
+        dbDurationMs: perfContext.dbDurationMs,
+        rowsRead: perfContext.rowsRead,
+        rowsWritten: perfContext.rowsWritten,
+        timestamp: new Date().toISOString()
+      };
+      recordRequestPerf(metric);
+
+      if (req.path.startsWith('/api/') && !req.path.includes('/admin/perf-metrics')) {
+        console.log(`[PERF] [${reqId}] ${req.method} ${req.path} ${res.statusCode} ${dur}ms (DB: ${perfContext.queryCount} queries, ${perfContext.dbDurationMs}ms, ${perfContext.rowsRead}R/${perfContext.rowsWritten}W)`);
+      }
+    });
+    next();
+  });
+});
+
+/* ═══════════════════════════════════════════
+   SERVER-SIDE IDEMPOTENCY & REVISION BUMPER
+═══════════════════════════════════════════ */
+async function bumpAppRevision(domain) {
+  try {
+    const stmts = [
+      {
+        sql: "INSERT INTO app_revisions (domain, version, updated_at) VALUES ('global', 1, CURRENT_TIMESTAMP) ON CONFLICT(domain) DO UPDATE SET version = version + 1, updated_at = CURRENT_TIMESTAMP",
+        args: []
+      }
+    ];
+    if (domain && domain !== 'global') {
+      stmts.push({
+        sql: "INSERT INTO app_revisions (domain, version, updated_at) VALUES (?, 1, CURRENT_TIMESTAMP) ON CONFLICT(domain) DO UPDATE SET version = version + 1, updated_at = CURRENT_TIMESTAMP",
+        args: [domain]
+      });
+    }
+    await db.batch(stmts, 'write');
+  } catch (err) {
+    console.warn('⚠️ [REVISION] Bump warning:', err.message);
+  }
+}
+
+// Production-grade Distributed Idempotency Middleware
+const { createIdempotencyMiddleware } = require('./idempotency');
+const idempotencyMiddleware = createIdempotencyMiddleware(db);
+app.use('/api/', idempotencyMiddleware);
+
+/* ═══════════════════════════════════════════
+   HELPERS & ASYNCHRONOUS AUDIT LOGGING
 ═══════════════════════════════════════════ */
 const isProd = process.env.NODE_ENV === 'production';
 
@@ -99,15 +203,93 @@ function sendError(res, status, message, err) {
   return res.status(status).json({ error: message });
 }
 
-async function logAudit(action, entityType, entityId, details, user = 'admin') {
+// Durable Non-blocking Audit Logging Queue
+const auditQueue = [];
+let isFlushingAudit = false;
+
+async function flushAuditQueue() {
+  if (isFlushingAudit || auditQueue.length === 0) return;
+  isFlushingAudit = true;
+  const batch = auditQueue.splice(0, 20);
   try {
-    const detailsStr = typeof details === 'object' ? JSON.stringify(details) : String(details || '');
+    const stmts = batch.map(a => ({
+      sql: 'INSERT INTO audit_logs (action, entity_type, entity_id, details, user) VALUES (?, ?, ?, ?, ?)',
+      args: [a.action, a.entityType, a.entityId || null, a.details, a.user]
+    }));
+    await db.batch(stmts, 'write');
+  } catch (err) {
+    console.warn('⚠️ [AUDIT] Async flush warning:', err.message);
+  } finally {
+    isFlushingAudit = false;
+    if (auditQueue.length > 0) setTimeout(flushAuditQueue, 50);
+  }
+}
+
+function logAudit(action, entityType, entityId, details, user = 'admin') {
+  const detailsStr = typeof details === 'object' ? JSON.stringify(details) : String(details || '');
+  auditQueue.push({ action, entityType, entityId, details: detailsStr, user });
+  setImmediate(flushAuditQueue);
+}
+
+/* ═══════════════════════════════════════════
+   ASYNCHRONOUS CALENDAR SYNCHRONIZATION OUTBOX
+═══════════════════════════════════════════ */
+async function enqueueCalendarSync(bookingId, hall, eventDate, slot, action) {
+  const cleanHall = String(hall).toLowerCase().includes('qadri') ? 'Qadri Hall' : 'Evan-e-Hakimi';
+  const cleanDate = String(eventDate || '').split('T')[0];
+  try {
     await db.query(
-      'INSERT INTO audit_logs (action, entity_type, entity_id, details, user) VALUES (?, ?, ?, ?, ?)',
-      [action, entityType, entityId || null, detailsStr, user]
+      `INSERT INTO calendar_sync_outbox (booking_id, hall, event_date, slot, action, status)
+       VALUES (?, ?, ?, ?, ?, 'pending')`,
+      [bookingId || 0, cleanHall, cleanDate, slot || 'morning', action || 'update']
+    );
+    setImmediate(() => processCalendarSync(cleanHall, cleanDate));
+  } catch (err) {
+    console.warn('⚠️ [CAL_SYNC] Outbox enqueue warning:', err.message);
+  }
+}
+
+let isSyncingCalendar = false;
+async function processCalendarSync(hall, eventDate) {
+  if (isSyncingCalendar || !eventDate) return;
+  isSyncingCalendar = true;
+  try {
+    const [y, m] = eventDate.split('-').map(Number);
+    if (!y || !m) return;
+    const cleanHall = String(hall).toLowerCase().includes('qadri') ? 'Qadri Hall' : 'Evan-e-Hakimi';
+
+    memoryCache.del(`calendar:${cleanHall}:${y}:${m}`);
+    memoryCache.invalidate('summary');
+
+    const startDate = `${y}-${String(m).padStart(2, '0')}-01`;
+    const lastDayNum = new Date(Date.UTC(y, m, 0)).getUTCDate();
+    const endDate = `${y}-${String(m).padStart(2, '0')}-${String(lastDayNum).padStart(2, '0')}`;
+
+    const freshDays = await getHallAvailabilityRange(cleanHall, startDate, endDate);
+    memoryCache.set(`calendar:${cleanHall}:${y}:${m}`, {
+      success: true,
+      hall: cleanHall,
+      year: y,
+      month: m,
+      days: freshDays
+    });
+
+    await db.query(
+      `UPDATE calendar_sync_outbox SET status = 'synced', synced_at = CURRENT_TIMESTAMP
+       WHERE hall = ? AND event_date LIKE ? AND status = 'pending'`,
+      [cleanHall, `${y}-${String(m).padStart(2, '0')}%`]
     );
   } catch (err) {
-    console.error('Failed to write audit log:', err.message);
+    console.warn('⚠️ [CAL_SYNC] Background sync warning:', err.message);
+    try {
+      await db.query(
+        `UPDATE calendar_sync_outbox SET status = 'failed', attempts = attempts + 1, last_error = ?, last_attempt = CURRENT_TIMESTAMP
+         WHERE hall = ? AND event_date = ? AND status = 'pending'`,
+        [err.message, hall, eventDate]
+      );
+    } catch (_) {}
+  } finally {
+    isSyncingCalendar = false;
   }
 }
 
@@ -451,18 +633,16 @@ function checkSlotConflict(slotA, slotB, startA, endA, startB, endB) {
 }
 
 // Concurrency-safe conflict verification helper using Turso/libSQL write transaction
-async function assertNoBookingConflict(tx, bookingId, overrideDate, overrideHall, overrideSlot, overrideStartTime, overrideEndTime) {
-  let target;
+async function assertNoBookingConflict(clientOrTx, bookingId, overrideDate, overrideHall, overrideSlot, overrideStartTime, overrideEndTime) {
+  let target = {};
   if (bookingId) {
-    const current = await tx.query('SELECT * FROM bookings WHERE id = ?', [bookingId]);
+    const current = await clientOrTx.query('SELECT * FROM bookings WHERE id = ?', [bookingId]);
     if (!current.rows || current.rows.length === 0) {
       const err = new Error('Booking not found');
       err.status = 404;
       throw err;
     }
     target = current.rows[0];
-  } else {
-    target = {};
   }
 
   const rawDate = overrideDate || target.check_in;
@@ -480,13 +660,23 @@ async function assertNoBookingConflict(tx, bookingId, overrideDate, overrideHall
     throw err;
   }
 
-  // Check if date is blocked by administration for this hall
-  const existingBlock = await tx.query(
-    `SELECT * FROM date_blocks WHERE block_date = ? AND hall = ?`,
-    [targetDate, targetHall]
-  );
-  if (existingBlock.rows && existingBlock.rows.length > 0) {
-    const blk = existingBlock.rows[0];
+  // Optimized: Single batch round trip to Turso for date blocks AND confirmed bookings
+  const [existingBlockRes, existingConfirmedRes] = clientOrTx.batch ? await clientOrTx.batch([
+    { sql: `SELECT id, reason FROM date_blocks WHERE block_date = ? AND hall = ? LIMIT 1`, args: [targetDate, targetHall] },
+    { sql: `SELECT id, customer_name, slot, status, hall, booking_reference, start_time, end_time FROM bookings 
+            WHERE id != ? AND check_in = ? AND COALESCE(hall, 'Evan-e-Hakimi') = ? 
+            AND status IN ('confirmed', 'advance_verified', 'CONFIRMED_PENDING_ADVANCE', 'ADVANCE_PARTIALLY_PAID', 'ADVANCE_PAID', 'FULLY_PAID')`,
+      args: [bookingId || 0, targetDate, targetHall]
+    }
+  ], 'read') : await Promise.all([
+    clientOrTx.query(`SELECT id, reason FROM date_blocks WHERE block_date = ? AND hall = ? LIMIT 1`, [targetDate, targetHall]),
+    clientOrTx.query(`SELECT id, customer_name, slot, status, hall, booking_reference, start_time, end_time FROM bookings 
+                      WHERE id != ? AND check_in = ? AND COALESCE(hall, 'Evan-e-Hakimi') = ? 
+                      AND status IN ('confirmed', 'advance_verified', 'CONFIRMED_PENDING_ADVANCE', 'ADVANCE_PARTIALLY_PAID', 'ADVANCE_PAID', 'FULLY_PAID')`, [bookingId || 0, targetDate, targetHall])
+  ]);
+
+  if (existingBlockRes.rows && existingBlockRes.rows.length > 0) {
+    const blk = existingBlockRes.rows[0];
     const err = new Error(
       `Date Blocked: ${targetDate} is blocked by administration for ${targetHall}${blk.reason ? ' (' + blk.reason + ')' : ''}. No bookings can be created for this date.`
     );
@@ -494,15 +684,7 @@ async function assertNoBookingConflict(tx, bookingId, overrideDate, overrideHall
     throw err;
   }
 
-  // Query existing confirmed bookings inside the write transaction for the SAME hall
-  const existingConfirmed = await tx.query(
-    `SELECT id, customer_name, slot, status, hall, booking_reference, start_time, end_time FROM bookings 
-     WHERE id != ? AND check_in = ? AND COALESCE(hall, 'Evan-e-Hakimi') = ? 
-     AND status IN ('confirmed', 'advance_verified', 'CONFIRMED_PENDING_ADVANCE', 'ADVANCE_PARTIALLY_PAID', 'ADVANCE_PAID', 'FULLY_PAID')`,
-    [bookingId || 0, targetDate, targetHall]
-  );
-
-  const conflictingBooking = (existingConfirmed.rows || []).find(c => 
+  const conflictingBooking = (existingConfirmedRes.rows || []).find(c => 
     checkSlotConflict(targetSlot, c.slot, targetStartTime, targetEndTime, c.start_time, c.end_time)
   );
   if (conflictingBooking) {
@@ -785,20 +967,36 @@ app.get('/api/bookings', requireAuth, async (req, res) => {
     query += ` ORDER BY check_in ASC, created_at DESC LIMIT ? OFFSET ?`;
     params.push(limit, offset);
 
+    const cacheKey = `bookings:${hall || ''}:${status || ''}:${statusGroup || ''}:${paymentStatus || ''}:${fromDate || ''}:${toDate || ''}:${search || ''}:${limit}:${offset}`;
+    const cached = memoryCache.get(cacheKey);
+    if (cached) {
+      return res.json(cached);
+    }
+
     const result = await db.query(query, params);
     const rows = result.rows || [];
 
-    // Annotate slot conflicts per hall against all confirmed statuses
-    const confirmedList = rows.filter(b => CONFIRMED_STATUSES.includes(b.status));
+    // O(1) hash map conflict checking instead of O(N^2)
+    const confirmedMap = new Map();
+    rows.forEach(b => {
+      if (CONFIRMED_STATUSES.includes(b.status)) {
+        const bDate = b.check_in && b.check_in.toISOString ? b.check_in.toISOString().split('T')[0] : String(b.check_in).split('T')[0];
+        const hKey = (b.hall || 'Evan-e-Hakimi').toLowerCase().trim();
+        const key = `${bDate}_${hKey}`;
+        if (!confirmedMap.has(key)) confirmedMap.set(key, []);
+        confirmedMap.get(key).push(b);
+      }
+    });
     
     const annotatedRows = rows.map(b => {
       const bDate = b.check_in && b.check_in.toISOString ? b.check_in.toISOString().split('T')[0] : String(b.check_in).split('T')[0];
-      const conflictWith = confirmedList.find(c => {
+      const hKey = (b.hall || 'Evan-e-Hakimi').toLowerCase().trim();
+      const key = `${bDate}_${hKey}`;
+      const confirmedOnDate = confirmedMap.get(key) || [];
+
+      const conflictWith = confirmedOnDate.find(c => {
         if (c.id === b.id) return false;
-        const cDate = c.check_in && c.check_in.toISOString ? c.check_in.toISOString().split('T')[0] : String(c.check_in).split('T')[0];
-        if (cDate !== bDate) return false;
-        if ((c.hall || 'Evan-e-Hakimi').toLowerCase() !== (b.hall || 'Evan-e-Hakimi').toLowerCase()) return false;
-        return checkSlotConflict(b.slot, c.slot);
+        return checkSlotConflict(b.slot, c.slot, b.start_time, b.end_time, c.start_time, c.end_time);
       });
 
       const totalVal = parseFloat(b.total_amount || 0);
@@ -812,9 +1010,11 @@ app.get('/api/bookings', requireAuth, async (req, res) => {
         booking_reference: bookingRef,
         balanceAmount: balVal,
         hasConflict: !!conflictWith,
-        conflictDetails: conflictWith ? { id: conflictWith.id, name: conflictWith.customer_name, slot: conflictWith.slot, hall: conflictWith.hall } : null,};
+        conflictDetails: conflictWith ? { id: conflictWith.id, name: conflictWith.customer_name, slot: conflictWith.slot, hall: conflictWith.hall } : null,
+      };
     });
 
+    memoryCache.set(cacheKey, annotatedRows, 30);
     res.json(annotatedRows);
   } catch (err) {
     sendError(res, 500, 'Failed to fetch bookings', err);
@@ -833,36 +1033,87 @@ app.get('/api/bookings/summary', requireAuth, async (req, res) => {
     }
 
     const today = new Date().toISOString().split('T')[0];
-    let sql = `
-      SELECT 
-        COUNT(CASE WHEN status NOT IN ('cancelled', 'CANCELLED', 'rejected', 'REJECTED') THEN 1 END) as totalBookings,
-        COUNT(CASE WHEN status NOT IN ('cancelled', 'CANCELLED', 'rejected', 'REJECTED') AND check_in >= ? THEN 1 END) as upcomingEvents,
-        COUNT(CASE WHEN status IN ('cancelled', 'CANCELLED', 'rejected', 'REJECTED') THEN 1 END) as cancelledBookings,
-        COUNT(CASE WHEN status NOT IN ('cancelled', 'CANCELLED', 'rejected', 'REJECTED') AND (payment_status = 'fully_paid' OR status = 'FULLY_PAID') THEN 1 END) as fullyPaidBookings,
-        COUNT(CASE WHEN status NOT IN ('cancelled', 'CANCELLED', 'rejected', 'REJECTED') AND (payment_status = 'advance_paid' OR status IN ('ADVANCE_PAID', 'advance_verified')) THEN 1 END) as advanceCollected,
-        COUNT(CASE WHEN status NOT IN ('cancelled', 'CANCELLED', 'rejected', 'REJECTED') AND (payment_status = 'advance_paid' OR status IN ('ADVANCE_PAID', 'advance_verified')) AND total_amount > advance_paid THEN 1 END) as remainingBalancePending,
-        COUNT(CASE WHEN status NOT IN ('cancelled', 'CANCELLED', 'rejected', 'REJECTED') AND (payment_status NOT IN ('fully_paid', 'advance_paid') AND status NOT IN ('FULLY_PAID', 'ADVANCE_PAID', 'advance_verified')) THEN 1 END) as awaitingAdvance,
-        COALESCE(SUM(CASE WHEN status NOT IN ('cancelled', 'CANCELLED', 'rejected', 'REJECTED') THEN total_amount ELSE 0 END), 0) as totalAmountBooked,
-        COALESCE(SUM(CASE WHEN status NOT IN ('cancelled', 'CANCELLED', 'rejected', 'REJECTED') THEN advance_paid ELSE 0 END), 0) as actualPaymentsCollected
-      FROM bookings WHERE 1=1
-    `;
-    const params = [today];
+    const twoDaysLater = new Date(Date.now() + 2 * 86400000).toISOString().split('T')[0];
+    const sevenDaysLater = new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0];
 
+    let hallClause = '';
+    const mainParams = [today];
     if (cleanHall !== 'all') {
-      sql += ' AND COALESCE(hall, "Evan-e-Hakimi") = ?';
-      params.push(cleanHall);
+      hallClause = ' AND COALESCE(hall, "Evan-e-Hakimi") = ?';
+      mainParams.push(cleanHall);
     }
     if (fromDate) {
-      sql += ' AND check_in >= ?';
-      params.push(fromDate);
+      hallClause += ' AND check_in >= ?';
+      mainParams.push(fromDate);
     }
     if (toDate) {
-      sql += ' AND check_in <= ?';
-      params.push(toDate);
+      hallClause += ' AND check_in <= ?';
+      mainParams.push(toDate);
     }
 
-    const result = await db.query(sql, params);
-    const agg = result.rows && result.rows[0] ? result.rows[0] : {};
+    const stmts = [
+      // 1. KPI Aggregates
+      {
+        sql: `
+          SELECT 
+            COUNT(CASE WHEN status NOT IN ('cancelled', 'CANCELLED', 'rejected', 'REJECTED') THEN 1 END) as totalBookings,
+            COUNT(CASE WHEN status NOT IN ('cancelled', 'CANCELLED', 'rejected', 'REJECTED') AND check_in >= ? THEN 1 END) as upcomingEvents,
+            COUNT(CASE WHEN status IN ('cancelled', 'CANCELLED', 'rejected', 'REJECTED') THEN 1 END) as cancelledBookings,
+            COUNT(CASE WHEN status NOT IN ('cancelled', 'CANCELLED', 'rejected', 'REJECTED') AND (payment_status = 'fully_paid' OR status = 'FULLY_PAID') THEN 1 END) as fullyPaidBookings,
+            COUNT(CASE WHEN status NOT IN ('cancelled', 'CANCELLED', 'rejected', 'REJECTED') AND (payment_status = 'advance_paid' OR status IN ('ADVANCE_PAID', 'advance_verified')) THEN 1 END) as advanceCollected,
+            COUNT(CASE WHEN status NOT IN ('cancelled', 'CANCELLED', 'rejected', 'REJECTED') AND (payment_status = 'advance_paid' OR status IN ('ADVANCE_PAID', 'advance_verified')) AND total_amount > advance_paid THEN 1 END) as remainingBalancePending,
+            COUNT(CASE WHEN status NOT IN ('cancelled', 'CANCELLED', 'rejected', 'REJECTED') AND (payment_status NOT IN ('fully_paid', 'advance_paid') AND status NOT IN ('FULLY_PAID', 'ADVANCE_PAID', 'advance_verified')) THEN 1 END) as awaitingAdvance,
+            COALESCE(SUM(CASE WHEN status NOT IN ('cancelled', 'CANCELLED', 'rejected', 'REJECTED') THEN total_amount ELSE 0 END), 0) as totalAmountBooked,
+            COALESCE(SUM(CASE WHEN status NOT IN ('cancelled', 'CANCELLED', 'rejected', 'REJECTED') THEN advance_paid ELSE 0 END), 0) as actualPaymentsCollected
+          FROM bookings WHERE 1=1 ${hallClause}
+        `,
+        args: mainParams
+      },
+      // 2. Tab counts for All Bookings
+      {
+        sql: `
+          SELECT 
+            COUNT(*) as totalAll,
+            COUNT(CASE WHEN status IN ('pending', 'NEW_ENQUIRY', 'UNDER_REVIEW', 'waiting', 'hold', 'advance_requested') THEN 1 END) as countEnquiries,
+            COUNT(CASE WHEN status = 'CONFIRMED_PENDING_ADVANCE' THEN 1 END) as countPendingAdv,
+            COUNT(CASE WHEN status IN ('ADVANCE_PAID', 'advance_verified', 'advance_paid') THEN 1 END) as countAdvancePaid,
+            COUNT(CASE WHEN status = 'FULLY_PAID' OR payment_status = 'fully_paid' THEN 1 END) as countFullyPaid,
+            COUNT(CASE WHEN status IN ('rejected', 'REJECTED', 'cancelled', 'CANCELLED') THEN 1 END) as countRejected
+          FROM bookings
+        `,
+        args: []
+      },
+      // 3. Urgent Overdue/Due Payments (events within 2 days with pending balance)
+      {
+        sql: `
+          SELECT id, customer_name, phone, check_in, slot, hall, total_amount, advance_paid, status, payment_status,
+                 ROUND(total_amount - advance_paid) as balance_due
+          FROM bookings
+          WHERE status NOT IN ('cancelled', 'CANCELLED', 'rejected', 'REJECTED')
+            AND check_in <= ?
+            AND (total_amount - advance_paid) > 0
+          ORDER BY check_in ASC LIMIT 15
+        `,
+        args: [twoDaysLater]
+      },
+      // 4. Next 7 Days Upcoming Events
+      {
+        sql: `
+          SELECT id, customer_name, phone, check_in, slot, hall, total_amount, advance_paid, status, payment_status
+          FROM bookings
+          WHERE status NOT IN ('cancelled', 'CANCELLED', 'rejected', 'REJECTED')
+            AND check_in >= ? AND check_in <= ?
+          ORDER BY check_in ASC LIMIT 15
+        `,
+        args: [today, sevenDaysLater]
+      }
+    ];
+
+    const batchRes = await db.batch(stmts, 'read');
+    const agg = batchRes[0]?.rows && batchRes[0].rows[0] ? batchRes[0].rows[0] : {};
+    const tabs = batchRes[1]?.rows && batchRes[1].rows[0] ? batchRes[1].rows[0] : {};
+    const duePayments = batchRes[2]?.rows || [];
+    const upcomingEventsList = batchRes[3]?.rows || [];
 
     const totalBookings = parseInt(agg.totalBookings || 0, 10);
     const upcomingEvents = parseInt(agg.upcomingEvents || 0, 10);
@@ -887,6 +1138,16 @@ app.get('/api/bookings/summary', requireAuth, async (req, res) => {
       totalAmountBooked,
       actualPaymentsCollected,
       outstandingBalance,
+      tabCounts: {
+        totalAll: parseInt(tabs.totalAll || 0, 10),
+        countEnquiries: parseInt(tabs.countEnquiries || 0, 10),
+        countPendingAdv: parseInt(tabs.countPendingAdv || 0, 10),
+        countAdvancePaid: parseInt(tabs.countAdvancePaid || 0, 10),
+        countFullyPaid: parseInt(tabs.countFullyPaid || 0, 10),
+        countRejected: parseInt(tabs.countRejected || 0, 10)
+      },
+      duePayments,
+      upcomingEventsList,
       // Backward compatibility aliases
       newEnquiries: awaitingAdvance,
       pendingEnquiries: awaitingAdvance,
@@ -899,7 +1160,7 @@ app.get('/api/bookings/summary', requireAuth, async (req, res) => {
       totalOutstanding: outstandingBalance
     };
 
-    memoryCache.set(cacheKey, responsePayload);
+    memoryCache.set(cacheKey, responsePayload, 30);
     res.json(responsePayload);
   } catch (err) {
     sendError(res, 500, 'Failed to fetch bookings summary', err);
@@ -2471,7 +2732,7 @@ app.get('/api/staff/salary-payments', requireAuth, async (req, res) => {
   }
 });
 
-// POST /api/staff/salary-payments — Record confirmed salary payment
+// POST /api/staff/salary-payments — Record confirmed salary payment with atomic linked expense creation
 app.post('/api/staff/salary-payments', requireAuth, async (req, res) => {
   try {
     const { staff_id, period, amount_paid, payment_date, payment_method = 'Cash', notes } = req.body;
@@ -2487,6 +2748,13 @@ app.post('/api/staff/salary-payments', requireAuth, async (req, res) => {
 
     const pDate = payment_date || new Date().toISOString().split('T')[0];
 
+    // 1. Fetch staff details for accurate description and vendor naming
+    const sRes = await db.query('SELECT name, role FROM staff WHERE id = ?', [staff_id]);
+    const staffRow = sRes.rows && sRes.rows[0] ? sRes.rows[0] : null;
+    const staffName = staffRow?.name || `Staff #${staff_id}`;
+    const staffRole = staffRow?.role ? ` (${staffRow.role})` : '';
+
+    // 2. Insert salary payment
     const result = await db.query(
       `INSERT INTO staff_salary_payments (staff_id, period, amount_paid, payment_date, payment_method, notes)
        VALUES (?, ?, ?, ?, ?, ?)
@@ -2494,12 +2762,30 @@ app.post('/api/staff/salary-payments', requireAuth, async (req, res) => {
       [staff_id, period.trim(), amt, pDate, payment_method, notes?.trim() || null]
     );
 
-    // Update staff salary status
+    const paymentRecord = result.rows[0];
+    const paymentId = paymentRecord.id;
+
+    // 3. Atomically create linked operational expense
+    const expDesc = `Staff Salary: ${staffName}${staffRole} — ${period.trim()}`;
+    await db.query(
+      `INSERT INTO expenses (description, hall, category, amount, date, payment_method, paid_to, notes, staff_id, salary_payment_id)
+       VALUES (?, 'Combined / Facility', 'Staff Salary', ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(salary_payment_id) DO UPDATE SET amount = excluded.amount, date = excluded.date, payment_method = excluded.payment_method`,
+      [expDesc, amt, pDate, payment_method, staffName, notes?.trim() || 'Staff monthly salary voucher', staff_id, paymentId]
+    );
+
+    // 4. Update staff salary status
     await db.query("UPDATE staff SET salary_status = 'paid' WHERE id = ?", [staff_id]);
+
+    // 5. Invalidate caches and bump revisions for multi-device sync
+    memoryCache.invalidateDomain('staff');
+    memoryCache.invalidateDomain('expenses');
+    bumpAppRevision('staff');
+    bumpAppRevision('expenses');
 
     logAudit('salary_paid', 'staff', staff_id, `Paid salary of ₹${amt} for period ${period} via ${payment_method}`, req.admin.username);
 
-    res.json({ success: true, payment: result.rows[0] });
+    res.json({ success: true, payment: paymentRecord });
   } catch (err) {
     sendError(res, 500, 'Failed to record salary payment', err);
   }
@@ -2754,6 +3040,55 @@ app.get('/api/admin/db-usage', requireAuth, async (req, res) => {
   } catch (err) {
     sendError(res, 500, 'Failed to fetch database usage metrics', err);
   }
+});
+
+/* ═══════════════════════════════════════════
+   MULTI-DEVICE SYNCHRONIZATION & TELEMETRY
+═══════════════════════════════════════════ */
+// GET /api/sync/revisions - Ultra-fast revision poller for all connected devices
+app.get('/api/sync/revisions', requireAuth, async (req, res) => {
+  try {
+    const rows = await db.query('SELECT domain, version, updated_at FROM app_revisions');
+    const revisions = {};
+    let latestTs = null;
+    (rows.rows || []).forEach(r => {
+      revisions[r.domain] = r.version;
+      if (!latestTs || r.updated_at > latestTs) latestTs = r.updated_at;
+    });
+    res.setHeader('Cache-Control', 'no-store');
+    res.json({ success: true, revisions, updated_at: latestTs });
+  } catch (err) {
+    sendError(res, 500, 'Failed to fetch revisions', err);
+  }
+});
+
+// GET /api/public/calendar/version - Lightweight public availability revision check
+app.get('/api/public/calendar/version', async (req, res) => {
+  try {
+    const rows = await db.query("SELECT version FROM app_revisions WHERE domain IN ('global', 'bookings', 'date_blocks')");
+    let maxVersion = 1;
+    (rows.rows || []).forEach(r => {
+      if (r.version > maxVersion) maxVersion = r.version;
+    });
+    res.setHeader('Cache-Control', 'public, max-age=2');
+    res.json({ version: maxVersion });
+  } catch (err) {
+    res.json({ version: 1 });
+  }
+});
+
+// GET /api/admin/perf-metrics - Response time and database query profiling
+app.get('/api/admin/perf-metrics', requireAuth, (req, res) => {
+  const durations = perfMetricsHistory.map(m => m.durationMs);
+  const dbDurations = perfMetricsHistory.map(m => m.dbDurationMs);
+  res.json({
+    success: true,
+    samples: perfMetricsHistory.length,
+    apiLatency: calculatePercentiles(durations),
+    dbLatency: calculatePercentiles(dbDurations),
+    cache: memoryCache.stats ? memoryCache.stats() : { size: memoryCache.size() },
+    recent: perfMetricsHistory.slice(-25)
+  });
 });
 
 /* ═══════════════════════════════════════════

@@ -1983,12 +1983,6 @@
             <i class="fas fa-check-double stat-icon"></i>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Cancelled Bookings</div>
-            <div class="stat-value" id="kpiCancelled" style="color:rgba(245,240,232,0.4);">0</div>
-            <div class="stat-sub">Slots released</div>
-            <i class="fas fa-times-circle stat-icon"></i>
-          </div>
-          <div class="stat-card">
             <div class="stat-label">Contracted Revenue</div>
             <div class="stat-value" id="kpiTotalAmount" style="color:var(--wheat);">₹0</div>
             <div class="stat-sub">Total contracted value</div>
@@ -2177,11 +2171,9 @@
       <section class="page" id="page-bookings">
         <div class="status-tabs" id="bookingStatusTabs">
           <div class="tab-pill active" onclick="setBookingStatusTab('', this)"><i class="fas fa-layer-group"></i> All Bookings (<span id="countTabAll">0</span>)</div>
-          <div class="tab-pill" onclick="setBookingStatusTab('enquiries', this)"><i class="fas fa-inbox"></i> Pending Enquiries (<span id="countTabEnquiries">0</span>)</div>
           <div class="tab-pill" onclick="setBookingStatusTab('pending_advance', this)"><i class="fas fa-clock"></i> Confirmed (Pending Adv) (<span id="countTabPendingAdv">0</span>)</div>
           <div class="tab-pill" onclick="setBookingStatusTab('advance_paid', this)"><i class="fas fa-check"></i> Advance Paid (<span id="countTabAdvancePaid">0</span>)</div>
           <div class="tab-pill" onclick="setBookingStatusTab('fully_paid', this)"><i class="fas fa-award"></i> Fully Paid (<span id="countTabFullyPaid">0</span>)</div>
-          <div class="tab-pill" onclick="setBookingStatusTab('rejected', this)"><i class="fas fa-ban"></i> Rejected (<span id="countTabRejected">0</span>)</div>
         </div>
 
         <div class="filter-toolbar">
@@ -2196,8 +2188,6 @@
             <option value="CONFIRMED_PENDING_ADVANCE">Confirmed (Pending Advance)</option>
             <option value="ADVANCE_PAID">Advance Paid</option>
             <option value="FULLY_PAID">Fully Paid</option>
-            <option value="NEW_ENQUIRY">New Enquiry</option>
-            <option value="REJECTED">Rejected</option>
           </select>
           <select id="filterBookPayment" class="filter-select" onchange="loadBookings()">
             <option value="">All Payment Statuses</option>
@@ -2254,41 +2244,41 @@
           </div>
         </div>
 
-        <div class="filter-toolbar">
-          <input type="text" id="filterExpSearch" class="filter-input search-input" placeholder="Search expense description, vendor..." oninput="debounceLoadExpenses()">
-          <select id="filterExpHall" class="filter-select" onchange="loadExpenses()">
-            <option value="">All Venues</option>
-            <option value="Evan-e-Hakimi">Evan-e-Hakimi (2nd Floor)</option>
-            <option value="Qadri Hall">Qadri Hall (3rd Floor)</option>
-            <option value="Combined / Facility">Combined / Both Halls</option>
-          </select>
-          <select id="filterExpCat" class="filter-select" onchange="loadExpenses()">
-            <option value="">All Categories</option>
-            <option value="utilities">Utilities (Electricity, Water, Gas)</option>
-            <option value="cleaning">Cleaning &amp; Housekeeping</option>
-            <option value="maintenance">Maintenance &amp; Repairs</option>
-            <option value="kitchen">Kitchen &amp; Catering</option>
-            <option value="staff">Staff Welfare &amp; Wages</option>
-            <option value="supplies">Supplies &amp; Consumables</option>
-            <option value="repairs">Repairs &amp; Hardware</option>
-            <option value="other">Other / Miscellaneous</option>
-          </select>
-          <select id="filterExpPay" class="filter-select" onchange="loadExpenses()">
-            <option value="">All Payment Modes</option>
-            <option value="Cash">Cash</option>
-            <option value="UPI">UPI</option>
-            <option value="Bank Transfer">Bank Transfer</option>
-            <option value="Cheque">Cheque</option>
-          </select>
-          <div style="display:flex;align-items:center;gap:6px;">
-            <span style="font-size:0.78rem;color:var(--wheat);font-weight:600;"><i class="fas fa-calendar-alt"></i> From:</span>
-            <input type="date" id="filterExpFrom" class="filter-input" placeholder="From Date" onchange="loadExpenses()" title="From Date">
+        <div class="filter-toolbar" style="display:flex;flex-wrap:wrap;align-items:center;gap:0.65rem;justify-content:space-between;">
+          <div style="display:flex;flex-wrap:wrap;align-items:center;gap:0.65rem;flex:1 1 700px;">
+            <input type="text" id="filterExpSearch" class="filter-input search-input" placeholder="Search expense description, vendor..." oninput="debounceLoadExpenses()" style="min-width:200px;flex:1 1 200px;">
+            <select id="filterExpHall" class="filter-select" onchange="loadExpenses()">
+              <option value="">All Venues</option>
+              <option value="Evan-e-Hakimi">Evan-e-Hakimi (2nd Floor)</option>
+              <option value="Qadri Hall">Qadri Hall (3rd Floor)</option>
+              <option value="Combined / Facility">Combined / Both Halls</option>
+            </select>
+            <select id="filterExpCat" class="filter-select" onchange="loadExpenses()">
+              <option value="">All Categories</option>
+              <option value="utilities">Utilities (Electricity, Water, Gas)</option>
+              <option value="cleaning">Cleaning &amp; Housekeeping</option>
+              <option value="maintenance">Maintenance &amp; Repairs</option>
+              <option value="kitchen">Kitchen &amp; Catering</option>
+              <option value="staff">Staff Welfare &amp; Wages</option>
+              <option value="supplies">Supplies &amp; Consumables</option>
+              <option value="repairs">Repairs &amp; Hardware</option>
+              <option value="other">Other / Miscellaneous</option>
+            </select>
+            <select id="filterExpPay" class="filter-select" onchange="loadExpenses()">
+              <option value="">All Payment Modes</option>
+              <option value="Cash">Cash</option>
+              <option value="UPI">UPI</option>
+              <option value="Bank Transfer">Bank Transfer</option>
+              <option value="Cheque">Cheque</option>
+            </select>
+            <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.03);padding:0.25rem 0.6rem;border-radius:6px;border:1px solid rgba(201,169,110,0.18);">
+              <span style="font-size:0.75rem;color:var(--wheat);font-weight:600;"><i class="fas fa-calendar-alt"></i></span>
+              <input type="date" id="filterExpFrom" class="filter-input" placeholder="From Date" onchange="loadExpenses()" title="From Date" style="padding:0.35rem 0.5rem;font-size:0.75rem;border:none;background:transparent;">
+              <span style="font-size:0.72rem;color:rgba(245,240,232,0.4);">to</span>
+              <input type="date" id="filterExpTo" class="filter-input" placeholder="To Date" onchange="loadExpenses()" title="To Date" style="padding:0.35rem 0.5rem;font-size:0.75rem;border:none;background:transparent;">
+            </div>
           </div>
-          <div style="display:flex;align-items:center;gap:6px;">
-            <span style="font-size:0.78rem;color:var(--wheat);font-weight:600;"><i class="fas fa-calendar-alt"></i> To:</span>
-            <input type="date" id="filterExpTo" class="filter-input" placeholder="To Date" onchange="loadExpenses()" title="To Date">
-          </div>
-          <button class="btn-quick gold" style="margin-left:auto;" onclick="openNewExpenseModal()"><i class="fas fa-plus"></i> Add Expense</button>
+          <button class="btn-quick gold" onclick="openNewExpenseModal()" style="white-space:nowrap;margin-left:auto;"><i class="fas fa-plus"></i> Add Expense</button>
         </div>
 
         <div class="card">
@@ -3140,7 +3130,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="action-btn" onclick="closeModal('modalSalaryPay')">Cancel</button>
-          <button type="submit" class="btn-quick gold">Record Salary Payment</button>
+          <button type="submit" class="btn-quick gold" id="btnSubmitSalaryPayment">Record Salary Payment</button>
         </div>
       </form>
     </div>
@@ -3369,12 +3359,48 @@
         options.body = JSON.stringify(options.body);
       }
 
+      // Attach client-side idempotency key for state-changing mutations if not provided
+      const method = (options.method || 'GET').toUpperCase();
+      if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method) && !options.headers['X-Idempotency-Key']) {
+        options.headers['X-Idempotency-Key'] = 'idem_' + Date.now() + '_' + Math.random().toString(36).substring(2, 10);
+      }
+
       const res = await fetch(url, options);
       if (res.status === 401 || res.status === 403) {
         adminLogout();
         throw new Error('Unauthorized');
       }
       return res;
+    }
+
+    /**
+     * Reusable Frontend Submission Guard
+     * Disables the submit button, displays progress text, prevents duplicate clicks/Enter triggers,
+     * and guarantees that the button is restored upon completion or failure.
+     */
+    async function withSubmitGuard(btn, asyncFn, loadingText = 'Saving...') {
+      if (btn) {
+        if (btn.disabled || btn.dataset.submitting === 'true') {
+          console.warn('[SUBMIT GUARD] Ignored duplicate click/submission.');
+          return;
+        }
+        btn.disabled = true;
+        btn.dataset.submitting = 'true';
+      }
+      const originalHtml = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${loadingText}`;
+      }
+
+      try {
+        return await asyncFn();
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          delete btn.dataset.submitting;
+          btn.innerHTML = originalHtml;
+        }
+      }
     }
 
     function adminLogout() {
@@ -3763,91 +3789,18 @@
 
     async function loadOverview() {
       try {
-        const res = await authFetch('/api/bookings');
-        allBookings = await res.json();
-
         const hallVal = document.getElementById('statFilterHall')?.value || 'all';
-        const fromVal = document.getElementById('statFilterFrom')?.value;
-        const toVal = document.getElementById('statFilterTo')?.value;
+        const fromVal = document.getElementById('statFilterFrom')?.value || '';
+        const toVal = document.getElementById('statFilterTo')?.value || '';
 
-        let filtered = Array.isArray(allBookings) ? allBookings : [];
-        if (hallVal && hallVal !== 'all') {
-          const isQadri = hallVal.toLowerCase().includes('qadri');
-          filtered = filtered.filter(b => {
-            const h = (b.hall || 'Evan-e-Hakimi').toLowerCase();
-            return isQadri ? h.includes('qadri') : !h.includes('qadri');
-          });
-        }
-        if (fromVal) {
-          filtered = filtered.filter(b => (b.check_in || '') >= fromVal);
-        }
-        if (toVal) {
-          filtered = filtered.filter(b => (b.check_in || '') <= toVal);
-        }
+        const q = new URLSearchParams();
+        if (hallVal && hallVal !== 'all') q.append('hall', hallVal);
+        if (fromVal) q.append('fromDate', fromVal);
+        if (toVal) q.append('toDate', toVal);
 
-        const todayStr = new Date().toISOString().split('T')[0];
-        const twoDaysLater = new Date(Date.now() + 2 * 86400000).toISOString().split('T')[0];
-        const sevenDaysLater = new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0];
-
-        let totalBookings = 0;
-        let upcomingEvents = 0;
-        let pendingCount = 0;
-        let awaitingAdvance = 0;
-        let advanceCollected = 0;
-        let remainingBalancePending = 0;
-        let fullyPaidCount = 0;
-        let cancelledCount = 0;
-        let totalContractedAmount = 0;
-        let actualCollectedAmount = 0;
-
-        const duePayments = [];
-        const upcomingEventsList = [];
-
-        filtered.forEach(b => {
-          const s = String(b.status || '').toUpperCase();
-          const ps = String(b.payment_status || b.paymentStatus || '').toLowerCase();
-          const isCancelled = REJECTED_STATUSES.includes(b.status) || s === 'CANCELLED' || s === 'REJECTED';
-          const isPending = ENQUIRY_STATUSES.includes(b.status) || s === 'PENDING' || s === 'PENDING_APPROVAL';
-
-          const total = parseFloat(b.total_amount || 0);
-          const paid = parseFloat(b.advancePaid || b.advance_paid || 0);
-          const balance = Math.max(0, total - paid);
-
-          if (isCancelled) {
-            cancelledCount++;
-            return;
-          }
-
-          totalBookings++;
-          totalContractedAmount += total;
-          actualCollectedAmount += paid;
-
-          if (b.check_in >= todayStr) {
-            upcomingEvents++;
-            if (b.check_in <= sevenDaysLater) {
-              upcomingEventsList.push(b);
-            }
-          }
-
-          if (isPending) {
-            pendingCount++;
-          } else if (ps === 'fully_paid' || s === 'FULLY_PAID' || (total > 0 && balance === 0)) {
-            fullyPaidCount++;
-          } else if (ps === 'advance_paid' || s === 'ADVANCE_PAID' || s === 'ADVANCE_VERIFIED' || paid > 0) {
-            advanceCollected++;
-            if (balance > 0) {
-              remainingBalancePending++;
-            }
-          } else {
-            awaitingAdvance++;
-          }
-
-          if (balance > 0 && b.check_in && b.check_in <= twoDaysLater) {
-            duePayments.push(b);
-          }
-        });
-
-        const outstandingBalance = Math.max(0, totalContractedAmount - actualCollectedAmount);
+        const res = await authFetch('/api/bookings/summary?' + q.toString());
+        const data = await res.json();
+        if (!data || !data.success) return;
 
         // Safely update all 12 KPI cards in DOM
         const setEl = (id, val) => {
@@ -3855,37 +3808,34 @@
           if (el) el.textContent = val;
         };
 
-        setEl('kpiTotalBookings', totalBookings);
-        setEl('kpiUpcoming', upcomingEvents);
-        setEl('kpiPending', pendingCount);
-        setEl('kpiAwaitingAdvance', awaitingAdvance);
-        setEl('kpiAdvanceCollected', advanceCollected);
-        setEl('kpiBalancePending', remainingBalancePending);
-        setEl('kpiFullyPaid', fullyPaidCount);
-        setEl('kpiCancelled', cancelledCount);
-        setEl('kpiTotalAmount', '₹' + Math.round(totalContractedAmount).toLocaleString('en-IN'));
-        setEl('kpiCollected', '₹' + Math.round(actualCollectedAmount).toLocaleString('en-IN'));
-        setEl('kpiOutstanding', '₹' + Math.round(outstandingBalance).toLocaleString('en-IN'));
+        setEl('kpiTotalBookings', data.totalBookings || 0);
+        setEl('kpiUpcoming', data.upcomingEvents || 0);
+        setEl('kpiPending', data.awaitingAdvance || 0);
+        setEl('kpiAwaitingAdvance', data.awaitingAdvance || 0);
+        setEl('kpiAdvanceCollected', data.advanceCollected || 0);
+        setEl('kpiBalancePending', data.remainingBalancePending || 0);
+        setEl('kpiFullyPaid', data.fullyPaidBookings || 0);
+        setEl('kpiCancelled', data.cancelledBookings || 0);
+        setEl('kpiTotalAmount', '₹' + Math.round(data.totalAmountBooked || 0).toLocaleString('en-IN'));
+        setEl('kpiCollected', '₹' + Math.round(data.actualPaymentsCollected || 0).toLocaleString('en-IN'));
+        setEl('kpiOutstanding', '₹' + Math.round(data.outstandingBalance || 0).toLocaleString('en-IN'));
 
         const navBadge = document.getElementById('navEnquiryBadge');
         if (navBadge) {
-          navBadge.textContent = pendingCount;
-          navBadge.style.display = pendingCount > 0 ? 'inline-flex' : 'none';
+          const pCount = data.awaitingAdvance || 0;
+          navBadge.textContent = pCount;
+          navBadge.style.display = pCount > 0 ? 'inline-flex' : 'none';
         }
 
         // Update tab pill counts in All Bookings
-        const totalAll = allBookings.length;
-        const allPending = allBookings.filter(b => ENQUIRY_STATUSES.includes(b.status)).length;
-        const allAdvPaid = allBookings.filter(b => ['ADVANCE_PAID', 'advance_verified', 'advance_paid'].includes(b.status)).length;
-        const allFullyPaid = allBookings.filter(b => b.status === 'FULLY_PAID' || b.payment_status === 'fully_paid').length;
-        const allRejected = allBookings.filter(b => REJECTED_STATUSES.includes(b.status)).length;
-
-        setEl('countTabAll', totalAll);
-        setEl('countTabEnquiries', allPending);
-        setEl('countTabPendingAdv', allBookings.filter(b => b.status === 'CONFIRMED_PENDING_ADVANCE').length);
-        setEl('countTabAdvancePaid', allAdvPaid);
-        setEl('countTabFullyPaid', allFullyPaid);
-        setEl('countTabRejected', allRejected);
+        if (data.tabCounts) {
+          setEl('countTabAll', data.tabCounts.totalAll || 0);
+          setEl('countTabEnquiries', data.tabCounts.countEnquiries || 0);
+          setEl('countTabPendingAdv', data.tabCounts.countPendingAdv || 0);
+          setEl('countTabAdvancePaid', data.tabCounts.countAdvancePaid || 0);
+          setEl('countTabFullyPaid', data.tabCounts.countFullyPaid || 0);
+          setEl('countTabRejected', data.tabCounts.countRejected || 0);
+        }
 
         // Fetch monthly expenses for KPI
         try {
@@ -3899,6 +3849,7 @@
         // Render Due Payments table
         const dueTbody = document.getElementById('tblDuePayments');
         if (dueTbody) {
+          const duePayments = data.duePayments || [];
           if (duePayments.length === 0) {
             dueTbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:1.5rem;color:rgba(245,240,232,0.4);">No urgent overdue balances found.</td></tr>`;
           } else {
@@ -3936,6 +3887,7 @@
         // Render Upcoming Events table
         const upTbody = document.getElementById('tblUpcomingEvents');
         if (upTbody) {
+          const upcomingEventsList = data.upcomingEventsList || [];
           if (upcomingEventsList.length === 0) {
             upTbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:1.5rem;color:rgba(245,240,232,0.4);">No events scheduled in the next 7 days.</td></tr>`;
           } else {
@@ -5077,29 +5029,32 @@
 
     async function handleDateBlockSubmit(event) {
       event.preventDefault();
-      const hall = document.getElementById('blockHall').value;
-      const block_date = document.getElementById('blockDate').value;
-      const reason = document.getElementById('blockReason').value.trim() || 'Admin Block';
+      const saveBtn = document.getElementById('btnSaveDateBlock');
+      await withSubmitGuard(saveBtn, async () => {
+        const hall = document.getElementById('blockHall').value;
+        const block_date = document.getElementById('blockDate').value;
+        const reason = document.getElementById('blockReason').value.trim() || 'Admin Block';
 
-      try {
-        const res = await authFetch('/api/date-blocks', {
-          method: 'POST',
-          body: { hall, block_date, reason }
-        });
-        const data = await res.json();
-        if (res.ok && data.success) {
-          showToast(`Date ${block_date} successfully blocked for ${hall}`);
-          closeModal('modalDateBlock');
-          allDateBlocks = [];
-          loadOverview();
-          renderCalendar('hakimi');
-          renderCalendar('qadri');
-        } else {
-          showToast(data.error || 'Failed to block date', true);
+        try {
+          const res = await authFetch('/api/date-blocks', {
+            method: 'POST',
+            body: { hall, block_date, reason }
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            showToast(`Date ${block_date} successfully blocked for ${hall}`);
+            closeModal('modalDateBlock');
+            allDateBlocks = [];
+            loadOverview();
+            renderCalendar('hakimi');
+            renderCalendar('qadri');
+          } else {
+            showToast(data.error || 'Failed to block date', true);
+          }
+        } catch (err) {
+          showToast('Error: ' + err.message, true);
         }
-      } catch (err) {
-        showToast('Error: ' + err.message, true);
-      }
+      }, 'Blocking Date...');
     }
 
     async function unblockDate(id, hall, date) {
@@ -5146,36 +5101,39 @@
 
     async function handleCancelBookingSubmit(event) {
       event.preventDefault();
-      const bookingId = document.getElementById('cancelBookingId').value;
-      const reason = document.getElementById('cancelReason').value.trim();
-      const refund_status = document.getElementById('cancelRefundStatus').value;
-      const refund_amount = parseFloat(document.getElementById('cancelRefundAmount').value) || 0;
+      const saveBtn = document.getElementById('btnConfirmCancelBooking');
+      await withSubmitGuard(saveBtn, async () => {
+        const bookingId = document.getElementById('cancelBookingId').value;
+        const reason = document.getElementById('cancelReason').value.trim();
+        const refund_status = document.getElementById('cancelRefundStatus').value;
+        const refund_amount = parseFloat(document.getElementById('cancelRefundAmount').value) || 0;
 
-      if (!reason) {
-        showToast('Please provide a cancellation reason', true);
-        return;
-      }
-
-      try {
-        const res = await authFetch(`/api/bookings/${bookingId}/cancel`, {
-          method: 'POST',
-          body: { reason, refund_status, refund_amount }
-        });
-        const data = await res.json();
-        if (res.ok && data.success) {
-          showToast(data.message || 'Booking cancelled and slot released successfully');
-          closeModal('modalCancelBooking');
-          allBookings = [];
-          loadOverview();
-          loadBookings();
-          renderCalendar('hakimi');
-          renderCalendar('qadri');
-        } else {
-          showToast(data.error || 'Failed to cancel booking', true);
+        if (!reason) {
+          showToast('Please provide a cancellation reason', true);
+          return;
         }
-      } catch (err) {
-        showToast('Error: ' + err.message, true);
-      }
+
+        try {
+          const res = await authFetch(`/api/bookings/${bookingId}/cancel`, {
+            method: 'POST',
+            body: { reason, refund_status, refund_amount }
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            showToast(data.message || 'Booking cancelled and slot released successfully');
+            closeModal('modalCancelBooking');
+            allBookings = [];
+            loadOverview();
+            loadBookings();
+            renderCalendar('hakimi');
+            renderCalendar('qadri');
+          } else {
+            showToast(data.error || 'Failed to cancel booking', true);
+          }
+        } catch (err) {
+          showToast('Error: ' + err.message, true);
+        }
+      }, 'Cancelling...');
     }
 
     /* ════════ 4. BOOKINGS MANAGEMENT ════════ */
@@ -5705,76 +5663,79 @@
 
     async function handleBookingSubmit(e) {
       e.preventDefault();
-      const editId = document.getElementById('bEditId').value;
-      const payload = {
-        hall: document.getElementById('bHall').value,
-        check_in: document.getElementById('bDate').value,
-        slot: document.getElementById('bSlot').value,
-        package: document.getElementById('bPkg').value,
-        customer_name: document.getElementById('bName').value,
-        phone: document.getElementById('bPhone').value,
-        occasion: document.getElementById('bOccasion').value,
-        guests: document.getElementById('bGuests').value ? parseInt(document.getElementById('bGuests').value, 10) : 0,
-        price: parseFloat(document.getElementById('bPrice').value),
-        advance_amount: parseFloat(document.getElementById('bAdvance').value),
-        status: document.getElementById('bStatus').value,
-        notes: document.getElementById('bNotes').value
-      };
+      const saveBtn = document.getElementById('btnSaveBooking');
+      await withSubmitGuard(saveBtn, async () => {
+        const editId = document.getElementById('bEditId').value;
+        const payload = {
+          hall: document.getElementById('bHall').value,
+          check_in: document.getElementById('bDate').value,
+          slot: document.getElementById('bSlot').value,
+          package: document.getElementById('bPkg').value,
+          customer_name: document.getElementById('bName').value,
+          phone: document.getElementById('bPhone').value,
+          occasion: document.getElementById('bOccasion').value,
+          guests: document.getElementById('bGuests').value ? parseInt(document.getElementById('bGuests').value, 10) : 0,
+          price: parseFloat(document.getElementById('bPrice').value),
+          advance_amount: parseFloat(document.getElementById('bAdvance').value),
+          status: document.getElementById('bStatus').value,
+          notes: document.getElementById('bNotes').value
+        };
 
-      if (!editId) {
-        payload.advance_paid = parseFloat(document.getElementById('bAdvancePaid').value || 0);
-        payload.payment_method = document.getElementById('bPayMethod').value;
-      }
-
-      if (payload.slot === 'majlis') {
-        const sTime = document.getElementById('bStartTime').value;
-        const eTime = document.getElementById('bEndTime').value;
-        if (!sTime || !eTime) {
-          showToast('Please specify start and end time for custom timing', true);
-          return;
+        if (!editId) {
+          payload.advance_paid = parseFloat(document.getElementById('bAdvancePaid').value || 0);
+          payload.payment_method = document.getElementById('bPayMethod').value;
         }
-        if (sTime >= eTime) {
-          showToast('End time must be after start time', true);
-          return;
-        }
-        payload.start_time = sTime;
-        payload.end_time = eTime;
-      } else {
-        payload.start_time = null;
-        payload.end_time = null;
-      }
 
-      const todayKolkata = getTodayKolkata();
-      const isQadri = (payload.hall || '').toLowerCase().includes('qadri');
-      if (!editId && payload.check_in < todayKolkata) {
-        showToast('Cannot create bookings for past dates', true);
-        return;
-      }
-      if (isQadri && payload.check_in < '2026-11-21') {
-        showToast('Qadri Hall bookings open from 21 November 2026 onwards', true);
-        return;
-      }
-
-      try {
-        const url = editId ? `/api/bookings/${editId}` : '/api/bookings';
-        const method = editId ? 'PUT' : 'POST';
-        const res = await authFetch(url, { method, body: payload });
-        const data = await res.json();
-
-        if (res.ok) {
-          showToast(editId ? 'Booking updated successfully' : 'Booking created successfully');
-          closeModal('modalBooking');
-          allBookings = [];
-          loadBookings();
-          loadOverview();
-          loadCalendarHakimi();
-          loadCalendarQadri();
+        if (payload.slot === 'majlis') {
+          const sTime = document.getElementById('bStartTime').value;
+          const eTime = document.getElementById('bEndTime').value;
+          if (!sTime || !eTime) {
+            showToast('Please specify start and end time for custom timing', true);
+            return;
+          }
+          if (sTime >= eTime) {
+            showToast('End time must be after start time', true);
+            return;
+          }
+          payload.start_time = sTime;
+          payload.end_time = eTime;
         } else {
-          showToast(data.error || 'Failed to save booking', true);
+          payload.start_time = null;
+          payload.end_time = null;
         }
-      } catch (err) {
-        showToast('Error saving booking: ' + err.message, true);
-      }
+
+        const todayKolkata = getTodayKolkata();
+        const isQadri = (payload.hall || '').toLowerCase().includes('qadri');
+        if (!editId && payload.check_in < todayKolkata) {
+          showToast('Cannot create bookings for past dates', true);
+          return;
+        }
+        if (isQadri && payload.check_in < '2026-11-21') {
+          showToast('Qadri Hall bookings open from 21 November 2026 onwards', true);
+          return;
+        }
+
+        try {
+          const url = editId ? `/api/bookings/${editId}` : '/api/bookings';
+          const method = editId ? 'PUT' : 'POST';
+          const res = await authFetch(url, { method, body: payload });
+          const data = await res.json();
+
+          if (res.ok) {
+            showToast(editId ? 'Booking updated successfully' : 'Booking created successfully');
+            closeModal('modalBooking');
+            allBookings = [];
+            loadBookings();
+            loadOverview();
+            loadCalendarHakimi();
+            loadCalendarQadri();
+          } else {
+            showToast(data.error || 'Failed to save booking', true);
+          }
+        } catch (err) {
+          showToast('Error saving booking: ' + err.message, true);
+        }
+      }, 'Saving Booking...');
     }
 
     async function updateBookingStatus(id, newStatus) {
@@ -6001,34 +5962,37 @@
 
     async function handleExpenseSubmit(e) {
       e.preventDefault();
-      const id = document.getElementById('expEditId').value;
-      const payload = {
-        description: document.getElementById('eDesc').value,
-        hall: document.getElementById('eHall').value || 'Evan-e-Hakimi',
-        category: document.getElementById('eCat').value,
-        amount: parseFloat(document.getElementById('eAmount').value),
-        date: document.getElementById('eDate').value,
-        payment_method: document.getElementById('ePayMethod').value,
-        paid_to: document.getElementById('ePaidTo').value,
-        notes: document.getElementById('eNotes').value
-      };
+      const saveBtn = document.getElementById('btnSaveExpense');
+      await withSubmitGuard(saveBtn, async () => {
+        const id = document.getElementById('expEditId').value;
+        const payload = {
+          description: document.getElementById('eDesc').value,
+          hall: document.getElementById('eHall').value || 'Evan-e-Hakimi',
+          category: document.getElementById('eCat').value,
+          amount: parseFloat(document.getElementById('eAmount').value),
+          date: document.getElementById('eDate').value,
+          payment_method: document.getElementById('ePayMethod').value,
+          paid_to: document.getElementById('ePaidTo').value,
+          notes: document.getElementById('eNotes').value
+        };
 
-      try {
-        const url = id ? `/api/expenses/${id}` : '/api/expenses';
-        const method = id ? 'PUT' : 'POST';
-        const res = await authFetch(url, { method, body: payload });
-        const data = await res.json();
-        if (res.ok) {
-          showToast(id ? 'Expense updated' : 'Expense recorded successfully');
-          closeModal('modalExpense');
-          loadExpenses();
-          loadOverview();
-        } else {
-          showToast(data.error || 'Failed to save expense', true);
+        try {
+          const url = id ? `/api/expenses/${id}` : '/api/expenses';
+          const method = id ? 'PUT' : 'POST';
+          const res = await authFetch(url, { method, body: payload });
+          const data = await res.json();
+          if (res.ok) {
+            showToast(id ? 'Expense updated' : 'Expense recorded successfully');
+            closeModal('modalExpense');
+            loadExpenses();
+            loadOverview();
+          } else {
+            showToast(data.error || 'Failed to save expense', true);
+          }
+        } catch (err) {
+          showToast('Error: ' + err.message, true);
         }
-      } catch (err) {
-        showToast('Error: ' + err.message, true);
-      }
+      }, 'Saving Expense...');
     }
 
     async function deleteExpense(id) {
@@ -6174,32 +6138,35 @@
 
     async function handleStaffSubmit(e) {
       e.preventDefault();
-      const id = document.getElementById('staffEditId').value;
-      const payload = {
-        name: document.getElementById('sName').value,
-        phone: document.getElementById('sPhone').value,
-        role: document.getElementById('sRole').value,
-        salary: parseFloat(document.getElementById('sSalary').value),
-        joining_date: document.getElementById('sJoinDate').value,
-        status: document.getElementById('sStatus').value,
-        notes: document.getElementById('sNotes').value
-      };
+      const saveBtn = document.getElementById('btnSaveStaff');
+      await withSubmitGuard(saveBtn, async () => {
+        const id = document.getElementById('staffEditId').value;
+        const payload = {
+          name: document.getElementById('sName').value,
+          phone: document.getElementById('sPhone').value,
+          role: document.getElementById('sRole').value,
+          salary: parseFloat(document.getElementById('sSalary').value),
+          joining_date: document.getElementById('sJoinDate').value,
+          status: document.getElementById('sStatus').value,
+          notes: document.getElementById('sNotes').value
+        };
 
-      try {
-        const url = id ? `/api/staff/${id}` : '/api/staff';
-        const method = id ? 'PUT' : 'POST';
-        const res = await authFetch(url, { method, body: payload });
-        const data = await res.json();
-        if (res.ok) {
-          showToast(id ? 'Staff profile updated' : 'Staff member registered successfully');
-          closeModal('modalStaff');
-          loadStaff();
-        } else {
-          showToast(data.error || 'Failed to save staff profile', true);
+        try {
+          const url = id ? `/api/staff/${id}` : '/api/staff';
+          const method = id ? 'PUT' : 'POST';
+          const res = await authFetch(url, { method, body: payload });
+          const data = await res.json();
+          if (res.ok) {
+            showToast(id ? 'Staff profile updated' : 'Staff member registered successfully');
+            closeModal('modalStaff');
+            loadStaff();
+          } else {
+            showToast(data.error || 'Failed to save staff profile', true);
+          }
+        } catch (err) {
+          showToast('Error: ' + err.message, true);
         }
-      } catch (err) {
-        showToast('Error: ' + err.message, true);
-      }
+      }, 'Saving Staff...');
     }
 
     async function deleteStaff(id) {
@@ -6244,33 +6211,37 @@
 
     async function handleSalaryPaymentSubmit(e) {
       e.preventDefault();
-      const staffId = document.getElementById('salStaffId').value;
-      const payload = {
-        staff_id: parseInt(staffId, 10),
-        period: document.getElementById('salPeriod').value,
-        amount_paid: parseFloat(document.getElementById('salAmount').value),
-        payment_date: document.getElementById('salDate').value,
-        payment_method: document.getElementById('salMethod').value,
-        notes: document.getElementById('salNotes').value
-      };
+      const saveBtn = document.getElementById('btnSubmitSalaryPayment');
+      await withSubmitGuard(saveBtn, async () => {
+        const staffId = document.getElementById('salStaffId').value;
+        const payload = {
+          staff_id: parseInt(staffId, 10),
+          period: document.getElementById('salPeriod').value,
+          amount_paid: parseFloat(document.getElementById('salAmount').value),
+          payment_date: document.getElementById('salDate').value,
+          payment_method: document.getElementById('salMethod').value,
+          notes: document.getElementById('salNotes').value
+        };
 
-      try {
-        const res = await authFetch('/api/staff/salary-payments', {
-          method: 'POST',
-          body: payload
-        });
-        const data = await res.json();
-        if (res.ok) {
-          showToast(`Salary payment of ₹${payload.amount_paid} recorded for ${payload.period}`);
-          closeModal('modalSalaryPay');
-          loadSalaryPayments();
-          loadStaff();
-        } else {
-          showToast(data.error || 'Failed to record salary payment', true);
+        try {
+          const res = await authFetch('/api/staff/salary-payments', {
+            method: 'POST',
+            body: payload
+          });
+          const data = await res.json();
+          if (res.ok) {
+            showToast(`Salary payment of ₹${payload.amount_paid} recorded for ${payload.period}`);
+            closeModal('modalSalaryPay');
+            loadSalaryPayments();
+            loadStaff();
+            loadOverview();
+          } else {
+            showToast(data.error || 'Failed to record salary payment', true);
+          }
+        } catch (err) {
+          showToast('Error: ' + err.message, true);
         }
-      } catch (err) {
-        showToast('Error: ' + err.message, true);
-      }
+      }, 'Recording Salary...');
     }
 
     /* ════════ 7. REPORTS & ANALYTICS ════════ */
@@ -6448,11 +6419,81 @@
       return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
+    /* ════════ REAL-TIME MULTI-DEVICE SYNCHRONIZATION ════════ */
+    let lastKnownRevisions = {};
+    let syncIntervalId = null;
+    let isCheckingRevisions = false;
+
+    async function checkRevisionsNow() {
+      if (!authToken || isCheckingRevisions || document.visibilityState !== 'visible') return;
+      isCheckingRevisions = true;
+      try {
+        const res = await authFetch('/api/sync/revisions');
+        if (!res.ok) return;
+        const data = await res.json();
+        const serverRevs = data.revisions || {};
+
+        // If first run, store initial baseline
+        if (Object.keys(lastKnownRevisions).length === 0) {
+          lastKnownRevisions = { ...serverRevs };
+          return;
+        }
+
+        let bookingsChanged = (serverRevs.bookings || 0) > (lastKnownRevisions.bookings || 0);
+        let blocksChanged = (serverRevs.date_blocks || 0) > (lastKnownRevisions.date_blocks || 0);
+        let expensesChanged = (serverRevs.expenses || 0) > (lastKnownRevisions.expenses || 0);
+        let staffChanged = (serverRevs.staff || 0) > (lastKnownRevisions.staff || 0);
+
+        lastKnownRevisions = { ...serverRevs };
+
+        // Targeted selective refresh based on current active screen
+        if (bookingsChanged || blocksChanged) {
+          allBookings = [];
+          allDateBlocks = [];
+          if (currentNavKey === 'overview') loadOverview();
+          else if (currentNavKey === 'bookings') loadBookings();
+          else if (currentNavKey === 'cal-hakimi') loadCalendarHakimi();
+          else if (currentNavKey === 'cal-qadri') loadCalendarQadri();
+          else if (currentNavKey === 'cal-combined') renderCalendar('combined');
+        }
+
+        if (expensesChanged) {
+          if (currentNavKey === 'expenses') loadExpenses();
+          else if (currentNavKey === 'overview') loadOverview();
+        }
+
+        if (staffChanged) {
+          if (currentNavKey === 'staff') {
+            loadStaff();
+            loadSalaryPayments();
+          }
+        }
+      } catch (err) {
+        // Silent background polling resilience
+      } finally {
+        isCheckingRevisions = false;
+      }
+    }
+
+    function startMultiDeviceSync() {
+      if (syncIntervalId) clearInterval(syncIntervalId);
+      checkRevisionsNow();
+      // Poll every 4 seconds when window is active
+      syncIntervalId = setInterval(checkRevisionsNow, 4000);
+
+      window.addEventListener('focus', checkRevisionsNow);
+      window.addEventListener('online', checkRevisionsNow);
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') checkRevisionsNow();
+      });
+    }
+
     // Initialize application on DOM load
     window.addEventListener('DOMContentLoaded', () => {
       initLuxuryDatePickers();
       if (authToken) {
         loadOverview();
+        startMultiDeviceSync();
       }
     });
 
@@ -6587,7 +6628,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="action-btn" onclick="closeModal('modalDateBlock')">Cancel</button>
-          <button type="submit" class="btn-quick" style="background:#ef4444;color:#fff;"><i class="fas fa-ban"></i> Block Full Day</button>
+          <button type="submit" class="btn-quick" id="btnSaveDateBlock" style="background:#ef4444;color:#fff;"><i class="fas fa-ban"></i> Block Full Day</button>
         </div>
       </form>
     </div>
@@ -6630,7 +6671,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="action-btn" onclick="closeModal('modalCancelBooking')">Keep Booking</button>
-          <button type="submit" class="btn-quick" style="background:#ef4444;color:#fff;"><i class="fas fa-times"></i> Confirm Cancellation</button>
+          <button type="submit" class="btn-quick" id="btnConfirmCancelBooking" style="background:#ef4444;color:#fff;"><i class="fas fa-times"></i> Confirm Cancellation</button>
         </div>
       </form>
     </div>

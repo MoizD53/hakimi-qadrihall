@@ -140,6 +140,8 @@ async function migrate() {
       { name: 'paid_to', def: 'TEXT' },
       { name: 'hall', def: "TEXT DEFAULT 'Evan-e-Hakimi'" },
       { name: 'receipt_url', def: 'TEXT' },
+      { name: 'staff_id', def: 'INTEGER' },
+      { name: 'salary_payment_id', def: 'INTEGER' },
       { name: 'updated_at', def: 'TIMESTAMP' }
     ];
 
@@ -151,6 +153,7 @@ async function migrate() {
     }
 
     await db.execute("UPDATE expenses SET hall = 'Evan-e-Hakimi' WHERE hall IS NULL OR hall = ''");
+    await db.execute(`CREATE UNIQUE INDEX IF NOT EXISTS idx_expenses_salary_payment ON expenses(salary_payment_id) WHERE salary_payment_id IS NOT NULL`);
 
     // 4. Create staff_salary_payments table
     console.log('Ensuring staff_salary_payments table exists...');
@@ -219,6 +222,79 @@ async function migrate() {
     await db.execute(`CREATE UNIQUE INDEX IF NOT EXISTS idx_date_blocks_hall_date ON date_blocks(hall, block_date)`);
     await db.execute(`CREATE INDEX IF NOT EXISTS idx_bookings_date_hall ON bookings(check_in, hall)`);
     await db.execute(`CREATE INDEX IF NOT EXISTS idx_bookings_status ON bookings(status)`);
+    await db.execute(`CREATE INDEX IF NOT EXISTS idx_bookings_hall_checkin ON bookings(hall, check_in)`);
+    await db.execute(`CREATE INDEX IF NOT EXISTS idx_bookings_checkin_status ON bookings(check_in, status)`);
+
+    // 8. Create calendar_sync_outbox table for asynchronous durable calendar sync jobs
+    console.log('Ensuring calendar_sync_outbox table exists...');
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS calendar_sync_outbox (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        booking_id INTEGER NOT NULL,
+        hall TEXT NOT NULL,
+        event_date TEXT NOT NULL,
+        slot TEXT NOT NULL,
+        action TEXT NOT NULL,
+        status TEXT DEFAULT 'pending',
+        attempts INTEGER DEFAULT 0,
+        last_attempt TIMESTAMP,
+        last_error TEXT,
+        synced_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    await db.execute(`CREATE INDEX IF NOT EXISTS idx_sync_outbox_status ON calendar_sync_outbox(status)`);
+    await db.execute(`CREATE INDEX IF NOT EXISTS idx_sync_outbox_booking ON calendar_sync_outbox(booking_id)`);
+
+    // 9. Create app_revisions table for real-time cross-device synchronization
+    console.log('Ensuring app_revisions table exists...');
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS app_revisions (
+        domain TEXT PRIMARY KEY,
+        version INTEGER NOT NULL DEFAULT 1,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    const defaultDomains = ['global', 'bookings', 'calendar_hakimi', 'calendar_qadri', 'expenses', 'staff', 'date_blocks'];
+    for (const d of defaultDomains) {
+      await db.execute({
+        sql: `INSERT OR IGNORE INTO app_revisions (domain, version, updated_at) VALUES (?, 1, CURRENT_TIMESTAMP)`,
+        args: [d]
+      });
+    }
+
+    // 10. Create idempotency_keys table for bulletproof server-side duplicate prevention
+    console.log('Ensuring idempotency_keys table exists...');
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS idempotency_keys (
+        key TEXT PRIMARY KEY,
+        user_id TEXT,
+        method TEXT NOT NULL,
+        path TEXT NOT NULL,
+        request_hash TEXT,
+        status TEXT DEFAULT 'PROCESSING',
+        status_code INTEGER,
+        response_body TEXT,
+        locked_until TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Dynamically ensure new columns exist if table was previously created
+    const existingIdemColsRes = await db.execute("PRAGMA table_info(idempotency_keys)");
+    const existingIdemColNames = existingIdemColsRes.rows.map(r => r.name);
+    const idemColsToAdd = [
+      { name: 'user_id', def: 'TEXT' },
+      { name: 'request_hash', def: 'TEXT' },
+      { name: 'status', def: "TEXT DEFAULT 'PROCESSING'" }
+    ];
+    for (const c of idemColsToAdd) {
+      if (!existingIdemColNames.includes(c.name)) {
+        await db.execute(`ALTER TABLE idempotency_keys ADD COLUMN ${c.name} ${c.def}`);
+      }
+    }
+    await db.execute(`CREATE INDEX IF NOT EXISTS idx_idempotency_created ON idempotency_keys(created_at)`);
 
     console.log('✅ Turso migration completed successfully!');
   } catch (err) {

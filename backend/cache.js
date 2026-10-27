@@ -34,6 +34,10 @@ class MemoryCache {
     this.store.set(key, { value, expiry });
   }
 
+  del(key) {
+    this.store.delete(key);
+  }
+
   invalidate(prefix) {
     if (!prefix) {
       this.store.clear();
@@ -46,8 +50,41 @@ class MemoryCache {
     }
   }
 
+  invalidateDomain(domain, hall) {
+    if (domain === 'bookings' || domain === 'calendar' || domain === 'date_blocks') {
+      if (hall) {
+        this.invalidate(`calendar:${hall}`);
+      } else {
+        this.invalidate('calendar');
+      }
+      this.invalidate('bookings');
+      this.invalidate('summary');
+      this.invalidate('reports');
+    } else if (domain === 'expenses') {
+      this.invalidate('expenses');
+      this.invalidate('summary:expenses');
+      this.invalidate('reports');
+    } else if (domain === 'staff') {
+      this.invalidate('staff');
+      this.invalidate('reports');
+    } else {
+      this.invalidateAll();
+    }
+  }
+
   invalidateAll() {
     this.store.clear();
+  }
+
+  stats() {
+    const total = (dbMetrics.cacheHits || 0) + (dbMetrics.cacheMisses || 0);
+    const hitRate = total > 0 ? Number(((dbMetrics.cacheHits / total) * 100).toFixed(1)) : 0;
+    return {
+      keys: this.store.size,
+      hits: dbMetrics.cacheHits || 0,
+      misses: dbMetrics.cacheMisses || 0,
+      hitRate: `${hitRate}%`
+    };
   }
 
   size() {

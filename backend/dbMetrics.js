@@ -197,31 +197,29 @@ class DbMetricsManager {
     this.initialized = true;
 
     try {
-      // 1. Ensure table and missing indexes exist
-      await client.execute(`
-        CREATE TABLE IF NOT EXISTS db_usage_metrics (
-          period TEXT PRIMARY KEY,
-          rows_read INTEGER DEFAULT 0,
-          rows_written INTEGER DEFAULT 0,
-          query_count INTEGER DEFAULT 0,
-          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
-
-      // Performance indexes on critical foreign keys and filter fields
-      await client.execute(`CREATE INDEX IF NOT EXISTS idx_payments_booking_id ON booking_payments(booking_id)`);
-      await client.execute(`CREATE INDEX IF NOT EXISTS idx_payments_date ON booking_payments(payment_date)`);
-      await client.execute(`CREATE INDEX IF NOT EXISTS idx_expenses_date_hall ON expenses(date, hall)`);
-      await client.execute(`CREATE INDEX IF NOT EXISTS idx_salary_staff_period ON staff_salary_payments(staff_id, period)`);
-      await client.execute(`CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_logs(created_at)`);
-      await client.execute(`CREATE INDEX IF NOT EXISTS idx_bookings_date_hall ON bookings(check_in, hall)`);
-      await client.execute(`CREATE INDEX IF NOT EXISTS idx_bookings_status ON bookings(status)`);
-
-      // 2. Load metrics for current period
-      const res = await client.execute({
-        sql: `SELECT rows_read, rows_written, query_count FROM db_usage_metrics WHERE period = ?`,
-        args: [this.currentPeriod]
-      });
+      // Fast single-query metrics load (indexes and tables are permanently provisioned via migration.js)
+      let res;
+      try {
+        res = await client.execute({
+          sql: `SELECT rows_read, rows_written, query_count FROM db_usage_metrics WHERE period = ?`,
+          args: [this.currentPeriod]
+        });
+      } catch (tableErr) {
+        // Only create table if missing (first run)
+        await client.execute(`
+          CREATE TABLE IF NOT EXISTS db_usage_metrics (
+            period TEXT PRIMARY KEY,
+            rows_read INTEGER DEFAULT 0,
+            rows_written INTEGER DEFAULT 0,
+            query_count INTEGER DEFAULT 0,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          )
+        `);
+        res = await client.execute({
+          sql: `SELECT rows_read, rows_written, query_count FROM db_usage_metrics WHERE period = ?`,
+          args: [this.currentPeriod]
+        });
+      }
 
       if (res.rows && res.rows.length > 0) {
         const row = res.rows[0];
