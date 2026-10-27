@@ -137,10 +137,17 @@ app.use((req, res, next) => {
     queries: []
   };
 
+  const origEnd = res.end;
+  res.end = function (...args) {
+    if (!res.headersSent) {
+      res.setHeader('X-Response-Time', `${Date.now() - t0}ms`);
+    }
+    return origEnd.apply(this, args);
+  };
+
   db.perfStorage.run(perfContext, () => {
     res.on('finish', () => {
       const dur = Date.now() - t0;
-      res.setHeader('X-Response-Time', `${dur}ms`);
       const metric = {
         requestId: reqId,
         method: req.method,

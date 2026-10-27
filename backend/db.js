@@ -68,7 +68,13 @@ async function bumpRevision(domain) {
         args: [domain]
       });
     }
-    await client.batch(stmts, 'write');
+    if (origBatch) {
+      await origBatch(stmts.map(s => ({ sql: s.sql, args: s.args })), 'write');
+    } else {
+      for (const s of stmts) {
+        await client.execute({ sql: s.sql, args: s.args });
+      }
+    }
   } catch (_) {
     // Non-blocking revision telemetry
   }
@@ -173,7 +179,7 @@ client.batch = async function (statements, mode = 'write') {
 const origTx = client.transaction.bind(client);
 client.transaction = async function (mode = 'write') {
   const tx = await origTx(mode);
-  let hasMutation = false;
+  const mutatedSqls = [];
 
   tx.query = async function (sqlOrObj, params = []) {
     const sql = typeof sqlOrObj === 'string' ? sqlOrObj : (sqlOrObj.text || sqlOrObj.sql);
@@ -196,8 +202,7 @@ client.transaction = async function (mode = 'write') {
     recordQueryPerf(sql, dur, readCount, writeCount);
 
     if (writeCount > 0) {
-      hasMutation = true;
-      await checkInvalidation(sql);
+      mutatedSqls.push(sql);
     }
 
     return {
@@ -211,6 +216,14 @@ client.transaction = async function (mode = 'write') {
   if (origCommit) {
     tx.commit = async function () {
       const result = await origCommit();
+      // Safely process cache invalidation and revision bumps ONLY AFTER the transaction has committed
+      if (mutatedSqls.length > 0) {
+        for (const s of mutatedSqls) {
+          try {
+            await checkInvalidation(s);
+          } catch (_) {}
+        }
+      }
       return result;
     };
   }
