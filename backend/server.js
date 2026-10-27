@@ -3051,10 +3051,17 @@ app.get('/api/sync/revisions', requireAuth, async (req, res) => {
     const rows = await db.query('SELECT domain, version, updated_at FROM app_revisions');
     const revisions = {};
     let latestTs = null;
+    let revHash = '';
     (rows.rows || []).forEach(r => {
       revisions[r.domain] = r.version;
+      revHash += `${r.domain}:${r.version};`;
       if (!latestTs || r.updated_at > latestTs) latestTs = r.updated_at;
     });
+    const etag = `"${Buffer.from(revHash).toString('base64')}"`;
+    if (req.headers['if-none-match'] === etag) {
+      return res.status(304).end();
+    }
+    res.setHeader('ETag', etag);
     res.setHeader('Cache-Control', 'no-store');
     res.json({ success: true, revisions, updated_at: latestTs });
   } catch (err) {

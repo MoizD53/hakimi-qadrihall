@@ -6478,8 +6478,8 @@
     function startMultiDeviceSync() {
       if (syncIntervalId) clearInterval(syncIntervalId);
       checkRevisionsNow();
-      // Poll every 4 seconds when window is active
-      syncIntervalId = setInterval(checkRevisionsNow, 4000);
+      // Poll every 15 seconds when window is active (conserves serverless CPU while preserving focus/online instant checks)
+      syncIntervalId = setInterval(checkRevisionsNow, 15000);
 
       window.addEventListener('focus', checkRevisionsNow);
       window.addEventListener('online', checkRevisionsNow);
