@@ -1188,12 +1188,6 @@ app.get('/api/bookings/check-availability', async (req, res) => {
     const checkSlot = slot ? String(slot).toLowerCase().trim() : null;
     const excludeId = excludeBookingId ? parseInt(excludeBookingId, 10) : 0;
 
-    const cacheKey = `avail:${cleanDate}:${cleanHall}:${checkSlot || 'all'}:${excludeId}:${req.query.start_time || ''}:${req.query.end_time || ''}`;
-    const cached = memoryCache.get(cacheKey);
-    if (cached) {
-      return res.json(cached);
-    }
-
     // Fetch all confirmed bookings on this date for both halls
     const result = await db.query(
       `SELECT id, customer_name, slot, hall, status, booking_reference, start_time, end_time FROM bookings 
@@ -1317,7 +1311,6 @@ app.get('/api/bookings/check-availability', async (req, res) => {
         [otherHallName]: otherHallSlots
       }
     };
-    memoryCache.set(cacheKey, availPayload, 60);
     res.json(availPayload);
   } catch (err) {
     sendError(res, 500, 'Failed to check availability', err);
@@ -2475,9 +2468,6 @@ app.delete('/api/date-blocks/:id', requireAuth, async (req, res) => {
 app.get('/api/expenses', requireAuth, async (req, res) => {
   try {
     const { category, payment_method, hall, from, to, search } = req.query;
-    const cacheKey = `expenses:${category || ''}:${payment_method || ''}:${hall || ''}:${from || ''}:${to || ''}:${search || ''}`;
-    const cached = memoryCache.get(cacheKey);
-    if (cached) return res.json(cached);
 
     let query = 'SELECT id as _id, * FROM expenses WHERE 1=1';
     const params = [];
@@ -2512,7 +2502,6 @@ app.get('/api/expenses', requireAuth, async (req, res) => {
 
     const result = await db.query(query, params);
     const rows = result.rows || [];
-    memoryCache.set(cacheKey, rows, 300);
     res.json(rows);
   } catch (err) {
     sendError(res, 500, 'Failed to fetch expenses', err);
@@ -2522,9 +2511,6 @@ app.get('/api/expenses', requireAuth, async (req, res) => {
 // GET /api/expenses/summary — Summary metrics
 app.get('/api/expenses/summary', requireAuth, async (req, res) => {
   try {
-    const cached = memoryCache.get('summary:expenses');
-    if (cached) return res.json(cached);
-
     const now = new Date();
     const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
@@ -2547,7 +2533,6 @@ app.get('/api/expenses/summary', requireAuth, async (req, res) => {
       categoryBreakdown: catRows
     };
 
-    memoryCache.set('summary:expenses', summaryPayload, 300);
     res.json(summaryPayload);
   } catch (err) {
     sendError(res, 500, 'Failed to fetch expense summary', err);
@@ -2639,9 +2624,6 @@ app.delete('/api/expenses/:id', requireAuth, async (req, res) => {
 app.get('/api/staff', requireAuth, async (req, res) => {
   try {
     const { role, status, search } = req.query;
-    const cacheKey = `staff:${role || ''}:${status || ''}:${search || ''}`;
-    const cached = memoryCache.get(cacheKey);
-    if (cached) return res.json(cached);
 
     let query = 'SELECT id as _id, * FROM staff WHERE 1=1';
     const params = [];
@@ -2664,7 +2646,6 @@ app.get('/api/staff', requireAuth, async (req, res) => {
 
     const result = await db.query(query, params);
     const rows = result.rows || [];
-    memoryCache.set(cacheKey, rows, 300);
     res.json(rows);
   } catch (err) {
     sendError(res, 500, 'Failed to fetch staff', err);
