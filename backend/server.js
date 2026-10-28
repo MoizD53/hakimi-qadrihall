@@ -2090,16 +2090,17 @@ app.delete('/api/bookings/:id', requireAuth, async (req, res) => {
     }
     const b = cur.rows[0];
 
+    // Single atomic round trip: delete payments, delete booking, record audit, bump revision
     await db.batch([
       { sql: 'DELETE FROM booking_payments WHERE booking_id = ?', args: [req.params.id] },
-      { sql: 'DELETE FROM bookings WHERE id = ?', args: [req.params.id] }
+      { sql: 'DELETE FROM bookings WHERE id = ?', args: [req.params.id] },
+      { sql: 'INSERT INTO audit_logs (action, entity_type, entity_id, details, user) VALUES (?, ?, ?, ?, ?)',
+        args: ['booking_deleted', 'booking', req.params.id, `Deleted booking #${req.params.id} (${b.customer_name}, ${b.check_in}, ${b.hall})`, req.admin.username] },
+      { sql: "INSERT INTO app_revisions (domain, version, updated_at) VALUES ('bookings', 1, CURRENT_TIMESTAMP) ON CONFLICT(domain) DO UPDATE SET version = version + 1, updated_at = CURRENT_TIMESTAMP", args: [] }
     ], 'write');
 
     memoryCache.invalidate('calendar');
-    await bumpAppRevision('bookings');
-    await logAudit('booking_deleted', 'booking', req.params.id, `Deleted booking #${req.params.id} (${b.customer_name}, ${b.check_in}, ${b.hall})`, req.admin.username);
-
-    res.json({ success: true });
+    res.json({ success: true, audited: true });
   } catch (err) {
     sendError(res, 500, 'Failed to delete booking', err);
   }
@@ -2378,9 +2379,15 @@ app.post('/api/date-blocks/unblock', requireAuth, async (req, res) => {
 app.delete('/api/date-blocks/:id', requireAuth, async (req, res) => {
   try {
     const id = req.params.id;
-    await db.query('DELETE FROM date_blocks WHERE id = ?', [id]);
-    await logAudit('date_unblocked', 'date_block', id, `Unblocked date id ${id}`, req.admin.username);
-    res.json({ success: true, message: 'Date block removed' });
+    // Single atomic round trip
+    await db.batch([
+      { sql: 'DELETE FROM date_blocks WHERE id = ?', args: [id] },
+      { sql: 'INSERT INTO audit_logs (action, entity_type, entity_id, details, user) VALUES (?, ?, ?, ?, ?)',
+        args: ['date_unblocked', 'date_block', id, `Unblocked date id ${id}`, req.admin.username] },
+      { sql: "INSERT INTO app_revisions (domain, version, updated_at) VALUES ('date_blocks', 1, CURRENT_TIMESTAMP) ON CONFLICT(domain) DO UPDATE SET version = version + 1, updated_at = CURRENT_TIMESTAMP", args: [] }
+    ], 'write');
+    memoryCache.invalidate('calendar');
+    res.json({ success: true, message: 'Date block removed', audited: true });
   } catch (err) {
     sendError(res, 500, 'Failed to remove date block', err);
   }
@@ -2435,12 +2442,9 @@ app.get('/api/expenses', requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/expenses/summary — Summary metrics
+// GET /api/expenses/summary — Summary metrics (Direct Live DB)
 app.get('/api/expenses/summary', requireAuth, async (req, res) => {
   try {
-    const cached = memoryCache.get('summary:expenses');
-    if (cached) return res.json(cached);
-
     const now = new Date();
     const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
@@ -2463,7 +2467,6 @@ app.get('/api/expenses/summary', requireAuth, async (req, res) => {
       categoryBreakdown: catRows
     };
 
-    memoryCache.set('summary:expenses', summaryPayload, 300);
     res.json(summaryPayload);
   } catch (err) {
     sendError(res, 500, 'Failed to fetch expense summary', err);
@@ -2584,31 +2587,29 @@ app.delete('/api/expenses/:id', requireAuth, async (req, res) => {
         });
       }
 
-      // Atomic reversal of expense voucher, salary payment record, AND the audit log in ONE write batch
+      // Single atomic round trip: delete expense, delete salary payment, update staff, record audit log, bump revisions
       const auditDetails = `Reversed salary voucher #${req.params.id} and salary payment #${e.salary_payment_id}`;
       await db.batch([
         { sql: 'DELETE FROM expenses WHERE id = ?', args: [req.params.id] },
         { sql: 'DELETE FROM staff_salary_payments WHERE id = ?', args: [e.salary_payment_id] },
         { sql: "UPDATE staff SET salary_status = 'pending' WHERE id = ?", args: [e.staff_id || 0] },
         { sql: 'INSERT INTO audit_logs (action, entity_type, entity_id, details, user) VALUES (?, ?, ?, ?, ?)',
-          args: ['salary_voucher_reversed', 'expense', req.params.id, auditDetails, req.admin.username] }
+          args: ['salary_voucher_reversed', 'expense', req.params.id, auditDetails, req.admin.username] },
+        { sql: "INSERT INTO app_revisions (domain, version, updated_at) VALUES ('expenses', 1, CURRENT_TIMESTAMP) ON CONFLICT(domain) DO UPDATE SET version = version + 1, updated_at = CURRENT_TIMESTAMP", args: [] },
+        { sql: "INSERT INTO app_revisions (domain, version, updated_at) VALUES ('staff', 1, CURRENT_TIMESTAMP) ON CONFLICT(domain) DO UPDATE SET version = version + 1, updated_at = CURRENT_TIMESTAMP", args: [] }
       ], 'write');
-
-      await bumpAppRevision('expenses');
-      await bumpAppRevision('staff');
 
       return res.json({ success: true, audited: true, reversedSalaryPaymentId: e.salary_payment_id });
     }
 
-    // Standard expense deletion: Atomic delete and audit write
+    // Standard expense deletion: Single atomic write batch including audit and revision
     const auditDetails = `Deleted expense #${req.params.id} (₹${e.amount}, ${e.category}, ${e.date})`;
     await db.batch([
       { sql: 'DELETE FROM expenses WHERE id = ?', args: [req.params.id] },
       { sql: 'INSERT INTO audit_logs (action, entity_type, entity_id, details, user) VALUES (?, ?, ?, ?, ?)',
-        args: ['expense_deleted', 'expense', req.params.id, auditDetails, req.admin.username] }
+        args: ['expense_deleted', 'expense', req.params.id, auditDetails, req.admin.username] },
+      { sql: "INSERT INTO app_revisions (domain, version, updated_at) VALUES ('expenses', 1, CURRENT_TIMESTAMP) ON CONFLICT(domain) DO UPDATE SET version = version + 1, updated_at = CURRENT_TIMESTAMP", args: [] }
     ], 'write');
-
-    await bumpAppRevision('expenses');
 
     res.json({ success: true, audited: true });
   } catch (err) {
@@ -2721,14 +2722,16 @@ app.delete('/api/staff/:id', requireAuth, async (req, res) => {
     }
     const s = cur.rows[0];
 
+    // Single atomic round trip: delete payments, delete staff, record audit, bump revision
     await db.batch([
       { sql: 'DELETE FROM staff_salary_payments WHERE staff_id = ?', args: [req.params.id] },
-      { sql: 'DELETE FROM staff WHERE id = ?', args: [req.params.id] }
+      { sql: 'DELETE FROM staff WHERE id = ?', args: [req.params.id] },
+      { sql: 'INSERT INTO audit_logs (action, entity_type, entity_id, details, user) VALUES (?, ?, ?, ?, ?)',
+        args: ['staff_deleted', 'staff', req.params.id, `Deleted staff ${s.name} (${s.role})`, req.admin.username] },
+      { sql: "INSERT INTO app_revisions (domain, version, updated_at) VALUES ('staff', 1, CURRENT_TIMESTAMP) ON CONFLICT(domain) DO UPDATE SET version = version + 1, updated_at = CURRENT_TIMESTAMP", args: [] }
     ], 'write');
 
-    await bumpAppRevision('staff');
-    await logAudit('staff_deleted', 'staff', req.params.id, `Deleted staff ${s.name} (${s.role})`, req.admin.username);
-    res.json({ success: true });
+    res.json({ success: true, audited: true });
   } catch (err) {
     sendError(res, 500, 'Failed to delete staff', err);
   }

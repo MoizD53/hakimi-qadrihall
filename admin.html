@@ -3663,6 +3663,16 @@
         return;
       }
 
+      // Instant optimistic closure (< 1ms UI response)
+      if (confirmModalOptions?.instantClose) {
+        const onConfirmFn = confirmModalOptions.onConfirm;
+        closeConfirmModal(inputValue, true);
+        if (typeof onConfirmFn === 'function') {
+          onConfirmFn(inputValue);
+        }
+        return;
+      }
+
       if (typeof confirmModalOptions?.onConfirm === 'function') {
         isConfirmModalProcessing = true;
         submitBtn.disabled = true;
@@ -3673,7 +3683,7 @@
         try {
           await confirmModalOptions.onConfirm(inputValue);
           isConfirmModalProcessing = false;
-          closeConfirmModal(inputValue);
+          closeConfirmModal(inputValue, true);
         } catch (err) {
           isConfirmModalProcessing = false;
           submitBtn.disabled = false;
@@ -3682,14 +3692,15 @@
           submitBtn.innerHTML = originalHtml;
         }
       } else {
-        closeConfirmModal(inputValue);
+        closeConfirmModal(inputValue, true);
       }
     }
 
-    function closeConfirmModal(result = false) {
-      if (isConfirmModalProcessing) return;
+    function closeConfirmModal(result = false, force = false) {
+      if (isConfirmModalProcessing && !force) return;
+      isConfirmModalProcessing = false;
       const modal = document.getElementById('modalConfirmAction');
-      modal.classList.remove('open');
+      if (modal) modal.classList.remove('open');
       if (confirmModalResolver) {
         const res = confirmModalResolver;
         confirmModalResolver = null;
@@ -5305,19 +5316,28 @@
 
     async function unblockDate(id, hall, date) {
       if (!confirm(`Are you sure you want to unblock ${date} for ${hall}?`)) return;
+      const prevBlocks = [...allDateBlocks];
+      // Optimistic update in 0ms
+      allDateBlocks = allDateBlocks.filter(b => b.id !== id && b.block_date !== date);
+      checkDateBlockModalStatus();
+      renderModalBlockedDatesList();
+
       try {
         const res = await authFetch(`/api/date-blocks/${id}`, { method: 'DELETE' });
         const data = await res.json();
         if (res.ok && data.success) {
           showToast(`Date ${date} unblocked successfully`);
-          allDateBlocks = allDateBlocks.filter(b => b.id !== id && b.block_date !== date);
-          checkDateBlockModalStatus();
-          renderModalBlockedDatesList();
           refreshAllActiveScreens();
         } else {
+          allDateBlocks = prevBlocks;
+          checkDateBlockModalStatus();
+          renderModalBlockedDatesList();
           showToast(data.error || 'Failed to unblock date', true);
         }
       } catch (err) {
+        allDateBlocks = prevBlocks;
+        checkDateBlockModalStatus();
+        renderModalBlockedDatesList();
         showToast('Error: ' + err.message, true);
       }
     }
@@ -6018,6 +6038,7 @@
         title: 'Delete Booking Record',
         icon: 'fas fa-trash-alt',
         danger: true,
+        instantClose: true,
         message: `Permanently delete booking <strong>#${id}</strong>${b?.customer_name ? ` for <strong>${escapeHtml(b.customer_name)}</strong>` : ''}? This action cannot be undone and will be logged in audit history.`,
         customer: b?.customer_name,
         date: b?.check_in,
@@ -6027,18 +6048,32 @@
         confirmLoadingText: 'Deleting...',
         cancelText: 'Cancel',
         onConfirm: async () => {
-          const res = await authFetch(`/api/bookings/${id}`, { method: 'DELETE' });
-          if (res.ok) {
-            allBookings = allBookings.filter(x => x.id !== id);
-            allEnquiriesList = allEnquiriesList.filter(x => x.id !== id);
+          // Instant optimistic UI update (0ms): dismiss row and booking modal immediately
+          const prevBookings = [...allBookings];
+          const prevEnquiries = [...allEnquiriesList];
+          allBookings = allBookings.filter(x => x.id !== id);
+          allEnquiriesList = allEnquiriesList.filter(x => x.id !== id);
+          renderBookings();
+          closeModal('modalBookingStage');
+
+          try {
+            const res = await authFetch(`/api/bookings/${id}`, { method: 'DELETE' });
+            if (res.ok) {
+              showToast(`Booking #${id} deleted`);
+              refreshAllActiveScreens();
+            } else {
+              const errData = await res.json().catch(() => ({}));
+              // Rollback
+              allBookings = prevBookings;
+              allEnquiriesList = prevEnquiries;
+              renderBookings();
+              showToast(errData.error || 'Failed to delete booking', true);
+            }
+          } catch (err) {
+            allBookings = prevBookings;
+            allEnquiriesList = prevEnquiries;
             renderBookings();
-            showToast(`Booking #${id} deleted`);
-            closeModal('modalBookingStage');
-            refreshAllActiveScreens();
-          } else {
-            const errData = await res.json().catch(() => ({}));
-            showToast(errData.error || 'Failed to delete booking', true);
-            throw new Error(errData.error || 'Failed to delete booking');
+            showToast('Network error: ' + err.message, true);
           }
         }
       });
@@ -6241,6 +6276,7 @@
         title: isSalaryVoucher ? 'Reverse Salary Voucher' : 'Delete Expense Record',
         icon: isSalaryVoucher ? 'fas fa-undo-alt' : 'fas fa-receipt',
         danger: true,
+        instantClose: true,
         message: isSalaryVoucher 
           ? `This record is a <strong>Staff Salary Voucher</strong> for <strong>${escapeHtml(exp?.paid_to || 'Staff')}</strong>. Reversing this will update both the Expenses ledger and reset the staff payroll record to pending. Proceed with reversal?`
           : `Are you sure you want to delete this expense record <strong>#${id}</strong>${exp?.description ? ` (${escapeHtml(exp.description)})` : ''}? This action will be audited.`,
@@ -6252,19 +6288,30 @@
         confirmLoadingText: isSalaryVoucher ? 'Reversing...' : 'Deleting...',
         cancelText: 'Cancel',
         onConfirm: async () => {
-          const deleteUrl = isSalaryVoucher ? `/api/expenses/${id}?force_salary_reverse=true` : `/api/expenses/${id}`;
-          const res = await authFetch(deleteUrl, { method: 'DELETE' });
-          if (res.ok) {
-            allExpenses = allExpenses.filter(x => (x.id || x._id) != id);
+          // Instant optimistic UI update (0ms): dismiss row immediately
+          const prevExpenses = [...allExpenses];
+          allExpenses = allExpenses.filter(x => (x.id || x._id) != id);
+          renderExpenses();
+
+          try {
+            const deleteUrl = isSalaryVoucher ? `/api/expenses/${id}?force_salary_reverse=true` : `/api/expenses/${id}`;
+            const res = await authFetch(deleteUrl, { method: 'DELETE' });
+            if (res.ok) {
+              showToast(isSalaryVoucher ? 'Salary voucher reversed successfully' : 'Expense record removed successfully');
+              loadExpenses();
+              setTimeout(loadOverview, 200);
+              if (isSalaryVoucher && typeof loadStaff === 'function') loadStaff();
+            } else {
+              const errData = await res.json().catch(() => ({}));
+              // Rollback
+              allExpenses = prevExpenses;
+              renderExpenses();
+              showToast(errData.error || 'Failed to delete expense', true);
+            }
+          } catch (err) {
+            allExpenses = prevExpenses;
             renderExpenses();
-            showToast(isSalaryVoucher ? 'Salary voucher reversed successfully' : 'Expense record removed successfully');
-            loadExpenses();
-            setTimeout(loadOverview, 300);
-            if (isSalaryVoucher && typeof loadStaff === 'function') loadStaff();
-          } else {
-            const errData = await res.json().catch(() => ({}));
-            showToast(errData.error || 'Failed to delete expense', true);
-            throw new Error(errData.error || 'Failed to delete expense');
+            showToast('Network error: ' + err.message, true);
           }
         }
       });
@@ -6422,21 +6469,33 @@
         title: 'Remove Staff Member',
         icon: 'fas fa-user-minus',
         danger: true,
+        instantClose: true,
         message: `Are you sure you want to remove staff member <strong>${escapeHtml(s?.name || '#' + id)}</strong>${s?.role ? ` (${escapeHtml(s.role)})` : ''}?`,
         confirmText: '<i class="fas fa-user-minus"></i> Remove Staff Member',
         confirmLoadingText: 'Removing...',
         cancelText: 'Cancel',
         onConfirm: async () => {
-          const res = await authFetch(`/api/staff/${id}`, { method: 'DELETE' });
-          if (res.ok) {
-            allStaff = allStaff.filter(x => (x.id || x._id) != id);
+          // Instant optimistic UI update (0ms): dismiss row immediately
+          const prevStaff = [...allStaff];
+          allStaff = allStaff.filter(x => (x.id || x._id) != id);
+          renderStaff();
+
+          try {
+            const res = await authFetch(`/api/staff/${id}`, { method: 'DELETE' });
+            if (res.ok) {
+              showToast('Staff profile removed successfully');
+              loadStaff();
+            } else {
+              const errData = await res.json().catch(() => ({}));
+              // Rollback
+              allStaff = prevStaff;
+              renderStaff();
+              showToast(errData.error || 'Failed to delete staff', true);
+            }
+          } catch (err) {
+            allStaff = prevStaff;
             renderStaff();
-            showToast('Staff profile removed successfully');
-            loadStaff();
-          } else {
-            const errData = await res.json().catch(() => ({}));
-            showToast(errData.error || 'Failed to delete staff', true);
-            throw new Error(errData.error || 'Failed to delete staff');
+            showToast('Network error: ' + err.message, true);
           }
         }
       });

@@ -8,3 +8,7 @@ dist/
 .DS_Store
 Thumbs.db
 backups/
+scratch/
+scripts/
+.vercel
+.env*
