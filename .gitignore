@@ -2,6 +2,8 @@ node_modules/
 dist/
 .env
 .env.local
+.env.staging
+.env*.local
 *.log
 *.db
 *.sqlite*

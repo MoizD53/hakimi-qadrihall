@@ -7,6 +7,8 @@
     "start": "node backend/server.js",
     "migrate": "node backend/migration.js",
     "deploy:schema": "node scripts/deploy_schema_v2.js",
+    "setup:staging": "node scripts/setup_staging.js",
+    "test:staging": "node scripts/test_staging_live.js",
     "test": "node backend/test_audit.js && node backend/test_idempotency.js && node backend/test_sync.js && node backend/test_booking_e2e.js && node backend/test_e2e_rebuild_full.js"
   },
   "dependencies": {
