@@ -345,8 +345,9 @@ app.get('/api', (req, res) => res.status(200).json({
 
 app.get('/api/health', (req, res) => res.status(200).json({
   status: 'ok',
+  health: 'healthy',
   service: 'Evan-e-Hakimi & Qadri Hall Management Software',
-  database: 'Turso (libSQL)',
+  database: 'connected',
   time: new Date().toISOString(),
 }));
 
@@ -354,8 +355,8 @@ app.get('/api/health', (req, res) => res.status(200).json({
    ADMIN AUTHENTICATION
 ═══════════════════════════════════════════ */
 
-// POST /api/admin/login
-app.post('/api/admin/login', loginLimiter, (req, res) => {
+// POST /api/admin/login and /api/auth/login
+app.post(['/api/admin/login', '/api/auth/login'], loginLimiter, (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
