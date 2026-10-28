@@ -210,93 +210,16 @@ function sendError(res, status, message, err) {
   return res.status(status).json({ error: message });
 }
 
-// Durable Non-blocking Audit Logging Queue
-const auditQueue = [];
-let isFlushingAudit = false;
-
-async function flushAuditQueue() {
-  if (isFlushingAudit || auditQueue.length === 0) return;
-  isFlushingAudit = true;
-  const batch = auditQueue.splice(0, 20);
+// Durable Audit Logging
+async function logAudit(action, entityType, entityId, details, user = 'admin') {
   try {
-    const stmts = batch.map(a => ({
-      sql: 'INSERT INTO audit_logs (action, entity_type, entity_id, details, user) VALUES (?, ?, ?, ?, ?)',
-      args: [a.action, a.entityType, a.entityId || null, a.details, a.user]
-    }));
-    await db.batch(stmts, 'write');
-  } catch (err) {
-    console.warn('⚠️ [AUDIT] Async flush warning:', err.message);
-  } finally {
-    isFlushingAudit = false;
-    if (auditQueue.length > 0) setTimeout(flushAuditQueue, 50);
-  }
-}
-
-function logAudit(action, entityType, entityId, details, user = 'admin') {
-  const detailsStr = typeof details === 'object' ? JSON.stringify(details) : String(details || '');
-  auditQueue.push({ action, entityType, entityId, details: detailsStr, user });
-  setImmediate(flushAuditQueue);
-}
-
-/* ═══════════════════════════════════════════
-   ASYNCHRONOUS CALENDAR SYNCHRONIZATION OUTBOX
-═══════════════════════════════════════════ */
-async function enqueueCalendarSync(bookingId, hall, eventDate, slot, action) {
-  const cleanHall = String(hall).toLowerCase().includes('qadri') ? 'Qadri Hall' : 'Evan-e-Hakimi';
-  const cleanDate = String(eventDate || '').split('T')[0];
-  try {
+    const detailsStr = typeof details === 'object' ? JSON.stringify(details) : String(details || '');
     await db.query(
-      `INSERT INTO calendar_sync_outbox (booking_id, hall, event_date, slot, action, status)
-       VALUES (?, ?, ?, ?, ?, 'pending')`,
-      [bookingId || 0, cleanHall, cleanDate, slot || 'morning', action || 'update']
-    );
-    setImmediate(() => processCalendarSync(cleanHall, cleanDate));
-  } catch (err) {
-    console.warn('⚠️ [CAL_SYNC] Outbox enqueue warning:', err.message);
-  }
-}
-
-let isSyncingCalendar = false;
-async function processCalendarSync(hall, eventDate) {
-  if (isSyncingCalendar || !eventDate) return;
-  isSyncingCalendar = true;
-  try {
-    const [y, m] = eventDate.split('-').map(Number);
-    if (!y || !m) return;
-    const cleanHall = String(hall).toLowerCase().includes('qadri') ? 'Qadri Hall' : 'Evan-e-Hakimi';
-
-    memoryCache.del(`calendar:${cleanHall}:${y}:${m}`);
-    memoryCache.invalidate('summary');
-
-    const startDate = `${y}-${String(m).padStart(2, '0')}-01`;
-    const lastDayNum = new Date(Date.UTC(y, m, 0)).getUTCDate();
-    const endDate = `${y}-${String(m).padStart(2, '0')}-${String(lastDayNum).padStart(2, '0')}`;
-
-    const freshDays = await getHallAvailabilityRange(cleanHall, startDate, endDate);
-    memoryCache.set(`calendar:${cleanHall}:${y}:${m}`, {
-      success: true,
-      hall: cleanHall,
-      year: y,
-      month: m,
-      days: freshDays
-    });
-
-    await db.query(
-      `UPDATE calendar_sync_outbox SET status = 'synced', synced_at = CURRENT_TIMESTAMP
-       WHERE hall = ? AND event_date LIKE ? AND status = 'pending'`,
-      [cleanHall, `${y}-${String(m).padStart(2, '0')}%`]
+      'INSERT INTO audit_logs (action, entity_type, entity_id, details, user) VALUES (?, ?, ?, ?, ?)',
+      [action, entityType, entityId || null, detailsStr, user]
     );
   } catch (err) {
-    console.warn('⚠️ [CAL_SYNC] Background sync warning:', err.message);
-    try {
-      await db.query(
-        `UPDATE calendar_sync_outbox SET status = 'failed', attempts = attempts + 1, last_error = ?, last_attempt = CURRENT_TIMESTAMP
-         WHERE hall = ? AND event_date = ? AND status = 'pending'`,
-        [err.message, hall, eventDate]
-      );
-    } catch (_) {}
-  } finally {
-    isSyncingCalendar = false;
+    console.warn('⚠️ [AUDIT] Log warning:', err.message);
   }
 }
 
@@ -974,12 +897,6 @@ app.get('/api/bookings', requireAuth, async (req, res) => {
     query += ` ORDER BY check_in ASC, created_at DESC LIMIT ? OFFSET ?`;
     params.push(limit, offset);
 
-    const cacheKey = `bookings:${hall || ''}:${status || ''}:${statusGroup || ''}:${paymentStatus || ''}:${fromDate || ''}:${toDate || ''}:${search || ''}:${limit}:${offset}`;
-    const cached = memoryCache.get(cacheKey);
-    if (cached) {
-      return res.json(cached);
-    }
-
     const result = await db.query(query, params);
     const rows = result.rows || [];
 
@@ -1021,7 +938,6 @@ app.get('/api/bookings', requireAuth, async (req, res) => {
       };
     });
 
-    memoryCache.set(cacheKey, annotatedRows, 30);
     res.json(annotatedRows);
   } catch (err) {
     sendError(res, 500, 'Failed to fetch bookings', err);
@@ -1033,11 +949,6 @@ app.get('/api/bookings/summary', requireAuth, async (req, res) => {
   try {
     const { hall, fromDate, toDate } = req.query;
     const cleanHall = hall && hall !== 'all' ? (String(hall).toLowerCase().includes('qadri') ? 'Qadri Hall' : 'Evan-e-Hakimi') : 'all';
-    const cacheKey = `summary:${cleanHall}:${fromDate || ''}:${toDate || ''}`;
-    const cached = memoryCache.get(cacheKey);
-    if (cached) {
-      return res.json(cached);
-    }
 
     const today = new Date().toISOString().split('T')[0];
     const twoDaysLater = new Date(Date.now() + 2 * 86400000).toISOString().split('T')[0];
@@ -1167,7 +1078,6 @@ app.get('/api/bookings/summary', requireAuth, async (req, res) => {
       totalOutstanding: outstandingBalance
     };
 
-    memoryCache.set(cacheKey, responsePayload, 30);
     res.json(responsePayload);
   } catch (err) {
     sendError(res, 500, 'Failed to fetch bookings summary', err);
@@ -1480,9 +1390,9 @@ app.post('/api/bookings', async (req, res) => {
 
     await tx.commit();
     memoryCache.invalidateAll();
-
-    logAudit('booking_created', 'booking', inserted.id, `Created ${initialStatus} for ${custName} on ${eventDate} (${cleanHall}, ${eventSlot}, ₹${finalPrice})`, req.admin?.username || 'public_enquiry');
-res.json({ success: true, bookingId: inserted.id, booking: inserted });
+    await bumpAppRevision('bookings');
+    await logAudit('booking_created', 'booking', inserted.id, `Created ${initialStatus} for ${custName} on ${eventDate} (${cleanHall}, ${eventSlot}, ₹${finalPrice})`, req.admin?.username || 'public_enquiry');
+    res.json({ success: true, bookingId: inserted.id, booking: inserted });
   } catch (err) {
     if (tx) {
       try { await tx.rollback(); } catch (_) {}
@@ -1596,7 +1506,9 @@ app.post('/api/bookings/:id/confirm', requireAuth, async (req, res) => {
     await tx.commit();
 
     const bookingRow = updated.rows[0];
-logAudit('enquiry_confirmed', 'booking', bookingId, `Enquiry #${bookingId} confirmed as ${bookingRef} for ${bookingRow.customer_name} (${targetHall}, ${targetDate}, ${targetSlot})`, req.admin.username);
+    memoryCache.invalidate('calendar');
+    await bumpAppRevision('bookings');
+    await logAudit('enquiry_confirmed', 'booking', bookingId, `Enquiry #${bookingId} confirmed as ${bookingRef} for ${bookingRow.customer_name} (${targetHall}, ${targetDate}, ${targetSlot})`, req.admin.username);
 
     res.json({
       success: true,
@@ -1646,7 +1558,8 @@ app.post('/api/bookings/:id/reject', requireAuth, async (req, res) => {
     await tx.commit();
 
     const bookingRow = updated.rows[0];
-logAudit('enquiry_rejected', 'booking', bookingId, `Enquiry #${bookingId} rejected for ${current.customer_name}. Reason: ${reason}`, req.admin.username);
+    await bumpAppRevision('bookings');
+    await logAudit('enquiry_rejected', 'booking', bookingId, `Enquiry #${bookingId} rejected for ${current.customer_name}. Reason: ${reason}`, req.admin.username);
 
     res.json({
       success: true,
@@ -1716,7 +1629,8 @@ app.post(['/api/bookings/:id/receive-advance', '/api/bookings/:id/verify-advance
     await tx.commit();
 
     const bookingRow = updated.rows[0];
-logAudit('advance_received', 'booking', bookingId, `Recorded 40% advance of ₹${advanceToRecord} for booking #${bookingId}`, req.admin.username);
+    await bumpAppRevision('bookings');
+    await logAudit('advance_received', 'booking', bookingId, `Recorded 40% advance of ₹${advanceToRecord} for booking #${bookingId}`, req.admin.username);
 
     res.json({
       success: true,
@@ -1780,7 +1694,8 @@ app.post(['/api/bookings/:id/receive-balance', '/api/bookings/:id/mark-fully-pai
     await tx.commit();
 
     const bookingRow = updated.rows[0];
-logAudit('booking_fully_paid', 'booking', bookingId, `Booking #${bookingId} marked as fully paid (₹${total})`, req.admin.username);
+    await bumpAppRevision('bookings');
+    await logAudit('booking_fully_paid', 'booking', bookingId, `Booking #${bookingId} marked as fully paid (₹${total})`, req.admin.username);
 
     res.json({
       success: true,
@@ -1892,7 +1807,8 @@ app.put('/api/bookings/:id', requireAuth, async (req, res) => {
     await tx.commit();
 
     const bookingRow = updated.rows[0];
-logAudit('booking_updated', 'booking', bookingId, `Updated booking #${bookingId} for ${customer_name || current.customer_name}`, req.admin.username);
+    await bumpAppRevision('bookings');
+    await logAudit('booking_updated', 'booking', bookingId, `Updated booking #${bookingId} for ${customer_name || current.customer_name}`, req.admin.username);
 
     res.json({ success: true, booking: bookingRow });
   } catch (err) {
@@ -1940,7 +1856,8 @@ app.patch('/api/bookings/:id/status', requireAuth, async (req, res) => {
     await tx.commit();
 
     const bookingRow = updated.rows[0];
-logAudit('booking_status_updated', 'booking', req.params.id, `Status updated to ${status}`, req.admin.username);
+    await bumpAppRevision('bookings');
+    await logAudit('booking_status_updated', 'booking', req.params.id, `Status updated to ${status}`, req.admin.username);
     res.json({ success: true, booking: bookingRow });
   } catch (err) {
     if (tx) {
@@ -2029,7 +1946,8 @@ app.post('/api/bookings/:id/payments', requireAuth, async (req, res) => {
     await tx.commit();
 
     const bookingRow = updated.rows[0];
-logAudit('payment_recorded', 'booking', req.params.id, `Recorded ₹${payAmount} via ${payment_method} (${payment_type})`, req.admin.username);
+    await bumpAppRevision('bookings');
+    await logAudit('payment_recorded', 'booking', req.params.id, `Recorded ₹${payAmount} via ${payment_method} (${payment_type})`, req.admin.username);
 
     res.json({
       success: true,
@@ -2065,7 +1983,8 @@ app.patch('/api/bookings/:id/payment', requireAuth, async (req, res) => {
       [advancePaid, paymentStatus, paymentNotes, paymentMethod || null, advancePaid, req.params.id]
     );
     if (!result.rows || result.rows.length === 0) return res.status(404).json({ error: 'Booking not found' });
-    logAudit('payment_updated', 'booking', req.params.id, `Payment status set to ${paymentStatus}, paid ₹${advancePaid}`, req.admin.username);
+    await bumpAppRevision('bookings');
+    await logAudit('payment_updated', 'booking', req.params.id, `Payment status set to ${paymentStatus}, paid ₹${advancePaid}`, req.admin.username);
     res.json({ success: true, booking: result.rows[0] });
   } catch (err) {
     sendError(res, 500, 'Failed to update payment', err);
@@ -2107,7 +2026,8 @@ app.patch('/api/bookings/:id/verify-advance', requireAuth, async (req, res) => {
     await tx.commit();
 
     const bookingRow = updated.rows[0];
-logAudit('advance_verified', 'booking', req.params.id, `Advance verified for ₹${advancePaid}`, req.admin.username);
+    await bumpAppRevision('bookings');
+    await logAudit('advance_verified', 'booking', req.params.id, `Advance verified for ₹${advancePaid}`, req.admin.username);
     res.json({ success: true, booking: bookingRow });
   } catch (err) {
     if (tx) {
@@ -2153,7 +2073,8 @@ app.patch('/api/bookings/:id/collect-cash', requireAuth, async (req, res) => {
     }
 
     const bookingRow = result.rows[0];
-logAudit('balance_collected', 'booking', req.params.id, `Collected full cash payment (₹${balanceCollected})`, req.admin.username);
+    await bumpAppRevision('bookings');
+    await logAudit('balance_collected', 'booking', req.params.id, `Collected full cash payment (₹${balanceCollected})`, req.admin.username);
     res.json({ success: true, booking: bookingRow });
   } catch (err) {
     sendError(res, 500, 'Failed to collect cash', err);
@@ -2172,7 +2093,9 @@ app.delete('/api/bookings/:id', requireAuth, async (req, res) => {
       { sql: 'DELETE FROM bookings WHERE id = ?', args: [req.params.id] }
     ], 'write');
 
-    logAudit('booking_deleted', 'booking', req.params.id, `Deleted booking #${req.params.id} (${b.customer_name}, ${b.check_in}, ${b.hall})`, req.admin.username);
+    memoryCache.invalidate('calendar');
+    await bumpAppRevision('bookings');
+    await logAudit('booking_deleted', 'booking', req.params.id, `Deleted booking #${req.params.id} (${b.customer_name}, ${b.check_in}, ${b.hall})`, req.admin.username);
     res.json({ success: true });
   } catch (err) {
     sendError(res, 500, 'Failed to delete booking', err);
@@ -2350,7 +2273,9 @@ app.post('/api/bookings/:id/cancel', requireAuth, async (req, res) => {
 
     await tx.commit();
 
-    logAudit('booking_cancelled', 'booking', bookingId, 
+    memoryCache.invalidate('calendar');
+    await bumpAppRevision('bookings');
+    await logAudit('booking_cancelled', 'booking', bookingId, 
       `Cancelled booking #${bookingId} (${b.customer_name}). Reason: ${reason}. Refund status: ${refund_status}`, 
       req.admin.username
     );
@@ -2404,7 +2329,9 @@ app.post('/api/date-blocks', requireAuth, async (req, res) => {
       [cleanHall, cleanDate, cleanReason, req.admin.username]
     );
 
-    logAudit('date_blocked', 'date_block', null, 
+    memoryCache.invalidate('calendar');
+    await bumpAppRevision('date_blocks');
+    await logAudit('date_blocked', 'date_block', null, 
       `Blocked date ${cleanDate} for ${cleanHall} (Reason: ${cleanReason})`, 
       req.admin.username
     );
@@ -2437,7 +2364,9 @@ app.post('/api/date-blocks/unblock', requireAuth, async (req, res) => {
     }
 
     await db.query(sql, params);
-    logAudit('date_unblocked', 'date_block', id || null, `Unblocked date for ${hall || 'hall'}`, req.admin.username);
+    memoryCache.invalidate('calendar');
+    await bumpAppRevision('date_blocks');
+    await logAudit('date_unblocked', 'date_block', id || null, `Unblocked date for ${hall || 'hall'}`, req.admin.username);
 
     res.json({
       success: true,
@@ -2453,7 +2382,9 @@ app.delete('/api/date-blocks/:id', requireAuth, async (req, res) => {
   try {
     const id = req.params.id;
     await db.query('DELETE FROM date_blocks WHERE id = ?', [id]);
-    logAudit('date_unblocked', 'date_block', id, `Unblocked date id ${id}`, req.admin.username);
+    memoryCache.invalidate('calendar');
+    await bumpAppRevision('date_blocks');
+    await logAudit('date_unblocked', 'date_block', id, `Unblocked date id ${id}`, req.admin.username);
     res.json({ success: true, message: 'Date block removed' });
   } catch (err) {
     sendError(res, 500, 'Failed to remove date block', err);
@@ -2563,7 +2494,8 @@ app.post('/api/expenses', requireAuth, async (req, res) => {
     );
 
     const inserted = result.rows[0];
-    logAudit('expense_created', 'expense', inserted._id || inserted.id, `Recorded expense ₹${amt} for ${desc} (${category}, ${hall || 'Evan-e-Hakimi'})`, req.admin.username);
+    await bumpAppRevision('expenses');
+    await logAudit('expense_created', 'expense', inserted._id || inserted.id, `Recorded expense ₹${amt} for ${desc} (${category}, ${hall || 'Evan-e-Hakimi'})`, req.admin.username);
 
     res.json({ success: true, expense: inserted });
   } catch (err) {
@@ -2592,7 +2524,8 @@ app.put('/api/expenses/:id', requireAuth, async (req, res) => {
     );
 
     if (!result.rows || result.rows.length === 0) return res.status(404).json({ error: 'Expense not found' });
-    logAudit('expense_updated', 'expense', req.params.id, `Updated expense #${req.params.id} (₹${amt})`, req.admin.username);
+    await bumpAppRevision('expenses');
+    await logAudit('expense_updated', 'expense', req.params.id, `Updated expense #${req.params.id} (₹${amt})`, req.admin.username);
 
     res.json({ success: true, expense: result.rows[0] });
   } catch (err) {
@@ -2608,7 +2541,8 @@ app.delete('/api/expenses/:id', requireAuth, async (req, res) => {
     const e = cur.rows[0];
 
     await db.query('DELETE FROM expenses WHERE id = ?', [req.params.id]);
-    logAudit('expense_deleted', 'expense', req.params.id, `Deleted expense #${req.params.id} (₹${e.amount}, ${e.category}, ${e.date})`, req.admin.username);
+    await bumpAppRevision('expenses');
+    await logAudit('expense_deleted', 'expense', req.params.id, `Deleted expense #${req.params.id} (₹${e.amount}, ${e.category}, ${e.date})`, req.admin.username);
 
     res.json({ success: true });
   } catch (err) {
@@ -2676,7 +2610,8 @@ app.post('/api/staff', requireAuth, async (req, res) => {
     );
 
     const inserted = result.rows[0];
-    logAudit('staff_created', 'staff', inserted._id || inserted.id, `Added staff profile for ${name} (${role}, ₹${sal}/mo)`, req.admin.username);
+    await bumpAppRevision('staff');
+    await logAudit('staff_created', 'staff', inserted._id || inserted.id, `Added staff profile for ${name} (${role}, ₹${sal}/mo)`, req.admin.username);
 
     res.json({ success: true, staff: inserted });
   } catch (err) {
@@ -2703,7 +2638,8 @@ app.put('/api/staff/:id', requireAuth, async (req, res) => {
     );
 
     if (!result.rows || result.rows.length === 0) return res.status(404).json({ error: 'Staff member not found' });
-    logAudit('staff_updated', 'staff', req.params.id, `Updated staff profile for ${name}`, req.admin.username);
+    await bumpAppRevision('staff');
+    await logAudit('staff_updated', 'staff', req.params.id, `Updated staff profile for ${name}`, req.admin.username);
 
     res.json({ success: true, staff: result.rows[0] });
   } catch (err) {
@@ -2723,7 +2659,8 @@ app.delete('/api/staff/:id', requireAuth, async (req, res) => {
       { sql: 'DELETE FROM staff WHERE id = ?', args: [req.params.id] }
     ], 'write');
 
-    logAudit('staff_deleted', 'staff', req.params.id, `Deleted staff ${s.name} (${s.role})`, req.admin.username);
+    await bumpAppRevision('staff');
+    await logAudit('staff_deleted', 'staff', req.params.id, `Deleted staff ${s.name} (${s.role})`, req.admin.username);
     res.json({ success: true });
   } catch (err) {
     sendError(res, 500, 'Failed to delete staff', err);
@@ -2801,10 +2738,10 @@ app.post('/api/staff/salary-payments', requireAuth, async (req, res) => {
     // 5. Invalidate caches and bump revisions for multi-device sync
     memoryCache.invalidateDomain('staff');
     memoryCache.invalidateDomain('expenses');
-    bumpAppRevision('staff');
-    bumpAppRevision('expenses');
+    await bumpAppRevision('staff');
+    await bumpAppRevision('expenses');
 
-    logAudit('salary_paid', 'staff', staff_id, `Paid salary of ₹${amt} for period ${period} via ${payment_method}`, req.admin.username);
+    await logAudit('salary_paid', 'staff', staff_id, `Paid salary of ₹${amt} for period ${period} via ${payment_method}`, req.admin.username);
 
     res.json({ success: true, payment: paymentRecord });
   } catch (err) {
@@ -2827,12 +2764,6 @@ app.get('/api/reports/summary', requireAuth, async (req, res) => {
 
     const fromDate = from || defaultFrom;
     const toDate = to || defaultTo;
-
-    const cacheKey = `reports:summary:${fromDate}:${toDate}:${hall || 'all'}`;
-    const cached = memoryCache.get(cacheKey);
-    if (cached) {
-      return res.json(cached);
-    }
 
     let hallFilter = '';
     const bookingParams = [fromDate, toDate];
@@ -2993,7 +2924,6 @@ app.get('/api/reports/summary', requireAuth, async (req, res) => {
       overdueBookings: overdueRows
     };
 
-    memoryCache.set(cacheKey, payload, 180);
     res.json(payload);
   } catch (err) {
     sendError(res, 500, 'Failed to generate reports', err);

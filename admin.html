@@ -6029,6 +6029,7 @@
         onConfirm: async () => {
           const res = await authFetch(`/api/bookings/${id}`, { method: 'DELETE' });
           if (res.ok) {
+            allBookings = allBookings.filter(x => x.id !== id && x._id !== id);
             showToast(`Booking #${id} deleted`);
             closeModal('modalBookingStage');
             refreshAllActiveScreens();
@@ -6246,6 +6247,8 @@
         onConfirm: async () => {
           const res = await authFetch(`/api/expenses/${id}`, { method: 'DELETE' });
           if (res.ok) {
+            allExpenses = allExpenses.filter(x => (x.id || x._id) != id);
+            renderExpenses();
             showToast('Expense record deleted successfully');
             loadExpenses();
             setTimeout(loadOverview, 300);
@@ -6416,6 +6419,8 @@
         onConfirm: async () => {
           const res = await authFetch(`/api/staff/${id}`, { method: 'DELETE' });
           if (res.ok) {
+            allStaff = allStaff.filter(x => (x.id || x._id) != id);
+            renderStaff();
             showToast('Staff profile removed successfully');
             loadStaff();
           } else {
@@ -6752,8 +6757,8 @@
     function startMultiDeviceSync() {
       if (syncIntervalId) clearInterval(syncIntervalId);
       checkRevisionsNow();
-      // Poll every 15 seconds when window is active (conserves serverless CPU while preserving focus/online instant checks)
-      syncIntervalId = setInterval(checkRevisionsNow, 15000);
+      // Poll every 20 seconds when window is active (conserves serverless CPU while preserving focus/online instant checks)
+      syncIntervalId = setInterval(checkRevisionsNow, 20000);
 
       window.addEventListener('focus', checkRevisionsNow);
       window.addEventListener('online', checkRevisionsNow);
