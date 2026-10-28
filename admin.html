@@ -2509,29 +2509,28 @@
 
         <div class="stats-grid">
           <div class="stat-card">
-            <div class="stat-label">Expected Booking Value</div>
-            <div class="stat-value" id="repExpectedRev">₹0</div>
-            <div class="stat-sub">Confirmed event value</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Actual Money Collected</div>
-            <div class="stat-value" id="repActualCollected" style="color:#86efac;">₹0</div>
+            <div class="stat-label">Total Revenue</div>
+            <div class="stat-value" id="repTotalRev" style="color:#86efac;">₹0</div>
             <div class="stat-sub">Advances + balances received</div>
+            <i class="fas fa-coins stat-icon"></i>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Outstanding Balances</div>
+            <div class="stat-label">Total Outstanding Dues</div>
             <div class="stat-value" id="repOutstanding" style="color:#fcd34d;">₹0</div>
-            <div class="stat-sub">Due from clients</div>
+            <div class="stat-sub">Pending due from clients</div>
+            <i class="fas fa-file-invoice-dollar stat-icon"></i>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Expenses &amp; Salaries Paid</div>
+            <div class="stat-label">Expenses</div>
             <div class="stat-value" id="repTotalOutflow" style="color:#fca5a5;">₹0</div>
             <div class="stat-sub">Operational costs + salaries</div>
+            <i class="fas fa-receipt stat-icon"></i>
           </div>
-          <div class="stat-card" style="grid-column: span 2;">
-            <div class="stat-label">Estimated Net Cash Movement</div>
-            <div class="stat-value" id="repNetCash" style="font-size:2.4rem;">₹0</div>
-            <div class="stat-sub">Actual Money Collected &minus; Total Expenses &amp; Salaries Paid</div>
+          <div class="stat-card">
+            <div class="stat-label">Net Revenue</div>
+            <div class="stat-value" id="repNetCash" style="color:#86efac;">₹0</div>
+            <div class="stat-sub">Total Revenue &minus; Expenses</div>
+            <i class="fas fa-chart-line stat-icon"></i>
           </div>
         </div>
 
@@ -6512,15 +6511,26 @@
       if (!data || !data.summary) return;
       const s = data.summary;
 
-      document.getElementById('repExpectedRev').textContent = '₹' + Math.round(s.expectedRevenue || 0).toLocaleString('en-IN');
-      document.getElementById('repActualCollected').textContent = '₹' + Math.round(s.actualCashCollected || 0).toLocaleString('en-IN');
-      document.getElementById('repOutstanding').textContent = '₹' + Math.round(s.outstandingBalance || 0).toLocaleString('en-IN');
-      document.getElementById('repTotalOutflow').textContent = '₹' + Math.round(s.totalOutflow || 0).toLocaleString('en-IN');
+      const totalRevEl = document.getElementById('repTotalRev') || document.getElementById('repActualCollected');
+      if (totalRevEl) {
+        totalRevEl.textContent = '₹' + Math.round(s.actualCashCollected || 0).toLocaleString('en-IN');
+      }
+      if (document.getElementById('repExpectedRev')) {
+        document.getElementById('repExpectedRev').textContent = '₹' + Math.round(s.expectedRevenue || 0).toLocaleString('en-IN');
+      }
+      if (document.getElementById('repOutstanding')) {
+        document.getElementById('repOutstanding').textContent = '₹' + Math.round(s.outstandingBalance || 0).toLocaleString('en-IN');
+      }
+      if (document.getElementById('repTotalOutflow')) {
+        document.getElementById('repTotalOutflow').textContent = '₹' + Math.round(s.totalOutflow || 0).toLocaleString('en-IN');
+      }
 
       const netEl = document.getElementById('repNetCash');
-      const netVal = Math.round(s.netCashMovement || 0);
-      netEl.textContent = '₹' + netVal.toLocaleString('en-IN');
-      netEl.style.color = netVal >= 0 ? '#86efac' : '#fca5a5';
+      if (netEl) {
+        const netVal = Math.round(s.netCashMovement || 0);
+        netEl.textContent = '₹' + netVal.toLocaleString('en-IN');
+        netEl.style.color = netVal >= 0 ? '#86efac' : '#fca5a5';
+      }
 
       // Render Hall Breakdown
       const hallTbody = document.getElementById('tblRepHallBody');
