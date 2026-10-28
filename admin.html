@@ -2501,7 +2501,7 @@
             </select>
           </div>
           <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;padding-top:0.5rem;border-top:1px solid rgba(201,169,110,0.12);">
-            <button class="btn-quick gold" onclick="generateReports()"><i class="fas fa-sync-alt"></i> Run Report</button>
+            <button class="btn-quick gold" id="btnRunReport" onclick="generateReports()"><i class="fas fa-sync-alt"></i> Run Report</button>
             <button class="btn-quick" onclick="exportBookingsCSV()"><i class="fas fa-file-csv"></i> Export Bookings CSV</button>
             <button class="btn-quick" onclick="exportExpensesCSV()"><i class="fas fa-file-csv"></i> Export Expenses CSV</button>
           </div>
@@ -6506,34 +6506,25 @@
       generateReports();
     }
 
-    async function generateReports() {
-      let from = document.getElementById('repFromDate')?.value;
-      let to = document.getElementById('repToDate')?.value;
-      const hall = document.getElementById('repHall')?.value || 'all';
+    let lastReportsCache = null;
 
-      if (!from || !to) {
-        setReportPreset('this_month');
-        return;
-      }
+    function renderReportsUI(data) {
+      if (!data || !data.summary) return;
+      const s = data.summary;
 
-      const q = new URLSearchParams({ from, to, hall });
-      try {
-        const res = await authFetch('/api/reports/summary?' + q.toString());
-        const data = await res.json();
-        const s = data.summary;
+      document.getElementById('repExpectedRev').textContent = '₹' + Math.round(s.expectedRevenue || 0).toLocaleString('en-IN');
+      document.getElementById('repActualCollected').textContent = '₹' + Math.round(s.actualCashCollected || 0).toLocaleString('en-IN');
+      document.getElementById('repOutstanding').textContent = '₹' + Math.round(s.outstandingBalance || 0).toLocaleString('en-IN');
+      document.getElementById('repTotalOutflow').textContent = '₹' + Math.round(s.totalOutflow || 0).toLocaleString('en-IN');
 
-        document.getElementById('repExpectedRev').textContent = '₹' + Math.round(s.expectedRevenue || 0).toLocaleString('en-IN');
-        document.getElementById('repActualCollected').textContent = '₹' + Math.round(s.actualCashCollected || 0).toLocaleString('en-IN');
-        document.getElementById('repOutstanding').textContent = '₹' + Math.round(s.outstandingBalance || 0).toLocaleString('en-IN');
-        document.getElementById('repTotalOutflow').textContent = '₹' + Math.round(s.totalOutflow || 0).toLocaleString('en-IN');
+      const netEl = document.getElementById('repNetCash');
+      const netVal = Math.round(s.netCashMovement || 0);
+      netEl.textContent = '₹' + netVal.toLocaleString('en-IN');
+      netEl.style.color = netVal >= 0 ? '#86efac' : '#fca5a5';
 
-        const netEl = document.getElementById('repNetCash');
-        const netVal = Math.round(s.netCashMovement || 0);
-        netEl.textContent = '₹' + netVal.toLocaleString('en-IN');
-        netEl.style.color = netVal >= 0 ? '#86efac' : '#fca5a5';
-
-        // Render Hall Breakdown
-        const hallTbody = document.getElementById('tblRepHallBody');
+      // Render Hall Breakdown
+      const hallTbody = document.getElementById('tblRepHallBody');
+      if (hallTbody) {
         if (!data.hallBreakdown || data.hallBreakdown.length === 0) {
           hallTbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:1.5rem;color:rgba(245,240,232,0.4);">No hall activity in this range.</td></tr>`;
         } else {
@@ -6547,9 +6538,11 @@
             </tr>
           `).join('');
         }
+      }
 
-        // Render Expense Breakdown
-        const expTbody = document.getElementById('tblRepExpBody');
+      // Render Expense Breakdown
+      const expTbody = document.getElementById('tblRepExpBody');
+      if (expTbody) {
         if (!data.expenseCategories || data.expenseCategories.length === 0) {
           expTbody.innerHTML = `<tr><td colspan="3" style="text-align:center;padding:1.5rem;color:rgba(245,240,232,0.4);">No expenses recorded in this period.</td></tr>`;
         } else {
@@ -6561,8 +6554,41 @@
             </tr>
           `).join('');
         }
+      }
+    }
+
+    async function generateReports() {
+      let from = document.getElementById('repFromDate')?.value;
+      let to = document.getElementById('repToDate')?.value;
+      const hall = document.getElementById('repHall')?.value || 'all';
+
+      if (!from || !to) {
+        setReportPreset('this_month');
+        return;
+      }
+
+      const qKey = `${from}_${to}_${hall}`;
+      if (lastReportsCache && lastReportsCache.key === qKey) {
+        // Instant 0ms paint from memory
+        renderReportsUI(lastReportsCache.data);
+      }
+
+      const btn = document.getElementById('btnRunReport');
+      const origHtml = btn ? btn.innerHTML : '';
+      if (btn) btn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Loading...';
+
+      const q = new URLSearchParams({ from, to, hall });
+      try {
+        const res = await authFetch('/api/reports/summary?' + q.toString());
+        const data = await res.json();
+        if (data && data.success) {
+          lastReportsCache = { key: qKey, data };
+          renderReportsUI(data);
+        }
       } catch (err) {
         console.error('Failed to generate reports:', err);
+      } finally {
+        if (btn) btn.innerHTML = origHtml || '<i class="fas fa-sync-alt"></i> Run Report';
       }
     }
 
