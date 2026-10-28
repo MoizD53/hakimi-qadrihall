@@ -210,16 +210,18 @@ function sendError(res, status, message, err) {
   return res.status(status).json({ error: message });
 }
 
-// Durable Audit Logging
+// Durable Audit Logging with Strict Persistence Guarantee
 async function logAudit(action, entityType, entityId, details, user = 'admin') {
+  const detailsStr = typeof details === 'object' ? JSON.stringify(details) : String(details || '');
   try {
-    const detailsStr = typeof details === 'object' ? JSON.stringify(details) : String(details || '');
     await db.query(
       'INSERT INTO audit_logs (action, entity_type, entity_id, details, user) VALUES (?, ?, ?, ?, ?)',
       [action, entityType, entityId || null, detailsStr, user]
     );
+    return { success: true, audited: true };
   } catch (err) {
-    console.warn('⚠️ [AUDIT] Log warning:', err.message);
+    console.error('🚨 [AUDIT ERROR] Audit log insertion failed:', err.message);
+    throw new Error('AUDIT_LOG_FAILED: Failed to record mandatory audit trail: ' + err.message);
   }
 }
 
@@ -2529,13 +2531,46 @@ app.put('/api/expenses/:id', requireAuth, async (req, res) => {
   }
 });
 
-// DELETE /api/expenses/:id — Delete expense with audit
+// DELETE /api/expenses/:id — Delete expense with atomic audit & inconsistent state protection
 app.delete('/api/expenses/:id', requireAuth, async (req, res) => {
   try {
     const cur = await db.query('SELECT * FROM expenses WHERE id = ?', [req.params.id]);
     if (!cur.rows || cur.rows.length === 0) {
+      // Safety Check: Detect partial/inconsistent state where expense is missing but linked salary payment exists
+      const salId = req.query.salary_payment_id || req.body?.salary_payment_id;
+      let orphanSalary = null;
+
+      if (salId) {
+        const sCheck = await db.query('SELECT * FROM staff_salary_payments WHERE id = ?', [salId]);
+        if (sCheck.rows && sCheck.rows.length > 0) orphanSalary = sCheck.rows[0];
+      } else {
+        // Also check if req.params.id was a salary payment ID whose expense was previously purged
+        const sCheck2 = await db.query('SELECT * FROM staff_salary_payments WHERE id = ?', [req.params.id]);
+        if (sCheck2.rows && sCheck2.rows.length > 0) {
+          const expLinked = await db.query('SELECT id FROM expenses WHERE salary_payment_id = ?', [req.params.id]);
+          if (!expLinked.rows || expLinked.rows.length === 0) orphanSalary = sCheck2.rows[0];
+        }
+      }
+
+      if (orphanSalary) {
+        // Inconsistent state detected: halt silently deleting and report recovery path
+        try {
+          await logAudit('salary_inconsistency_detected', 'staff_salary_payment', orphanSalary.id,
+            `Inconsistent state detected: Expense #${req.params.id} missing but salary payment #${orphanSalary.id} exists for staff #${orphanSalary.staff_id} (₹${orphanSalary.amount_paid}).`,
+            req.admin.username);
+        } catch (_) {}
+
+        return res.status(409).json({
+          error: `Inconsistent state detected: Expense voucher #${req.params.id} is missing, but linked Staff Salary Payment #${orphanSalary.id} exists in payroll records. Reversal halted to protect historical payroll data.`,
+          inconsistentState: true,
+          salaryPayment: orphanSalary,
+          recoveryPath: 'Verify staff payroll status in Staff & Payroll and reconcile via approved manual adjustment.'
+        });
+      }
+
       return res.json({ success: true, alreadyDeleted: true, message: 'Expense already removed' });
     }
+
     const e = cur.rows[0];
 
     // Check if linked to salary payment voucher
@@ -2549,26 +2584,33 @@ app.delete('/api/expenses/:id', requireAuth, async (req, res) => {
         });
       }
 
-      // Atomic reversal of both expense voucher and salary payment record
+      // Atomic reversal of expense voucher, salary payment record, AND the audit log in ONE write batch
+      const auditDetails = `Reversed salary voucher #${req.params.id} and salary payment #${e.salary_payment_id}`;
       await db.batch([
         { sql: 'DELETE FROM expenses WHERE id = ?', args: [req.params.id] },
         { sql: 'DELETE FROM staff_salary_payments WHERE id = ?', args: [e.salary_payment_id] },
-        { sql: "UPDATE staff SET salary_status = 'pending' WHERE id = ?", args: [e.staff_id || 0] }
+        { sql: "UPDATE staff SET salary_status = 'pending' WHERE id = ?", args: [e.staff_id || 0] },
+        { sql: 'INSERT INTO audit_logs (action, entity_type, entity_id, details, user) VALUES (?, ?, ?, ?, ?)',
+          args: ['salary_voucher_reversed', 'expense', req.params.id, auditDetails, req.admin.username] }
       ], 'write');
 
       await bumpAppRevision('expenses');
       await bumpAppRevision('staff');
-      await logAudit('salary_voucher_reversed', 'expense', req.params.id, `Reversed salary voucher #${req.params.id} and salary payment #${e.salary_payment_id}`, req.admin.username);
 
-      return res.json({ success: true, reversedSalaryPaymentId: e.salary_payment_id });
+      return res.json({ success: true, audited: true, reversedSalaryPaymentId: e.salary_payment_id });
     }
 
-    // Standard expense deletion
-    await db.query('DELETE FROM expenses WHERE id = ?', [req.params.id]);
-    await bumpAppRevision('expenses');
-    await logAudit('expense_deleted', 'expense', req.params.id, `Deleted expense #${req.params.id} (₹${e.amount}, ${e.category}, ${e.date})`, req.admin.username);
+    // Standard expense deletion: Atomic delete and audit write
+    const auditDetails = `Deleted expense #${req.params.id} (₹${e.amount}, ${e.category}, ${e.date})`;
+    await db.batch([
+      { sql: 'DELETE FROM expenses WHERE id = ?', args: [req.params.id] },
+      { sql: 'INSERT INTO audit_logs (action, entity_type, entity_id, details, user) VALUES (?, ?, ?, ?, ?)',
+        args: ['expense_deleted', 'expense', req.params.id, auditDetails, req.admin.username] }
+    ], 'write');
 
-    res.json({ success: true });
+    await bumpAppRevision('expenses');
+
+    res.json({ success: true, audited: true });
   } catch (err) {
     sendError(res, 500, 'Failed to delete expense', err);
   }

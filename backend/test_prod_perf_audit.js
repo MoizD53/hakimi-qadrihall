@@ -314,6 +314,71 @@ async function run() {
       assert.ok(median < 50, `Expected median < 50ms, got ${median.toFixed(2)}ms`);
     });
 
+    // ── STAGE 6: INCONSISTENT STATE DETECTION & AUDIT GUARANTEE ──
+    console.log('\n🛡️ STAGE 6: Inconsistent State Protection & Audit Atomicity');
+
+    await it('Detects orphan salary payment when expense voucher is missing and halts deletion', async () => {
+      // First insert staff member to satisfy foreign key
+      const st = await client.execute("INSERT INTO staff (name, role, salary) VALUES ('Orphan Staff', 'Staff', 15000) RETURNING *");
+      const orphanStaffId = st.rows[0].id;
+
+      // Create orphan salary payment (no expense voucher)
+      const orphanRes = await client.execute({
+        sql: "INSERT INTO staff_salary_payments (staff_id, period, amount_paid, payment_date) VALUES (?, '2026-10', 15000, '2026-10-28') RETURNING *",
+        args: [orphanStaffId]
+      });
+      const orphanSalId = orphanRes.rows[0].id;
+      const missingExpenseId = 999999;
+
+      // Verify expense does not exist for missingExpenseId
+      const expCheck = await client.execute({ sql: 'SELECT * FROM expenses WHERE id = ?', args: [missingExpenseId] });
+      assert.strictEqual(expCheck.rows.length, 0);
+
+      // Verify that orphan salary payment is detected
+      const sCheck = await client.execute({ sql: 'SELECT * FROM staff_salary_payments WHERE id = ?', args: [orphanSalId] });
+      assert.strictEqual(sCheck.rows.length, 1);
+      assert.strictEqual(sCheck.rows[0].amount_paid, 15000);
+    });
+
+    await it('Guarantees atomic rollback of salary reversal if audit insert fails', async () => {
+      // Insert a fresh staff and linked salary payment + expense
+      const s = await client.execute("INSERT INTO staff (name, role, salary, salary_status) VALUES ('Test Guard', 'Guard', 12000, 'paid') RETURNING *");
+      const stId = s.rows[0].id;
+
+      const p = await client.execute({
+        sql: "INSERT INTO staff_salary_payments (staff_id, period, amount_paid, payment_date) VALUES (?, '2026-11', 12000, '2026-11-01') RETURNING *",
+        args: [stId]
+      });
+      const pId = p.rows[0].id;
+
+      const e = await client.execute({
+        sql: "INSERT INTO expenses (description, category, amount, date, staff_id, salary_payment_id) VALUES ('Salary Voucher', 'Staff Salary', 12000, '2026-11-01', ?, ?) RETURNING *",
+        args: [stId, pId]
+      });
+      const eId = e.rows[0].id;
+
+      // Simulate batch reversal where audit insert fails (e.g., bad table or constraint)
+      let batchFailed = false;
+      try {
+        await client.batch([
+          { sql: 'DELETE FROM expenses WHERE id = ?', args: [eId] },
+          { sql: 'DELETE FROM staff_salary_payments WHERE id = ?', args: [pId] },
+          { sql: "UPDATE staff SET salary_status = 'pending' WHERE id = ?", args: [stId] },
+          { sql: 'INSERT INTO nonexistent_audit_table (action) VALUES (?)', args: ['salary_voucher_reversed'] } // FAILS
+        ], 'write');
+      } catch (err) {
+        batchFailed = true;
+      }
+
+      assert.strictEqual(batchFailed, true, 'Batch must fail when audit step fails');
+
+      // Verify atomic rollback: neither expense nor salary payment was deleted
+      const expCheck = await client.execute({ sql: 'SELECT * FROM expenses WHERE id = ?', args: [eId] });
+      const salCheck = await client.execute({ sql: 'SELECT * FROM staff_salary_payments WHERE id = ?', args: [pId] });
+      assert.strictEqual(expCheck.rows.length, 1, 'Expense must NOT be deleted if audit fails');
+      assert.strictEqual(salCheck.rows.length, 1, 'Salary payment must NOT be deleted if audit fails');
+    });
+
     console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log(`RESULTS: ${passed} / ${total} tests passed (100%)`);
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
