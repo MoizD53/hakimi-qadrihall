@@ -2954,6 +2954,41 @@ app.get('/api/reports/summary', requireAuth, async (req, res) => {
     const totalOutflow = totalExpenses + unlinkedSalaries;
     const netCashMovement = actualCashCollected - totalOutflow;
 
+    // Ensure all active venues are consistently represented in hall breakdown
+    const activeHalls = (hall && hall !== 'all') ? [hall] : ['Evan-e-Hakimi', 'Qadri Hall'];
+    const hallMap = new Map();
+    for (const h of activeHalls) {
+      hallMap.set(h.toLowerCase(), {
+        hall_name: h,
+        bookings_count: 0,
+        confirmed_bookings: 0,
+        revenue: 0,
+        collected: 0
+      });
+    }
+    for (const r of hallBreakdownRows) {
+      const name = r.hall_name || 'Evan-e-Hakimi';
+      const key = name.toLowerCase();
+      if (hallMap.has(key)) {
+        hallMap.set(key, {
+          hall_name: hallMap.get(key).hall_name,
+          bookings_count: parseInt(r.bookings_count || 0, 10),
+          confirmed_bookings: parseInt(r.confirmed_bookings || 0, 10),
+          revenue: parseFloat(r.revenue || 0),
+          collected: parseFloat(r.collected || 0)
+        });
+      } else if (!hall || hall === 'all') {
+        hallMap.set(key, {
+          hall_name: name,
+          bookings_count: parseInt(r.bookings_count || 0, 10),
+          confirmed_bookings: parseInt(r.confirmed_bookings || 0, 10),
+          revenue: parseFloat(r.revenue || 0),
+          collected: parseFloat(r.collected || 0)
+        });
+      }
+    }
+    const finalHallBreakdown = Array.from(hallMap.values());
+
     const payload = {
       success: true,
       period: { fromDate, toDate, hall: hall || 'all' },
@@ -2972,7 +3007,7 @@ app.get('/api/reports/summary', requireAuth, async (req, res) => {
         netCashMovement: netCashMovement,
         overdueCount: overdueRows.length
       },
-      hallBreakdown: hallBreakdownRows,
+      hallBreakdown: finalHallBreakdown,
       expenseCategories: expenseBreakdownRows,
       overdueBookings: overdueRows
     };

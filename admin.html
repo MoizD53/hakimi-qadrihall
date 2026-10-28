@@ -2488,13 +2488,13 @@
             <button class="cal-nav-btn" onclick="setReportPreset('this_year')">This Year</button>
             <div style="display:flex;align-items:center;gap:6px;">
               <span style="font-size:0.78rem;color:var(--wheat);font-weight:600;"><i class="fas fa-calendar-alt"></i> From:</span>
-              <input type="date" id="repFromDate" class="filter-input" placeholder="From Date" title="From Date">
+              <input type="date" id="repFromDate" class="filter-input" placeholder="From Date" title="From Date" onchange="generateReports()">
             </div>
             <div style="display:flex;align-items:center;gap:6px;">
               <span style="font-size:0.78rem;color:var(--wheat);font-weight:600;"><i class="fas fa-calendar-alt"></i> To:</span>
-              <input type="date" id="repToDate" class="filter-input" placeholder="To Date" title="To Date">
+              <input type="date" id="repToDate" class="filter-input" placeholder="To Date" title="To Date" onchange="generateReports()">
             </div>
-            <select id="repHall" class="filter-select">
+            <select id="repHall" class="filter-select" onchange="generateReports()">
               <option value="all">All Halls</option>
               <option value="Evan-e-Hakimi">Evan-e-Hakimi</option>
               <option value="Qadri Hall">Qadri Hall</option>
@@ -6484,18 +6484,21 @@
     /* ════════ 7. REPORTS & ANALYTICS ════════ */
     function setReportPreset(preset) {
       const now = new Date();
+      const pad = n => String(n).padStart(2, '0');
+      const toYMD = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
       let from, to;
       if (preset === 'this_month') {
-        from = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
-        to = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+        from = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-01`;
+        to = toYMD(new Date(now.getFullYear(), now.getMonth() + 1, 0));
       } else if (preset === 'last_month') {
         const lastM = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        from = `${lastM.getFullYear()}-${String(lastM.getMonth() + 1).padStart(2, '0')}-01`;
-        to = new Date(lastM.getFullYear(), lastM.getMonth() + 1, 0).toISOString().split('T')[0];
+        from = `${lastM.getFullYear()}-${pad(lastM.getMonth() + 1)}-01`;
+        to = toYMD(new Date(now.getFullYear(), now.getMonth(), 0));
       } else if (preset === 'last_3_months') {
         const threeM = new Date(now.getFullYear(), now.getMonth() - 2, 1);
-        from = `${threeM.getFullYear()}-${String(threeM.getMonth() + 1).padStart(2, '0')}-01`;
-        to = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+        from = `${threeM.getFullYear()}-${pad(threeM.getMonth() + 1)}-01`;
+        to = toYMD(new Date(now.getFullYear(), now.getMonth() + 1, 0));
       } else if (preset === 'this_year') {
         from = `${now.getFullYear()}-01-01`;
         to = `${now.getFullYear()}-12-31`;
