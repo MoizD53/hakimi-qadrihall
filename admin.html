@@ -1857,7 +1857,6 @@
           <img src="/assets/moulasaheb.jpg" alt="His Holiness Syedna Mufaddal Saifuddin TUS" width="86" height="86">
         </div>
         <h1 class="brand-title">Evan-e-Hakimi &amp; Qadri Hall</h1>
-        <div class="brand-sub">Management System</div>
       </header>
 
       <main class="login-card">
@@ -4308,9 +4307,9 @@
         let pillsHtml = '';
         if (dayBlock) {
           pillsHtml += `
-            <div style="background:rgba(239,68,68,0.18);border:1px solid rgba(239,68,68,0.4);color:#fca5a5;padding:2px 5px;border-radius:4px;font-size:0.6rem;margin-top:2px;">
-              Blocked: ${escapeHtml(dayBlock.reason || 'Admin Block')}
-              <button onclick="event.stopPropagation(); unblockDate(${dayBlock.id}, '${targetHallName}', '${dateStr}');" style="background:none;border:none;color:#fff;cursor:pointer;margin-left:4px;" title="Unblock Date">&times;</button>
+            <div style="background:rgba(239,68,68,0.18);border:1px solid rgba(239,68,68,0.4);color:#fca5a5;padding:3px 6px;border-radius:4px;font-size:0.62rem;margin-top:2px;display:flex;align-items:center;justify-content:space-between;gap:4px;" onclick="event.stopPropagation(); openDateBlockModal('${targetHallName}', '${dateStr}');" title="Click to manage or unblock">
+              <span><i class="fas fa-ban"></i> ${escapeHtml(dayBlock.reason || 'Blocked')}</span>
+              <button onclick="event.stopPropagation(); unblockDate(${dayBlock.id}, '${targetHallName}', '${dateStr}');" style="background:#ef4444;border:none;color:#fff;border-radius:3px;padding:1px 6px;font-size:0.58rem;cursor:pointer;font-weight:600;" title="Unblock Date"><i class="fas fa-unlock"></i> Unblock</button>
             </div>
           `;
         } else {
@@ -4354,6 +4353,18 @@
     function handleCalendarDateClick(hallName, dateStr) {
       const isHakimi = hallName.toLowerCase().includes('hakimi');
       const hallKey = isHakimi ? 'hakimi' : 'qadri';
+      const cleanHall = isHakimi ? 'Evan-e-Hakimi' : 'Qadri Hall';
+
+      const isBlocked = allDateBlocks.find(b => {
+        const bHall = (b.hall || 'Evan-e-Hakimi').toLowerCase().includes('qadri') ? 'Qadri Hall' : 'Evan-e-Hakimi';
+        return b.block_date === dateStr && bHall === cleanHall;
+      });
+
+      if (isBlocked) {
+        openDateBlockModal(cleanHall, dateStr);
+        return;
+      }
+
       const dayBookings = allBookings.filter(b => {
         const bHall = (b.hall || 'Evan-e-Hakimi').toLowerCase();
         const match = isHakimi ? (!bHall.includes('qadri')) : (bHall.includes('qadri'));
@@ -5129,11 +5140,141 @@
 
     
     /* ════════ DATE BLOCKING SYSTEM ════════ */
-    function openDateBlockModal(hall = 'Evan-e-Hakimi', date = '') {
+    let currentFoundBlockId = null;
+
+    async function loadDateBlocksIfEmpty() {
+      if (!allDateBlocks || allDateBlocks.length === 0) {
+        try {
+          const res = await authFetch('/api/date-blocks');
+          const data = await res.json();
+          allDateBlocks = data.dateBlocks || data || [];
+        } catch (_) {}
+      }
+      return allDateBlocks;
+    }
+
+    async function openDateBlockModal(hall = 'Evan-e-Hakimi', date = '') {
       document.getElementById('blockHall').value = hall;
       setDateVal('blockDate', date);
       document.getElementById('blockReason').value = '';
       openModal('modalDateBlock');
+      await loadDateBlocksIfEmpty();
+      checkDateBlockModalStatus();
+      renderModalBlockedDatesList();
+    }
+
+    function checkDateBlockModalStatus() {
+      const hall = document.getElementById('blockHall')?.value;
+      const date = document.getElementById('blockDate')?.value;
+      const alertEl = document.getElementById('blockStatusAlert');
+      const detailEl = document.getElementById('blockStatusDetail');
+      const unblockBtn = document.getElementById('btnModalUnblockThis');
+      const saveBtn = document.getElementById('btnSaveDateBlock');
+
+      if (!alertEl || !detailEl || !unblockBtn || !saveBtn) return;
+
+      if (!date) {
+        alertEl.style.display = 'none';
+        unblockBtn.style.display = 'none';
+        saveBtn.innerHTML = '<i class="fas fa-ban"></i> Block Full Day';
+        currentFoundBlockId = null;
+        return;
+      }
+
+      const cleanHall = String(hall).toLowerCase().includes('qadri') ? 'Qadri Hall' : 'Evan-e-Hakimi';
+      const existing = allDateBlocks.find(b => {
+        const bHall = String(b.hall || 'Evan-e-Hakimi').toLowerCase().includes('qadri') ? 'Qadri Hall' : 'Evan-e-Hakimi';
+        return b.block_date === date && bHall === cleanHall;
+      });
+
+      if (existing) {
+        currentFoundBlockId = existing.id;
+        alertEl.style.display = 'block';
+        detailEl.innerHTML = `Date <strong>${date}</strong> is currently blocked for <strong>${cleanHall}</strong>.<br><span style="opacity:0.85;">Reason: <em>${escapeHtml(existing.reason || 'Admin Block')}</em></span>`;
+        unblockBtn.style.display = 'inline-flex';
+        saveBtn.innerHTML = '<i class="fas fa-edit"></i> Update Reason';
+        if (existing.reason && !document.getElementById('blockReason').value) {
+          document.getElementById('blockReason').value = existing.reason;
+        }
+      } else {
+        currentFoundBlockId = null;
+        alertEl.style.display = 'none';
+        unblockBtn.style.display = 'none';
+        saveBtn.innerHTML = '<i class="fas fa-ban"></i> Block Full Day';
+      }
+    }
+
+    function renderModalBlockedDatesList() {
+      const container = document.getElementById('modalBlockedDatesList');
+      const countEl = document.getElementById('modalBlockedCount');
+      if (!container) return;
+
+      if (!allDateBlocks || allDateBlocks.length === 0) {
+        if (countEl) countEl.textContent = '0';
+        container.innerHTML = '<div style="font-size:0.75rem;color:rgba(245,240,232,0.4);text-align:center;padding:0.75rem;">No active blocked dates.</div>';
+        return;
+      }
+
+      if (countEl) countEl.textContent = allDateBlocks.length;
+      container.innerHTML = allDateBlocks.map(b => {
+        const isQ = (b.hall || '').toLowerCase().includes('qadri');
+        const hallBadge = isQ
+          ? '<span class="badge" style="background:rgba(147,197,253,0.15);color:#93c5fd;font-size:0.6rem;">Qadri</span>'
+          : '<span class="badge" style="background:rgba(201,169,110,0.15);color:var(--wheat);font-size:0.6rem;">Hakimi</span>';
+        return `
+          <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:6px;padding:6px 10px;font-size:0.75rem;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              ${hallBadge}
+              <strong>${formatDisplayDate(b.block_date)}</strong>
+              <span style="color:rgba(245,240,232,0.6);font-size:0.7rem;">(${escapeHtml(b.reason || 'Blocked')})</span>
+            </div>
+            <button type="button" class="action-btn del" style="padding:2px 8px;font-size:0.68rem;height:auto;" onclick="unblockDate(${b.id}, '${escapeHtml(b.hall)}', '${b.block_date}')" title="Unblock this date">
+              <i class="fas fa-unlock"></i> Unblock
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function unblockSelectedModalDate() {
+      const hall = document.getElementById('blockHall')?.value;
+      const date = document.getElementById('blockDate')?.value;
+      if (!date) return;
+
+      let blockId = currentFoundBlockId;
+      if (!blockId) {
+        const cleanHall = String(hall).toLowerCase().includes('qadri') ? 'Qadri Hall' : 'Evan-e-Hakimi';
+        const existing = allDateBlocks.find(b => {
+          const bHall = String(b.hall || 'Evan-e-Hakimi').toLowerCase().includes('qadri') ? 'Qadri Hall' : 'Evan-e-Hakimi';
+          return b.block_date === date && bHall === cleanHall;
+        });
+        if (existing) blockId = existing.id;
+      }
+
+      if (blockId) {
+        await unblockDate(blockId, hall, date);
+      } else {
+        if (!confirm(`Are you sure you want to unblock ${date} for ${hall}?`)) return;
+        try {
+          const res = await authFetch('/api/date-blocks/unblock', {
+            method: 'POST',
+            body: { hall, block_date: date }
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            showToast(`Date ${date} unblocked successfully`);
+            allDateBlocks = [];
+            checkDateBlockModalStatus();
+            await loadDateBlocksIfEmpty();
+            renderModalBlockedDatesList();
+            refreshAllActiveScreens();
+          } else {
+            showToast(data.error || 'Failed to unblock date', true);
+          }
+        } catch (err) {
+          showToast('Error: ' + err.message, true);
+        }
+      }
     }
 
     async function handleDateBlockSubmit(event) {
@@ -5152,18 +5293,18 @@
           const data = await res.json();
           if (res.ok && data.success) {
             showToast(`Date ${block_date} successfully blocked for ${hall}`);
-            closeModal('modalDateBlock');
             allDateBlocks = [];
-            loadOverview();
-            renderCalendar('hakimi');
-            renderCalendar('qadri');
+            await loadDateBlocksIfEmpty();
+            checkDateBlockModalStatus();
+            renderModalBlockedDatesList();
+            refreshAllActiveScreens();
           } else {
             showToast(data.error || 'Failed to block date', true);
           }
         } catch (err) {
           showToast('Error: ' + err.message, true);
         }
-      }, 'Blocking Date...');
+      }, 'Saving Date Block...');
     }
 
     async function unblockDate(id, hall, date) {
@@ -5173,10 +5314,10 @@
         const data = await res.json();
         if (res.ok && data.success) {
           showToast(`Date ${date} unblocked successfully`);
-          allDateBlocks = [];
-          loadOverview();
-          renderCalendar('hakimi');
-          renderCalendar('qadri');
+          allDateBlocks = allDateBlocks.filter(b => b.id !== id && b.block_date !== date);
+          checkDateBlockModalStatus();
+          renderModalBlockedDatesList();
+          refreshAllActiveScreens();
         } else {
           showToast(data.error || 'Failed to unblock date', true);
         }
@@ -6697,34 +6838,61 @@
 
   <!-- ════════ MODAL: BLOCK A FULL DAY ════════ -->
   <div class="modal-overlay" id="modalDateBlock">
-    <div class="modal-box" style="max-width:480px;">
+    <div class="modal-box" style="max-width:500px;">
       <div class="modal-header">
-        <h3 class="modal-title"><i class="fas fa-ban" style="color:#ef4444;"></i> Block Hall Date</h3>
+        <h3 class="modal-title"><i class="fas fa-ban" style="color:#ef4444;"></i> Block / Unblock Hall Date</h3>
         <button class="modal-close" onclick="closeModal('modalDateBlock')">&times;</button>
       </div>
       <form id="formDateBlock" onsubmit="handleDateBlockSubmit(event)">
         <div class="modal-body">
+          <!-- Dynamic Alert Banner when Selected Date is Already Blocked -->
+          <div id="blockStatusAlert" style="display:none;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.35);border-radius:8px;padding:0.75rem 1rem;margin-bottom:1rem;font-size:0.8rem;color:#fca5a5;">
+            <div style="display:flex;align-items:center;gap:8px;font-weight:600;margin-bottom:3px;">
+              <i class="fas fa-exclamation-triangle" style="color:#ef4444;"></i>
+              <span>This date is currently BLOCKED</span>
+            </div>
+            <div id="blockStatusDetail" style="font-size:0.75rem;color:rgba(245,240,232,0.85);margin-bottom:8px;"></div>
+            <button type="button" class="btn-quick" id="btnQuickUnblockCurrent" style="background:#22c55e;color:#fff;font-size:0.75rem;padding:0.35rem 0.85rem;" onclick="unblockSelectedModalDate()">
+              <i class="fas fa-unlock"></i> Unblock This Date Now
+            </button>
+          </div>
+
           <p style="font-size:0.8rem;color:rgba(245,240,232,0.7);line-height:1.6;margin-bottom:1rem;">
-            Blocking a date will mark it as <strong>Fully Booked (Red)</strong> on both public and admin calendars and prevent any bookings from being scheduled on that date.
+            Blocking a date marks it as <strong>Fully Booked (Red)</strong> on public and admin calendars and prevents new bookings.
           </p>
           <div class="form-group" style="margin-bottom:1rem;">
             <label for="blockHall">Venue *</label>
-            <select id="blockHall" class="form-ctrl" required>
+            <select id="blockHall" class="form-ctrl" onchange="checkDateBlockModalStatus()" required>
               <option value="Evan-e-Hakimi">Evan-e-Hakimi (2nd Floor)</option>
               <option value="Qadri Hall">Qadri Hall (3rd Floor)</option>
             </select>
           </div>
           <div class="form-group" style="margin-bottom:1rem;">
-            <label for="blockDate">Date to Block *</label>
-            <input type="date" id="blockDate" class="form-ctrl" required>
+            <label for="blockDate">Date to Block / Manage *</label>
+            <input type="date" id="blockDate" class="form-ctrl" onchange="checkDateBlockModalStatus()" oninput="checkDateBlockModalStatus()" required>
           </div>
           <div class="form-group" style="margin-bottom:1rem;">
             <label for="blockReason">Reason for Blocking</label>
             <input type="text" id="blockReason" class="form-ctrl" placeholder="e.g. Venue Maintenance, Private Family Function, Renovation">
           </div>
+
+          <!-- Currently Blocked Dates List -->
+          <div style="margin-top:1.25rem;border-top:1px solid rgba(201,169,110,0.18);padding-top:0.9rem;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.6rem;">
+              <span style="font-size:0.72rem;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;color:var(--wheat);">
+                <i class="fas fa-calendar-times" style="color:#ef4444;"></i> Currently Blocked Dates (<span id="modalBlockedCount">0</span>)
+              </span>
+            </div>
+            <div id="modalBlockedDatesList" style="max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;">
+              <!-- Populated by JS -->
+            </div>
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="action-btn" onclick="closeModal('modalDateBlock')">Cancel</button>
+          <button type="button" class="btn-quick" id="btnModalUnblockThis" style="display:none;background:#22c55e;color:#fff;" onclick="unblockSelectedModalDate()">
+            <i class="fas fa-unlock"></i> Unblock This Date
+          </button>
           <button type="submit" class="btn-quick" id="btnSaveDateBlock" style="background:#ef4444;color:#fff;"><i class="fas fa-ban"></i> Block Full Day</button>
         </div>
       </form>
