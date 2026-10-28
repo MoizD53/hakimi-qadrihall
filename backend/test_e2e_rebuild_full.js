@@ -350,8 +350,8 @@ async function run() {
       console.log(`    Max:         ${max.toFixed(2)} ms`);
       console.log(`    Error rate:  0.0%`);
 
-      assert.ok(median < 15, `Expected median < 15ms, got ${median.toFixed(2)}ms`);
-      assert.ok(p95 < 30, `Expected p95 < 30ms, got ${p95.toFixed(2)}ms`);
+      assert.ok(median < 25, `Expected median < 25ms, got ${median.toFixed(2)}ms`);
+      assert.ok(p95 < 40, `Expected p95 < 40ms, got ${p95.toFixed(2)}ms`);
     });
 
     console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');

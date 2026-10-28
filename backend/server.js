@@ -1577,8 +1577,8 @@ app.post('/api/bookings/:id/reject', requireAuth, async (req, res) => {
   }
 });
 
-// POST /api/bookings/:id/receive-advance — Record 40% advance payment and mark ADVANCE_PAID
-app.post(['/api/bookings/:id/receive-advance', '/api/bookings/:id/verify-advance'], requireAuth, async (req, res) => {
+// POST /api/bookings/:id/receive-advance / advance — Record 40% advance payment and mark ADVANCE_PAID
+app.post(['/api/bookings/:id/receive-advance', '/api/bookings/:id/verify-advance', '/api/bookings/:id/advance'], requireAuth, async (req, res) => {
   let tx;
   try {
     const bookingId = req.params.id;
@@ -2902,24 +2902,28 @@ app.get('/api/reports/summary', requireAuth, async (req, res) => {
     }
     const finalHallBreakdown = Array.from(hallMap.values());
 
+    const summaryObj = {
+      totalBookings: parseInt(bStats.total_bookings || 0, 10),
+      confirmedCount: parseInt(bStats.confirmed_count || 0, 10),
+      pendingCount: parseInt(bStats.pending_count || 0, 10),
+      rejectedCount: parseInt(bStats.rejected_count || 0, 10),
+      expectedRevenue: parseFloat(bStats.expected_revenue || 0),
+      actualCashCollected: actualCashCollected,
+      actualPaymentsCollected: actualCashCollected,
+      bookingAdvancesPaid: parseFloat(bStats.booking_advances_paid || 0),
+      outstandingBalance: parseFloat(bStats.outstanding_balance || 0),
+      totalExpensesPaid: totalExpenses,
+      staffSalariesPaid: staffSalariesPaid,
+      totalOutflow: totalOutflow,
+      netCashMovement: netCashMovement,
+      overdueCount: overdueRows.length
+    };
+
     const payload = {
       success: true,
       period: { fromDate, toDate, hall: hall || 'all' },
-      summary: {
-        totalBookings: parseInt(bStats.total_bookings || 0, 10),
-        confirmedCount: parseInt(bStats.confirmed_count || 0, 10),
-        pendingCount: parseInt(bStats.pending_count || 0, 10),
-        rejectedCount: parseInt(bStats.rejected_count || 0, 10),
-        expectedRevenue: parseFloat(bStats.expected_revenue || 0),
-        actualCashCollected: actualCashCollected,
-        bookingAdvancesPaid: parseFloat(bStats.booking_advances_paid || 0),
-        outstandingBalance: parseFloat(bStats.outstanding_balance || 0),
-        totalExpensesPaid: totalExpenses,
-        staffSalariesPaid: staffSalariesPaid,
-        totalOutflow: totalOutflow,
-        netCashMovement: netCashMovement,
-        overdueCount: overdueRows.length
-      },
+      summary: summaryObj,
+      kpis: summaryObj,
       hallBreakdown: finalHallBreakdown,
       expenseCategories: expenseBreakdownRows,
       overdueBookings: overdueRows

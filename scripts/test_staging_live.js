@@ -262,9 +262,10 @@ async function run() {
       const { res, data, ms } = await apiFetch('/api/reports/summary?from=2026-10-01&to=2026-11-30');
       assert.strictEqual(res.status, 200, `Reports summary failed: ${JSON.stringify(data)}`);
 
-      const actualCollected = parseFloat(data.kpis.actualPaymentsCollected || 0);
-      const totalOutflow = parseFloat(data.kpis.totalOutflow || 0);
-      const netCash = parseFloat(data.kpis.netCashMovement || 0);
+      const s = data.summary || data.kpis || {};
+      const actualCollected = parseFloat(s.actualPaymentsCollected || s.actualCashCollected || 0);
+      const totalOutflow = parseFloat(s.totalOutflow || 0);
+      const netCash = parseFloat(s.netCashMovement || 0);
 
       assert.strictEqual(actualCollected, 15000, `Expected ₹15,000 collected, got ₹${actualCollected}`);
       assert.strictEqual(totalOutflow, 15000, `Expected ₹15,000 outflow, got ₹${totalOutflow}`);
