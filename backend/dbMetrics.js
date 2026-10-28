@@ -13,7 +13,7 @@
  *    preserving essential operations (auth, conflict check, payment recording, cancellation).
  */
 
-const MAX_MONTHLY_ROWS_READ = parseInt(process.env.DB_MAX_MONTHLY_READS, 10) || 20000000;
+const MAX_MONTHLY_ROWS_READ = parseInt(process.env.DB_MAX_MONTHLY_READS, 10) || 100000000;
 const MAX_MONTHLY_ROWS_WRITTEN = parseInt(process.env.DB_MAX_MONTHLY_WRITES, 10) || 500000;
 const MAX_ROWS_PER_QUERY = parseInt(process.env.DB_MAX_ROWS_PER_QUERY, 10) || 500;
 

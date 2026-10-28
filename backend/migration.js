@@ -207,6 +207,14 @@ async function migrate() {
       )
     `);
 
+    
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_logs(created_at)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_expenses_date_hall ON expenses(date, hall)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_payments_booking_id ON booking_payments(booking_id)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_payments_date ON booking_payments(payment_date)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_salary_staff_period ON staff_salary_payments(staff_id, period)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_salary_payment_date ON staff_salary_payments(payment_date)');
+
     // 7. Create date_blocks table for admin full-day blocking
     console.log('Ensuring date_blocks table exists...');
     await db.execute(`

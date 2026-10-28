@@ -4053,5 +4053,40 @@ if (document.readyState === 'loading') {
 }
 </script>
 
+
+<script>
+/* ── Casual Inspection Deterrent (Public Website Only) ── */
+(function() {
+  // 1. Disable browser context menu on public website
+  document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+  });
+
+  // 2. Block common inspection hotkeys without interfering with typing, forms, or accessibility
+  document.addEventListener('keydown', function(e) {
+    const targetTag = (e.target && e.target.tagName) ? e.target.tagName.toUpperCase() : '';
+    const isEditing = targetTag === 'INPUT' || targetTag === 'TEXTAREA' || e.target.isContentEditable;
+
+    // F12 key
+    if (e.key === 'F12' || e.keyCode === 123) {
+      e.preventDefault();
+      return false;
+    }
+
+    // Ctrl+Shift+I (DevTools), Ctrl+Shift+J (Console), Ctrl+Shift+C (Inspect Element)
+    if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c' || e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) {
+      e.preventDefault();
+      return false;
+    }
+
+    // Ctrl+U (View Source) when not editing form text
+    if (e.ctrlKey && !e.shiftKey && !e.altKey && (e.key === 'U' || e.key === 'u' || e.keyCode === 85) && !isEditing) {
+      e.preventDefault();
+      return false;
+    }
+  });
+})();
+</script>
+
 </body>
 </html>
