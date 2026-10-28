@@ -1153,20 +1153,31 @@
       display:inline-flex;
       align-items:center;
       justify-content:center;
-      width:50px;
-      height:50px;
-      border-radius:12px;
-      background:rgba(201,169,110,0.07);
-      border:1px solid rgba(201,169,110,0.26);
+      width:86px;
+      height:86px;
+      border-radius:50%;
+      background:radial-gradient(circle, rgba(201,169,110,0.15) 0%, rgba(13,10,7,0.85) 100%);
+      border:2px solid rgba(201,169,110,0.55);
+      outline:2px solid rgba(201,169,110,0.18);
+      outline-offset:3px;
       margin-bottom:0.85rem;
-      box-shadow:0 6px 20px rgba(0,0,0,0.4);
-      transition:border-color 0.25s ease;
+      box-shadow:0 0 25px rgba(201,169,110,0.22), 0 8px 24px rgba(0,0,0,0.6);
+      overflow:hidden;
+      transition:all 0.3s ease;
+    }
+    .crest-icon:hover{
+      border-color:rgba(240,212,154,0.85);
+      outline-color:rgba(201,169,110,0.35);
+      box-shadow:0 0 35px rgba(201,169,110,0.35), 0 10px 28px rgba(0,0,0,0.7);
+      transform:scale(1.03);
     }
     .crest-icon img{
       display:block;
-      width:32px;
-      height:32px;
-      border-radius:6px;
+      width:100%;
+      height:100%;
+      border-radius:50%;
+      object-fit:cover;
+      object-position:center 18%;
     }
     .brand-title{
       font-family:'Cormorant Garamond', Georgia, serif;
@@ -1377,21 +1388,89 @@
     }
     .login-footer{
       text-align:center;
-      margin-top:1.4rem;
-      font-size:0.7rem;
-      color:rgba(245,240,232,0.35);
-      line-height:1.6;
-      letter-spacing:0.2px;
+      margin-top:1.6rem;
+      position:relative;
     }
-    .login-footer .footer-attribution{
-      color:rgba(245,240,232,0.3);
-      font-size:0.66rem;
-      margin-top:0.15rem;
+    .footer-divider-glow{
+      height:1px;
+      width:68%;
+      max-width:280px;
+      margin:0 auto 1.15rem;
+      background:linear-gradient(90deg, transparent, rgba(201,169,110,0.25) 30%, rgba(240,212,154,0.55) 50%, rgba(201,169,110,0.25) 70%, transparent);
+      box-shadow:0 0 8px rgba(201,169,110,0.2);
     }
-    .login-footer .brand-partner{
-      color:var(--wheat);
-      font-weight:500;
-      letter-spacing:0.3px;
+    .footer-content{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:0.6rem;
+    }
+    .footer-copyright{
+      font-size:0.72rem;
+      color:rgba(245,240,232,0.44);
+      letter-spacing:0.35px;
+      font-weight:400;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:0.45rem;
+      flex-wrap:wrap;
+    }
+    .footer-dot{
+      color:rgba(201,169,110,0.45);
+      font-size:0.75rem;
+    }
+    .powered-pill{
+      display:inline-flex;
+      align-items:center;
+      gap:0.55rem;
+      padding:0.35rem 0.95rem;
+      background:linear-gradient(180deg, rgba(32,25,18,0.75) 0%, rgba(14,11,8,0.9) 100%);
+      border:1px solid rgba(201,169,110,0.25);
+      border-radius:9999px;
+      box-shadow:0 4px 16px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.08);
+      backdrop-filter:blur(10px);
+      -webkit-backdrop-filter:blur(10px);
+      transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor:default;
+      user-select:none;
+    }
+    .powered-pill:hover{
+      border-color:rgba(201,169,110,0.5);
+      box-shadow:0 6px 20px rgba(201,169,110,0.22), inset 0 1px 0 rgba(255,255,255,0.15);
+      transform:translateY(-1px);
+    }
+    .powered-label{
+      font-size:0.58rem;
+      font-weight:600;
+      letter-spacing:1.5px;
+      color:rgba(245,240,232,0.46);
+      text-transform:uppercase;
+    }
+    .powered-brand{
+      display:inline-flex;
+      align-items:center;
+      gap:0.35rem;
+    }
+    .brand-sparkle{
+      color:#d4af37;
+      font-size:0.65rem;
+      filter:drop-shadow(0 0 4px rgba(212,175,55,0.6));
+      animation:sparklePulse 3s ease-in-out infinite;
+    }
+    @keyframes sparklePulse{
+      0%, 100%{ opacity:0.7; transform:scale(0.95); }
+      50%{ opacity:1; transform:scale(1.15); filter:drop-shadow(0 0 7px rgba(240,212,154,0.9)); }
+    }
+    .brand-name{
+      font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size:0.76rem;
+      font-weight:700;
+      letter-spacing:0.8px;
+      background:linear-gradient(135deg, #fff5e0 0%, #d4af37 45%, #b08726 80%, #f3d789 100%);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+      text-shadow:0 0 14px rgba(201,169,110,0.3);
     }
     @media (max-width: 440px){
       #adminAuthScreen{
@@ -1773,11 +1852,10 @@
     <div class="login-container">
       <header class="brand-crest">
         <div class="crest-icon">
-          <img src="/assets/favicon.svg" alt="Hakimi53 Emblem" width="32" height="32">
+          <img src="/assets/moulasaheb.jpg" alt="His Holiness Syedna Mufaddal Saifuddin TUS" width="86" height="86">
         </div>
         <h1 class="brand-title">Evan-e-Hakimi &amp; Qadri Hall</h1>
         <div class="brand-sub">Management System</div>
-        <div class="security-badge"><i class="fas fa-shield-alt"></i> Private Admin Portal</div>
       </header>
 
       <main class="login-card">
@@ -1834,8 +1912,23 @@
       </main>
 
       <footer class="login-footer">
-        <div class="footer-line">&copy; 2026 Evan-e-Hakimi &amp; Qadri Hall Management. All rights reserved.</div>
-        <div class="footer-attribution">Powered by <span class="brand-partner">Duokarma</span></div>
+        <div class="footer-divider-glow"></div>
+        <div class="footer-content">
+          <div class="footer-copyright">
+            <span>&copy; 2026 Evan-e-Hakimi &amp; Qadri Hall Management</span>
+            <span class="footer-dot">&bull;</span>
+            <span>All rights reserved</span>
+          </div>
+          <div class="footer-pill-wrap">
+            <div class="powered-pill">
+              <span class="powered-label">POWERED BY</span>
+              <span class="powered-brand">
+                <span class="brand-sparkle">✦</span>
+                <span class="brand-name">Duokarma</span>
+              </span>
+            </div>
+          </div>
+        </div>
       </footer>
     </div>
   </div>
@@ -1886,9 +1979,9 @@
       <button class="btn-logout" onclick="adminLogout()">
         <i class="fas fa-sign-out-alt"></i> Sign Out
       </button>
-      <div style="display:flex;align-items:center;justify-content:center;gap:5px;font-size:0.65rem;color:rgba(245,240,232,0.4);letter-spacing:0.4px;padding-top:0.15rem;">
+      <div style="display:flex;align-items:center;justify-content:center;gap:6px;font-size:0.62rem;color:rgba(245,240,232,0.45);letter-spacing:0.8px;padding-top:0.35rem;text-transform:uppercase;">
         <span>Powered by</span>
-        <strong style="color:var(--wheat);font-weight:600;letter-spacing:0.5px;">Duokarma</strong>
+        <strong style="background:linear-gradient(135deg, #fff5e0 0%, #d4af37 50%, #f3d789 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700;letter-spacing:0.8px;display:inline-flex;align-items:center;gap:3px;"><span style="color:#d4af37;font-size:0.58rem;-webkit-text-fill-color:#d4af37;">✦</span> Duokarma</strong>
       </div>
     </div>
   </aside>
