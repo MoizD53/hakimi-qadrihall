@@ -195,6 +195,12 @@ const db = require('./db');
     if (createdBookingId) {
       await db.query('DELETE FROM bookings WHERE id = ?', [createdBookingId]);
       await db.query('DELETE FROM idempotency_keys WHERE key = ?', [idempotencyKey]);
+      await db.query("DELETE FROM staff WHERE name = 'demo'");
+      const checkB = await db.query('SELECT COUNT(*) as c FROM bookings');
+      const checkS = await db.query('SELECT COUNT(*) as c FROM staff');
+      if (checkB.rows[0]?.c === 0 && checkS.rows[0]?.c === 0) {
+        await db.query("DELETE FROM sqlite_sequence WHERE name IN ('bookings', 'booking_payments', 'expenses', 'staff', 'staff_salary_payments', 'audit_logs')");
+      }
     }
     server.close();
   }

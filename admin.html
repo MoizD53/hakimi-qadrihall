@@ -1940,7 +1940,6 @@
       <div class="sidebar-logo"><i class="fas fa-landmark"></i></div>
       <div class="sidebar-brand-text">
         <h2>Hakimi53 Halls</h2>
-        <span>Management System</span>
       </div>
       <button class="mobile-sidebar-close" onclick="toggleSidebar()" aria-label="Close sidebar"><i class="fas fa-times"></i></button>
     </div>
@@ -5049,7 +5048,9 @@
 
       const actionsContainer = document.getElementById('stageActionButtons');
       const phoneClean = (b.phone || '').replace(/[^0-9]/g, '');
-      if (b.status === 'CONFIRMED_PENDING_ADVANCE') {
+      const isConfirmedGroup = CONFIRMED_STATUSES.includes(b.status) || b.status === 'CONFIRMED_PENDING_ADVANCE' || b.status === 'confirmed' || b.status === 'CONFIRMED';
+
+      if (b.status === 'CONFIRMED_PENDING_ADVANCE' || (isConfirmedGroup && advPaid < advReq && bal > 0)) {
         actionsContainer.innerHTML = `
           <div style="background:rgba(252,211,77,0.08);border:1px solid rgba(252,211,77,0.3);padding:0.9rem;border-radius:8px;margin-bottom:0.8rem;">
             <div style="font-size:0.85rem;color:#fcd34d;font-weight:600;margin-bottom:4px;">
@@ -5062,11 +5063,10 @@
               <button class="btn-quick gold" style="font-size:0.82rem;padding:0.45rem 0.9rem;" onclick="record40Advance(${b.id})">
                 <i class="fas fa-check"></i> Received 40% Advance (₹${advReq.toLocaleString('en-IN')})
               </button>
-              
             </div>
           </div>
         `;
-      } else if (b.status === 'ADVANCE_PAID' || b.status === 'ADVANCE_PARTIALLY_PAID') {
+      } else if (b.status === 'ADVANCE_PAID' || b.status === 'ADVANCE_PARTIALLY_PAID' || (isConfirmedGroup && advPaid >= advReq && bal > 0)) {
         actionsContainer.innerHTML = `
           <div style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.3);padding:0.9rem;border-radius:8px;margin-bottom:0.8rem;">
             <div style="font-size:0.85rem;color:#93c5fd;font-weight:600;margin-bottom:4px;">
@@ -5079,12 +5079,10 @@
               <button class="btn-quick" style="background:#22c55e;color:#0a1a12;font-size:0.82rem;padding:0.45rem 0.9rem;" onclick="record60Balance(${b.id})">
                 <i class="fas fa-check-double"></i> Received Remaining 60% (₹${bal.toLocaleString('en-IN')})
               </button>
-              
-              
             </div>
           </div>
         `;
-      } else if (b.status === 'FULLY_PAID') {
+      } else if (b.status === 'FULLY_PAID' || bal === 0) {
         actionsContainer.innerHTML = `
           <div style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.35);padding:0.9rem;border-radius:8px;margin-bottom:0.8rem;">
             <div style="font-size:0.88rem;color:#86efac;font-weight:700;margin-bottom:4px;">
@@ -5427,24 +5425,24 @@
 
           const phoneClean = (b.phone || '').replace(/[^0-9]/g, '');
           let stageButtons = '';
-          if (b.status === 'CONFIRMED_PENDING_ADVANCE') {
+          const isConfirmedGroup = CONFIRMED_STATUSES.includes(b.status) || b.status === 'CONFIRMED_PENDING_ADVANCE' || b.status === 'confirmed' || b.status === 'CONFIRMED';
+          const advReq = b.advance_amount ? parseFloat(b.advance_amount) : Math.round(total * 0.4);
+
+          if (isConfirmedGroup && advPaid < advReq && balance > 0) {
             stageButtons = `
               <button class="btn-quick gold" style="padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="record40Advance(${b.id})" title="Received 40% Advance">
                 <i class="fas fa-check"></i> Received 40% Advance
               </button>
-              
             `;
-          } else if (b.status === 'ADVANCE_PAID' || b.status === 'ADVANCE_PARTIALLY_PAID') {
+          } else if (isConfirmedGroup && advPaid >= advReq && balance > 0) {
             stageButtons = `
               <button class="btn-quick" style="background:#22c55e;color:#0a1a12;padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="record60Balance(${b.id})" title="Received Remaining 60%">
                 <i class="fas fa-check-double"></i> Received Remaining 60%
               </button>
-              
             `;
-          } else if (b.status === 'FULLY_PAID') {
+          } else if (b.status === 'FULLY_PAID' || (balance <= 0 && total > 0)) {
             stageButtons = `
               <span class="badge" style="background:rgba(34,197,94,0.18);color:#86efac;border:1px solid rgba(34,197,94,0.4);font-size:0.68rem;padding:3px 6px;">Fully Paid ✓</span>
-              
             `;
           } else if (ENQUIRY_STATUSES.includes(b.status)) {
             stageButtons = `
