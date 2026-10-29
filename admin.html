@@ -3215,7 +3215,7 @@
           </div>
 
           <div class="form-group">
-            <label for="salNotes">Notes / Voucher Reference</label>
+            <label for="salNotes">Notes / Reference</label>
             <input type="text" id="salNotes" class="form-ctrl" placeholder="e.g. Paid in full for Oct 2026">
           </div>
         </div>
@@ -6228,7 +6228,7 @@
           <td>${escapeHtml(e.paid_to || '—')}</td>
           <td>${escapeHtml(e.payment_method || 'Cash')}</td>
           <td style="color:#fca5a5;font-weight:700;">₹${parseFloat(e.amount || 0).toLocaleString('en-IN')}</td>
-          <td style="font-size:0.75rem;color:rgba(245,240,232,0.5);">${escapeHtml(e.notes || '—')}</td>
+          <td style="font-size:0.75rem;color:rgba(245,240,232,0.5);">${escapeHtml((e.notes || '—').replace(/\bvoucher\b/gi, '').trim() || '—')}</td>
           <td>
             <div style="display:flex;gap:4px;">
               <button class="action-btn" onclick="openEditExpenseModal(${e.id || e._id})"><i class="fas fa-edit"></i></button>

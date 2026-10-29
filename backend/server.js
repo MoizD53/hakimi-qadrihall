@@ -2792,13 +2792,13 @@ app.post('/api/staff/salary-payments', requireAuth, async (req, res) => {
       await db.query(
         `UPDATE expenses SET amount = ?, date = ?, payment_method = ?, notes = ?, updated_at = CURRENT_TIMESTAMP
          WHERE salary_payment_id = ?`,
-        [amt, pDate, payment_method, notes?.trim() || 'Staff monthly salary voucher', paymentId]
+        [amt, pDate, payment_method, notes?.trim() || 'Staff monthly salary', paymentId]
       );
     } else {
       await db.query(
         `INSERT INTO expenses (description, hall, category, amount, date, payment_method, paid_to, notes, staff_id, salary_payment_id)
          VALUES (?, 'Combined / Facility', 'Staff Salary', ?, ?, ?, ?, ?, ?, ?)`,
-        [expDesc, amt, pDate, payment_method, staffName, notes?.trim() || 'Staff monthly salary voucher', staff_id, paymentId]
+        [expDesc, amt, pDate, payment_method, staffName, notes?.trim() || 'Staff monthly salary', staff_id, paymentId]
       );
     }
 
