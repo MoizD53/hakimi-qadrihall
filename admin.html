@@ -362,6 +362,120 @@
       font-size:0.7rem;color:rgba(245,240,232,0.48);letter-spacing:0.4px;margin-top:2px;
     }
     .header-actions{display:flex;align-items:center;gap:0.65rem;flex-wrap:wrap;}
+    /* Header DateTime & Weather Pill Widget (Software Theme) */
+    .header-datetime-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(22, 16, 10, 0.78);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(201, 169, 110, 0.24);
+      border-radius: 9999px;
+      padding: 4px 6px 4px 14px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(201, 169, 110, 0.12);
+      transition: all 0.25s ease;
+    }
+    .header-datetime-pill:hover {
+      border-color: rgba(201, 169, 110, 0.38);
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(201, 169, 110, 0.2);
+    }
+    .hdr-pill-weather {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      cursor: default;
+    }
+    .hdr-weather-icon {
+      font-size: 1.18rem;
+      color: #f59e0b;
+      filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.4));
+      transition: transform 0.3s ease;
+    }
+    .hdr-pill-weather:hover .hdr-weather-icon {
+      transform: scale(1.12);
+    }
+    .hdr-weather-info {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.12;
+    }
+    .hdr-weather-temp {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--cream);
+      letter-spacing: 0.2px;
+    }
+    .hdr-weather-cond {
+      font-size: 0.65rem;
+      color: rgba(245, 240, 232, 0.62);
+      font-weight: 500;
+      text-transform: capitalize;
+      letter-spacing: 0.3px;
+    }
+    .hdr-pill-divider {
+      width: 1px;
+      height: 24px;
+      background: rgba(201, 169, 110, 0.22);
+      flex-shrink: 0;
+    }
+    .hdr-pill-time {
+      font-size: 0.94rem;
+      font-weight: 700;
+      color: var(--cream);
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+    .hdr-pill-date {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(201, 169, 110, 0.12);
+      border: 1px solid rgba(201, 169, 110, 0.28);
+      border-radius: 9999px;
+      padding: 5px 12px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      color: var(--cream);
+      white-space: nowrap;
+      user-select: none;
+    }
+    .hdr-pill-date:hover {
+      background: rgba(201, 169, 110, 0.22);
+      border-color: rgba(201, 169, 110, 0.5);
+      color: #fff;
+      transform: translateY(-0.5px);
+    }
+    .hdr-calendar-icon {
+      font-size: 0.82rem;
+      color: var(--wheat);
+    }
+    .hdr-date-text {
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: var(--cream);
+      letter-spacing: 0.2px;
+    }
+    .hdr-today-tag {
+      font-size: 0.65rem;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      color: #fcd34d;
+      background: rgba(201, 169, 110, 0.18);
+      border: 1px solid rgba(201, 169, 110, 0.35);
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+    .hdr-chevron-icon {
+      font-size: 0.62rem;
+      color: rgba(201, 169, 110, 0.7);
+      transition: transform 0.2s ease;
+    }
+    .hdr-pill-date:hover .hdr-chevron-icon {
+      transform: translateY(1px);
+      color: var(--gold);
+    }
     .hall-indicator{
       display:inline-flex;align-items:center;gap:0.45rem;padding:0.38rem 0.85rem;
       border-radius:20px;font-size:0.66rem;font-weight:500;background:rgba(201,169,110,0.08);
@@ -867,25 +981,37 @@
 
     @media (max-width: 640px){
       .header-bar{
-        flex-direction: column;
-        align-items: stretch;
-        gap: 0.65rem;
-        padding: 0.7rem 0.85rem;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        padding: 0.6rem 0.85rem;
       }
       .header-left{
-        width: 100%;
-        justify-content: flex-start;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
       }
       .header-title-block h1{
-        font-size: 1.25rem;
+        font-size: 1.15rem;
         line-height: 1.15;
       }
       .header-actions{
-        width: 100%;
         display: flex;
-        flex-wrap: wrap;
-        gap: 0.4rem;
-        justify-content: flex-start;
+        align-items: center;
+      }
+      .header-datetime-pill {
+        padding: 3px 4px 3px 8px;
+        gap: 6px;
+      }
+      .hdr-weather-cond, .hdr-today-tag, .hdr-chevron-icon {
+        display: none;
+      }
+      .hdr-pill-divider {
+        height: 18px;
+      }
+      .hdr-pill-date {
+        padding: 3px 6px;
       }
       .header-actions .btn-quick{
         flex: 1 1 auto;
@@ -1995,13 +2121,37 @@
         <button class="mobile-menu-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
         <div class="header-title-block">
           <h1 id="pageTitle">Good Afternoon, Admin</h1>
-          <p id="pageSubtitle"><i class="far fa-clock" style="color:var(--wheat);"></i> Loading Indian Standard Time...</p>
         </div>
       </div>
       <div class="header-actions">
-        <div class="hall-indicator"><i class="fas fa-building"></i> 2 Active Halls</div>
-        <button class="btn-quick gold" onclick="openNewBookingModal()"><i class="fas fa-plus"></i> New Booking</button>
-        <button class="btn-quick" onclick="openNewExpenseModal()"><i class="fas fa-plus"></i> Record Expense</button>
+        <!-- Theme-tailored Weather, Time & Date Pill Widget -->
+        <div class="header-datetime-pill">
+          <!-- Weather section -->
+          <div class="hdr-pill-weather" id="hdrWeatherWidget" title="Live Dahod, Gujarat Weather">
+            <i id="hdrWeatherIcon" class="fas fa-sun hdr-weather-icon"></i>
+            <div class="hdr-weather-info">
+              <span class="hdr-weather-temp" id="hdrWeatherTemp">31°C</span>
+              <span class="hdr-weather-cond" id="hdrWeatherCond">Sunny</span>
+            </div>
+          </div>
+
+          <!-- Divider -->
+          <div class="hdr-pill-divider"></div>
+
+          <!-- Time section -->
+          <div class="hdr-pill-time" id="hdrLiveTime">12:42 pm</div>
+
+          <!-- Divider -->
+          <div class="hdr-pill-divider"></div>
+
+          <!-- Date pill section -->
+          <div class="hdr-pill-date" id="hdrPillDateBtn" onclick="jumpToTodayCalendar()" title="Click to view Today on Calendar">
+            <i class="far fa-calendar-alt hdr-calendar-icon"></i>
+            <span class="hdr-date-text" id="hdrLiveDate">29 Oct 2026</span>
+            <span class="hdr-today-tag">TODAY</span>
+            <i class="fas fa-chevron-down hdr-chevron-icon"></i>
+          </div>
+        </div>
       </div>
     </header>
 
@@ -3729,11 +3879,23 @@
         second: '2-digit',
         hour12: true
       });
+      const timeShortFmt = new Intl.DateTimeFormat('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
       const dateFmt = new Intl.DateTimeFormat('en-IN', {
         timeZone: 'Asia/Kolkata',
         weekday: 'long',
         day: 'numeric',
         month: 'long',
+        year: 'numeric'
+      });
+      const datePillFmt = new Intl.DateTimeFormat('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        day: 'numeric',
+        month: 'short',
         year: 'numeric'
       });
       const hourFmt = new Intl.DateTimeFormat('en-US', {
@@ -3750,25 +3912,94 @@
       }
 
       const timeStr = timeFmt.format(now).toUpperCase();
+      const timeShortStr = timeShortFmt.format(now).toLowerCase();
       const dateStr = dateFmt.format(now);
-      return { greeting, timeStr, dateStr };
+      const datePillStr = datePillFmt.format(now);
+      return { greeting, timeStr, timeShortStr, dateStr, datePillStr };
     }
 
     function updateLiveIndiaClock() {
-      const { greeting, timeStr, dateStr } = getIndiaTimeDetails();
+      const { greeting, timeShortStr, datePillStr } = getIndiaTimeDetails();
       const adminName = document.getElementById('adminUserDisplay')?.textContent?.trim() || 'Admin';
 
-      // If active page is overview, dynamically display greeting and real India time
-      if (currentNavKey === 'overview') {
-        const titleEl = document.getElementById('pageTitle');
-        const subEl = document.getElementById('pageSubtitle');
-        if (titleEl) titleEl.textContent = `${greeting}, ${adminName}`;
-        if (subEl) subEl.innerHTML = `<i class="far fa-clock" style="color:var(--wheat);margin-right:5px;"></i>${dateStr} &bull; ${timeStr} (IST &bull; India)`;
+      // Update greeting in header (just greeting, Admin)
+      const titleEl = document.getElementById('pageTitle');
+      if (titleEl && (currentNavKey === 'overview' || !currentNavKey)) {
+        titleEl.textContent = `${greeting}, ${adminName}`;
       }
+
+      // Update Live Pill Time and Date
+      const timeEl = document.getElementById('hdrLiveTime');
+      if (timeEl) timeEl.textContent = timeShortStr;
+
+      const dateEl = document.getElementById('hdrLiveDate');
+      if (dateEl) dateEl.textContent = datePillStr;
     }
 
     // Tick every second for live India time
     setInterval(updateLiveIndiaClock, 1000);
+
+    // Weather Fetcher for Dahod, Gujarat
+    async function fetchDahodWeather() {
+      try {
+        const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=22.83&longitude=74.25&current=temperature_2m,weather_code,is_day');
+        if (!res.ok) return;
+        const data = await res.json();
+        const current = data.current;
+        if (!current) return;
+        const temp = Math.round(current.temperature_2m);
+        const code = current.weather_code;
+        const isDay = current.is_day === 1;
+
+        let cond = 'Sunny';
+        let icon = isDay ? 'fas fa-sun' : 'fas fa-moon';
+        let iconColor = isDay ? '#f59e0b' : '#cbd5e1';
+
+        if (code === 0) {
+          cond = isDay ? 'Sunny' : 'Clear';
+          icon = isDay ? 'fas fa-sun' : 'fas fa-moon';
+          iconColor = isDay ? '#f59e0b' : '#cbd5e1';
+        } else if (code >= 1 && code <= 3) {
+          cond = code === 1 ? 'Mainly Clear' : (code === 2 ? 'Partly Cloudy' : 'Overcast');
+          icon = isDay ? 'fas fa-cloud-sun' : 'fas fa-cloud-moon';
+          iconColor = '#e2b96a';
+        } else if (code === 45 || code === 48) {
+          cond = 'Foggy';
+          icon = 'fas fa-smog';
+          iconColor = '#94a3b8';
+        } else if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) {
+          cond = 'Rain';
+          icon = 'fas fa-cloud-showers-heavy';
+          iconColor = '#60a5fa';
+        } else if (code >= 95) {
+          cond = 'Thunderstorm';
+          icon = 'fas fa-bolt';
+          iconColor = '#fbbf24';
+        }
+
+        const tempEl = document.getElementById('hdrWeatherTemp');
+        const condEl = document.getElementById('hdrWeatherCond');
+        const iconEl = document.getElementById('hdrWeatherIcon');
+
+        if (tempEl) tempEl.textContent = `${temp}°C`;
+        if (condEl) condEl.textContent = cond;
+        if (iconEl) {
+          iconEl.className = `${icon} hdr-weather-icon`;
+          iconEl.style.color = iconColor;
+        }
+      } catch (_) {}
+    }
+
+    function jumpToTodayCalendar() {
+      if (typeof calNavMonth === 'function') {
+        calNavMonth('hakimi', 0);
+      }
+      switchNav('calendar-hakimi');
+    }
+
+    // Initialize weather fetch and refresh every 15 mins
+    fetchDahodWeather();
+    setInterval(fetchDahodWeather, 15 * 60 * 1000);
 
     /* ════════ NAVIGATION & TABS ════════ */
     const pageTitles = {
@@ -3815,7 +4046,8 @@
       } else {
         const meta = pageTitles[pageKey] || { title: 'Hall Management', sub: '' };
         document.getElementById('pageTitle').textContent = meta.title;
-        document.getElementById('pageSubtitle').innerHTML = meta.sub;
+        const subEl = document.getElementById('pageSubtitle');
+        if (subEl) subEl.innerHTML = meta.sub;
       }
 
       if (window.innerWidth <= 900) {
