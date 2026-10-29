@@ -3210,56 +3210,10 @@
       color: #fff;
     }
 
-    /* Fixed Bottom Call Bar for Mobile */
-    .mobile-sticky-bar {
-      display: none;
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: rgba(14, 11, 8, 0.96);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border-top: 1px solid rgba(201,169,110,0.3);
-      padding: 10px 14px;
-      z-index: 9998;
-      box-shadow: 0 -8px 24px rgba(0,0,0,0.6);
-    }
-    .mobile-sticky-inner {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      max-width: 500px;
-      margin: 0 auto;
-    }
-    .mobile-call-btn {
-      flex: 1;
-      background: linear-gradient(135deg, #c9a96e 0%, #e2b96a 100%);
-      color: #111;
-      padding: 12px 10px;
-      border-radius: 12px;
-      font-size: 0.82rem;
-      font-weight: 700;
-      text-align: center;
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-    .mobile-call-btn.sec {
-      background: rgba(255,255,255,0.08);
-      color: var(--cream);
-      border: 1px solid rgba(201,169,110,0.3);
-    }
-
+    
     @media (max-width: 768px) {
-      .mobile-sticky-bar {
-        display: block;
-      }
       .cal-section {
-        padding: 3rem 0.85rem 5.5rem;
+        padding: 3rem 0.85rem 3.5rem;
       }
       .cal-card {
         padding: 1.1rem 0.75rem;
@@ -3554,17 +3508,7 @@
   </div>
 </section>
 
-<!-- MOBILE STICKY CONTACT BAR -->
-<div class="mobile-sticky-bar">
-  <div class="mobile-sticky-inner">
-    <a href="tel:+919033647648" class="mobile-call-btn" title="Call Aliasgar Challa">
-      <i class="fas fa-phone-alt"></i> Call Aliasgar (90336 47648)
-    </a>
-    <a href="tel:+919824129952" class="mobile-call-btn sec" title="Call Zainab Jadliwala">
-      <i class="fas fa-phone-alt"></i> Call Zainab (98241 29952)
-    </a>
-  </div>
-</div>
+
 
 <footer id="contact" style="padding: 2.8rem 1.2rem 2rem; text-align: center; border-top: 1px solid rgba(201,169,110,0.2); background: #0c0905;">
   <div style="max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 12px;">

@@ -3990,7 +3990,10 @@
               const advReq = b.advance_amount ? parseFloat(b.advance_amount) : Math.round(total * 0.4);
               let actionBtn = '';
               if (advPaid < advReq && bal > 0) {
-                actionBtn = `<button class="btn-quick gold" style="padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="record40Advance(${b.id})" title="Received 40% Advance"><i class="fas fa-check"></i> Received 40% Advance</button>`;
+                actionBtn = `
+                  <button class="btn-quick gold" style="padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="record40Advance(${b.id})" title="Received 40% Advance"><i class="fas fa-check"></i> 40% Adv</button>
+                  <button class="btn-quick" style="background:#22c55e;color:#0a1a12;padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="record100Full(${b.id})" title="Received 100% Full Payment at once (ek sath)"><i class="fas fa-check-double"></i> 100% Full</button>
+                `;
               } else if (bal > 0) {
                 actionBtn = `<button class="btn-quick" style="background:#22c55e;color:#0a1a12;padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="record60Balance(${b.id})" title="Received Remaining 60%"><i class="fas fa-check-double"></i> Received Remaining 60%</button>`;
               } else {
@@ -4135,8 +4138,11 @@
           `;
         } else {
           payAction = `
-            <button class="btn-quick gold" style="font-size:0.75rem;padding:0.32rem 0.75rem;" onclick="record40Advance(${b.id})">
+            <button class="btn-quick gold" style="font-size:0.75rem;padding:0.32rem 0.75rem;" onclick="record40Advance(${b.id})" title="Collect 40% Advance">
               <i class="fas fa-check"></i> Collect 40% Adv (₹${advReq.toLocaleString('en-IN')})
+            </button>
+            <button class="btn-quick" style="background:#22c55e;color:#0a1a12;font-size:0.75rem;padding:0.32rem 0.75rem;" onclick="record100Full(${b.id})" title="Collect 100% Full Payment at once (ek sath)">
+              <i class="fas fa-check-double"></i> Collect 100% Full (₹${bal.toLocaleString('en-IN')})
             </button>
           `;
         }
@@ -4481,6 +4487,9 @@
             actionsHtml = `
               <button class="btn-quick gold" style="padding:0.28rem 0.55rem;font-size:0.68rem;" onclick="record40Advance(${b.id})" title="Received 40% Advance">
                 <i class="fas fa-check"></i> Received 40% Advance
+              </button>
+              <button class="btn-quick" style="background:#22c55e;color:#0a1a12;padding:0.28rem 0.55rem;font-size:0.68rem;" onclick="record100Full(${b.id})" title="Received 100% Full Payment at once (ek sath)">
+                <i class="fas fa-check-double"></i> Received 100% Full
               </button>
               <button class="action-btn" style="padding:0.28rem 0.45rem;font-size:0.68rem;" onclick="openBookingStage(${b.id})" title="Manage Booking"><i class="fas fa-eye"></i></button>
             `;
@@ -5018,6 +5027,56 @@
       });
     }
 
+    async function record100Full(bookingId) {
+      let b = allBookings.find(x => x.id === bookingId) || allEnquiriesList.find(x => x.id === bookingId);
+      if (!b) {
+        try {
+          const res = await authFetch(`/api/bookings/${bookingId}`);
+          b = await res.json();
+        } catch (_) {}
+      }
+
+      const custName = b?.customer_name || 'Guest';
+      const checkInDate = b?.check_in || '';
+      const hallName = (b?.hall || '').toLowerCase().includes('qadri') ? 'Qadri Hall (3rd Floor)' : 'Evan-e-Hakimi (2nd Floor)';
+      const total = parseFloat(b?.total_amount || 0);
+      const advPaid = parseFloat(b?.advancePaid || b?.advance_paid || 0);
+      const bal = Math.max(0, total - advPaid);
+
+      showConfirmModal({
+        title: 'Confirm 100% Full Payment',
+        icon: 'fas fa-check-double',
+        success: true,
+        message: `Record receipt of 100% full payment (ek sath) for <strong>${escapeHtml(custName)}</strong>? This will collect the entire amount (<strong>₹${bal.toLocaleString('en-IN')}</strong>) and mark the booking as <strong>Fully Paid</strong>.`,
+        customer: custName,
+        customerLabel: 'Customer',
+        date: checkInDate,
+        dateLabel: 'Event Date',
+        hall: hallName,
+        slot: b?.slot,
+        amount: bal,
+        amountLabel: '100% Full Payment Amount',
+        confirmText: '<i class="fas fa-check-circle"></i> Confirm 100% Full Payment',
+        confirmLoadingText: 'Recording Full Payment...',
+        cancelText: 'Cancel',
+        onConfirm: async () => {
+          const res = await authFetch(`/api/bookings/${bookingId}/receive-balance`, {
+            method: 'POST',
+            body: { payment_method: 'Cash', notes: '100% full payment received at once (ek sath)' }
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            showToast(data.message || '100% full payment received! Booking is now fully paid.');
+            closeModal('modalBookingStage');
+            refreshAllActiveScreens();
+          } else {
+            showToast(data.error || 'Failed to record full payment', true);
+            throw new Error(data.error || 'Failed to record full payment');
+          }
+        }
+      });
+    }
+
     async function openBookingStage(bookingId) {
       let b = allBookings.find(x => x.id === bookingId) || allEnquiriesList.find(x => x.id === bookingId);
       if (!b) {
@@ -5080,14 +5139,17 @@
         actionsContainer.innerHTML = `
           <div style="background:rgba(252,211,77,0.08);border:1px solid rgba(252,211,77,0.3);padding:0.9rem;border-radius:8px;margin-bottom:0.8rem;">
             <div style="font-size:0.85rem;color:#fcd34d;font-weight:600;margin-bottom:4px;">
-              <i class="fas fa-hourglass-half"></i> Awaiting 40% Advance Payment
+              <i class="fas fa-hourglass-half"></i> Awaiting 40% Advance or 100% Full Payment
             </div>
             <div style="font-size:0.75rem;color:var(--cream);opacity:0.85;margin-bottom:0.7rem;">
-              Kindly pay 40% advance (₹${advReq.toLocaleString('en-IN')}) within 24 hours to secure this booking slot.
+              Pay 40% advance (₹${advReq.toLocaleString('en-IN')}) within 24 hours to secure this booking slot, or collect 100% full payment (₹${bal.toLocaleString('en-IN')}) all at once (ek sath).
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
               <button class="btn-quick gold" style="font-size:0.82rem;padding:0.45rem 0.9rem;" onclick="record40Advance(${b.id})">
                 <i class="fas fa-check"></i> Received 40% Advance (₹${advReq.toLocaleString('en-IN')})
+              </button>
+              <button class="btn-quick" style="background:#22c55e;color:#0a1a12;font-size:0.82rem;padding:0.45rem 0.9rem;" onclick="record100Full(${b.id})">
+                <i class="fas fa-check-double"></i> Received 100% Full (₹${bal.toLocaleString('en-IN')})
               </button>
             </div>
           </div>
@@ -5477,6 +5539,9 @@
           stageButtons = `
             <button class="btn-quick gold" style="padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="record40Advance(${b.id})" title="Received 40% Advance">
               <i class="fas fa-check"></i> Received 40% Advance
+            </button>
+            <button class="btn-quick" style="background:#22c55e;color:#0a1a12;padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="record100Full(${b.id})" title="Received 100% Full Payment at once (ek sath)">
+              <i class="fas fa-check-double"></i> Received 100% Full
             </button>
           `;
         } else if (isConfirmedGroup && advPaid >= advReq && balance > 0) {

@@ -1654,8 +1654,8 @@ await logAudit('advance_received', 'booking', bookingId, `Recorded 40% advance o
   }
 });
 
-// POST /api/bookings/:id/receive-balance / mark-fully-paid — Mark booking as fully paid and record final settlement
-app.post(['/api/bookings/:id/receive-balance', '/api/bookings/:id/mark-fully-paid'], requireAuth, async (req, res) => {
+// POST /api/bookings/:id/receive-balance / mark-fully-paid / receive-full — Mark booking as fully paid and record final settlement
+app.post(['/api/bookings/:id/receive-balance', '/api/bookings/:id/mark-fully-paid', '/api/bookings/:id/receive-full'], requireAuth, async (req, res) => {
   let tx;
   try {
     const bookingId = req.params.id;
@@ -1674,6 +1674,8 @@ app.post(['/api/bookings/:id/receive-balance', '/api/bookings/:id/mark-fully-pai
     const paid = parseFloat(b.advance_paid) || 0;
     const remainingBalance = Math.max(0, total - paid);
     const payDate = payment_date || new Date().toISOString().split('T')[0];
+    const bookingRef = b.booking_reference || generateBookingReference(b.hall, bookingId, b.check_in);
+    const advReq = b.advance_amount ? parseFloat(b.advance_amount) : Math.round(total * 0.4);
 
     // If there is any remaining balance, insert payment record
     if (remainingBalance > 0) {
@@ -1687,6 +1689,9 @@ app.post(['/api/bookings/:id/receive-balance', '/api/bookings/:id/mark-fully-pai
     await tx.query(
       `UPDATE bookings SET
         advance_paid = ?,
+        advance_amount = COALESCE(advance_amount, ?),
+        advance_verified = 1,
+        booking_reference = COALESCE(booking_reference, ?),
         balance_amount = 0,
         payment_status = 'fully_paid',
         status = 'FULLY_PAID',
@@ -1694,7 +1699,7 @@ app.post(['/api/bookings/:id/receive-balance', '/api/bookings/:id/mark-fully-pai
         payment_notes = ?,
         updated_at = CURRENT_TIMESTAMP
        WHERE id = ?`,
-      [total, payment_method, notes?.trim() || b.payment_notes, bookingId]
+      [total, advReq, bookingRef, payment_method, notes?.trim() || b.payment_notes, bookingId]
     );
 
     const updated = await tx.query('SELECT * FROM bookings WHERE id = ?', [bookingId]);
