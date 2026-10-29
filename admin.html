@@ -5425,89 +5425,94 @@
       try {
         const res = await authFetch('/api/bookings?' + q.toString());
         allBookings = await res.json();
-
-        const tbody = document.getElementById('tblBookingsBody');
-        if (allBookings.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:2rem;color:rgba(245,240,232,0.4);">No bookings found matching filters.</td></tr>`;
-          return;
-        }
-
-        tbody.innerHTML = allBookings.map(b => {
-          const total = parseFloat(b.total_amount || 0);
-          const advPaid = parseFloat(b.advancePaid || b.advance_paid || 0);
-          const balance = Math.max(0, total - advPaid);
-          const isQadri = (b.hall || '').toLowerCase().includes('qadri');
-          const bookingRef = b.booking_reference || `#${b.id}`;
-
-          const conflictNotice = b.hasConflict 
-            ? `<div style="font-size:0.62rem;color:#fca5a5;background:rgba(239,68,68,0.15);padding:2px 4px;border-radius:3px;margin-top:2px;">⚠️ Conflict with #${b.conflictDetails?.id}</div>` 
-            : '';
-
-          const phoneClean = (b.phone || '').replace(/[^0-9]/g, '');
-          let stageButtons = '';
-          const isConfirmedGroup = CONFIRMED_STATUSES.includes(b.status) || b.status === 'CONFIRMED_PENDING_ADVANCE' || b.status === 'confirmed' || b.status === 'CONFIRMED';
-          const advReq = b.advance_amount ? parseFloat(b.advance_amount) : Math.round(total * 0.4);
-
-          if (isConfirmedGroup && advPaid < advReq && balance > 0) {
-            stageButtons = `
-              <button class="btn-quick gold" style="padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="record40Advance(${b.id})" title="Received 40% Advance">
-                <i class="fas fa-check"></i> Received 40% Advance
-              </button>
-            `;
-          } else if (isConfirmedGroup && advPaid >= advReq && balance > 0) {
-            stageButtons = `
-              <button class="btn-quick" style="background:#22c55e;color:#0a1a12;padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="record60Balance(${b.id})" title="Received Remaining 60%">
-                <i class="fas fa-check-double"></i> Received Remaining 60%
-              </button>
-            `;
-          } else if (b.status === 'FULLY_PAID' || (balance <= 0 && total > 0)) {
-            stageButtons = `
-              <span class="badge" style="background:rgba(34,197,94,0.18);color:#86efac;border:1px solid rgba(34,197,94,0.4);font-size:0.68rem;padding:3px 6px;">Fully Paid ✓</span>
-            `;
-          } else if (ENQUIRY_STATUSES.includes(b.status)) {
-            stageButtons = `
-              <button class="btn-quick gold" style="padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="openEnquiryWorkflow(${b.id})" title="Accept Enquiry">
-                <i class="fas fa-check"></i> Accept
-              </button>
-              <button class="action-btn del" style="padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="rejectEnquiryPrompt(${b.id})" title="Reject Enquiry">
-                <i class="fas fa-times"></i> Reject
-              </button>
-            `;
-          }
-
-          return `
-            <tr>
-              <td><strong>${escapeHtml(b.customer_name || 'Guest')}</strong></td>
-              <td>
-                <div style="display:flex;align-items:center;gap:6px;">
-                  <a href="tel:${b.phone}" style="color:var(--cream);text-decoration:none;">${b.phone}</a>
-                  
-                </div>
-              </td>
-              <td style="white-space:nowrap;"><strong>${formatDisplayDate(b.check_in)}</strong></td>
-              <td><span class="badge ${isQadri?'badge-qadri':'badge-hakimi'}">${escapeHtml(b.hall || 'Evan-e-Hakimi')}</span></td>
-              <td>${b.slot}</td>
-              <td><strong>₹${total.toLocaleString('en-IN')}</strong></td>
-              <td>₹${advPaid.toLocaleString('en-IN')}</td>
-              <td style="color:${balance>0?'#fca5a5':'#86efac'};font-weight:600;">₹${balance.toLocaleString('en-IN')}</td>
-              <td>
-                <span class="badge badge-${b.status}">${formatStatusLabel(b.status)}</span>
-                ${conflictNotice}
-              </td>
-              <td>
-                <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;">
-                  ${stageButtons}
-                  <button class="action-btn pay" onclick="openBookingStage(${b.id})" title="View Stage Details & Actions"><i class="fas fa-eye"></i></button>
-                  <button class="action-btn" onclick="openEditBookingModal(${b.id})" title="Edit Details"><i class="fas fa-edit"></i></button>
-                  <button class="action-btn del" onclick="openCancelModal(${b.id})" title="Cancel Booking &amp; Release Slot"><i class="fas fa-ban"></i></button>
-                </div>
-              </td>
-            </tr>
-          `;
-        }).join('');
+        renderBookings();
       } catch (err) {
         console.error('Failed to load bookings:', err);
       }
+    }
+
+    function renderBookings() {
+      const tbody = document.getElementById('tblBookingsBody');
+      if (!tbody) return;
+      if (!allBookings || allBookings.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:2rem;color:rgba(245,240,232,0.4);">No bookings found matching filters.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = allBookings.map(b => {
+        const total = parseFloat(b.total_amount || 0);
+        const advPaid = parseFloat(b.advancePaid || b.advance_paid || 0);
+        const balance = Math.max(0, total - advPaid);
+        const isQadri = (b.hall || '').toLowerCase().includes('qadri');
+        const bookingRef = b.booking_reference || `#${b.id}`;
+
+        const conflictNotice = b.hasConflict 
+          ? `<div style="font-size:0.62rem;color:#fca5a5;background:rgba(239,68,68,0.15);padding:2px 4px;border-radius:3px;margin-top:2px;">⚠️ Conflict with #${b.conflictDetails?.id}</div>` 
+          : '';
+
+        const phoneClean = (b.phone || '').replace(/[^0-9]/g, '');
+        let stageButtons = '';
+        const isConfirmedGroup = CONFIRMED_STATUSES.includes(b.status) || b.status === 'CONFIRMED_PENDING_ADVANCE' || b.status === 'confirmed' || b.status === 'CONFIRMED';
+        const advReq = b.advance_amount ? parseFloat(b.advance_amount) : Math.round(total * 0.4);
+
+        if (isConfirmedGroup && advPaid < advReq && balance > 0) {
+          stageButtons = `
+            <button class="btn-quick gold" style="padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="record40Advance(${b.id})" title="Received 40% Advance">
+              <i class="fas fa-check"></i> Received 40% Advance
+            </button>
+          `;
+        } else if (isConfirmedGroup && advPaid >= advReq && balance > 0) {
+          stageButtons = `
+            <button class="btn-quick" style="background:#22c55e;color:#0a1a12;padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="record60Balance(${b.id})" title="Received Remaining 60%">
+              <i class="fas fa-check-double"></i> Received Remaining 60%
+            </button>
+          `;
+        } else if (b.status === 'FULLY_PAID' || (balance <= 0 && total > 0)) {
+          stageButtons = `
+            <span class="badge" style="background:rgba(34,197,94,0.18);color:#86efac;border:1px solid rgba(34,197,94,0.4);font-size:0.68rem;padding:3px 6px;">Fully Paid ✓</span>
+          `;
+        } else if (ENQUIRY_STATUSES.includes(b.status)) {
+          stageButtons = `
+            <button class="btn-quick gold" style="padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="openEnquiryWorkflow(${b.id})" title="Accept Enquiry">
+              <i class="fas fa-check"></i> Accept
+            </button>
+            <button class="action-btn del" style="padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="rejectEnquiryPrompt(${b.id})" title="Reject Enquiry">
+              <i class="fas fa-times"></i> Reject
+            </button>
+          `;
+        }
+
+        return `
+          <tr id="booking-row-${b.id}">
+            <td><strong>${escapeHtml(b.customer_name || 'Guest')}</strong></td>
+            <td>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <a href="tel:${b.phone}" style="color:var(--cream);text-decoration:none;">${b.phone}</a>
+                
+              </div>
+            </td>
+            <td style="white-space:nowrap;"><strong>${formatDisplayDate(b.check_in)}</strong></td>
+            <td><span class="badge ${isQadri?'badge-qadri':'badge-hakimi'}">${escapeHtml(b.hall || 'Evan-e-Hakimi')}</span></td>
+            <td>${b.slot}</td>
+            <td><strong>₹${total.toLocaleString('en-IN')}</strong></td>
+            <td>₹${advPaid.toLocaleString('en-IN')}</td>
+            <td style="color:${balance>0?'#fca5a5':'#86efac'};font-weight:600;">₹${balance.toLocaleString('en-IN')}</td>
+            <td>
+              <span class="badge badge-${b.status}">${formatStatusLabel(b.status)}</span>
+              ${conflictNotice}
+            </td>
+            <td>
+              <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;">
+                ${stageButtons}
+                <button class="action-btn pay" onclick="openBookingStage(${b.id})" title="View Stage Details & Actions"><i class="fas fa-eye"></i></button>
+                <button class="action-btn" onclick="openEditBookingModal(${b.id})" title="Edit Details"><i class="fas fa-edit"></i></button>
+                <button class="action-btn del" onclick="openCancelModal(${b.id})" title="Cancel Booking &amp; Release Slot"><i class="fas fa-ban"></i></button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
     }
 
     function timeRangesOverlap(startA, endA, startB, endB) {
@@ -6163,49 +6168,57 @@
         ]);
         allExpenses = await res.json();
         const sumData = await sumRes.json();
-        document.getElementById('expThisMonthVal').textContent = '₹' + Math.round(sumData.thisMonthTotal || 0).toLocaleString('en-IN');
-        document.getElementById('expThisMonthLbl').textContent = sumData.currentMonth;
-
-        const filteredSum = allExpenses.reduce((s, e) => s + parseFloat(e.amount || 0), 0);
-        document.getElementById('expFilteredVal').textContent = '₹' + Math.round(filteredSum).toLocaleString('en-IN');
-
+        const expThisMonthEl = document.getElementById('expThisMonthVal');
+        const expThisMonthLbl = document.getElementById('expThisMonthLbl');
+        const expTopCatEl = document.getElementById('expTopCatVal');
+        if (expThisMonthEl) expThisMonthEl.textContent = '₹' + Math.round(sumData.thisMonthTotal || 0).toLocaleString('en-IN');
+        if (expThisMonthLbl) expThisMonthLbl.textContent = sumData.currentMonth;
         const topCat = sumData.categoryBreakdown && sumData.categoryBreakdown[0] ? sumData.categoryBreakdown[0].category : '—';
-        document.getElementById('expTopCatVal').textContent = topCat;
+        if (expTopCatEl) expTopCatEl.textContent = topCat;
 
-        const tbody = document.getElementById('tblExpensesBody');
-        if (allExpenses.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:2rem;color:rgba(245,240,232,0.4);">No expenses recorded.</td></tr>`;
-          return;
-        }
-
-        tbody.innerHTML = allExpenses.map(e => {
-          let hallBadge = '<span class="badge" style="background:rgba(201,169,110,0.12);color:var(--wheat);">Evan-e-Hakimi</span>';
-          if (e.hall === 'Qadri Hall') {
-            hallBadge = '<span class="badge" style="background:rgba(147,197,253,0.12);color:#93c5fd;">Qadri Hall</span>';
-          } else if (e.hall === 'Combined / Facility') {
-            hallBadge = '<span class="badge" style="background:rgba(245,240,232,0.1);color:var(--cream);">Both Halls</span>';
-          }
-          return `
-          <tr>
-            <td style="white-space:nowrap;"><strong>${formatDisplayDate(e.date)}</strong></td>
-            <td><strong>${escapeHtml(e.description || e.notes || 'Expense')}</strong></td>
-            <td>${hallBadge}</td>
-            <td><span class="badge" style="background:rgba(201,169,110,0.1);color:var(--wheat);">${escapeHtml(e.category)}</span></td>
-            <td>${escapeHtml(e.paid_to || '—')}</td>
-            <td>${escapeHtml(e.payment_method || 'Cash')}</td>
-            <td style="color:#fca5a5;font-weight:700;">₹${parseFloat(e.amount || 0).toLocaleString('en-IN')}</td>
-            <td style="font-size:0.75rem;color:rgba(245,240,232,0.5);">${escapeHtml(e.notes || '—')}</td>
-            <td>
-              <div style="display:flex;gap:4px;">
-                <button class="action-btn" onclick="openEditExpenseModal(${e.id || e._id})"><i class="fas fa-edit"></i></button>
-                <button class="action-btn del" onclick="deleteExpense(${e.id || e._id})"><i class="fas fa-trash"></i></button>
-              </div>
-            </td>
-          </tr>
-        `; }).join('');
+        renderExpenses();
       } catch (err) {
         console.error('Failed to load expenses:', err);
       }
+    }
+
+    function renderExpenses() {
+      const filteredSum = (allExpenses || []).reduce((s, e) => s + parseFloat(e.amount || 0), 0);
+      const expFilteredEl = document.getElementById('expFilteredVal');
+      if (expFilteredEl) expFilteredEl.textContent = '₹' + Math.round(filteredSum).toLocaleString('en-IN');
+
+      const tbody = document.getElementById('tblExpensesBody');
+      if (!tbody) return;
+      if (!allExpenses || allExpenses.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:2rem;color:rgba(245,240,232,0.4);">No expenses recorded.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = allExpenses.map(e => {
+        let hallBadge = '<span class="badge" style="background:rgba(201,169,110,0.12);color:var(--wheat);">Evan-e-Hakimi</span>';
+        if (e.hall === 'Qadri Hall') {
+          hallBadge = '<span class="badge" style="background:rgba(147,197,253,0.12);color:#93c5fd;">Qadri Hall</span>';
+        } else if (e.hall === 'Combined / Facility') {
+          hallBadge = '<span class="badge" style="background:rgba(245,240,232,0.1);color:var(--cream);">Both Halls</span>';
+        }
+        return `
+        <tr id="expense-row-${e.id || e._id}">
+          <td style="white-space:nowrap;"><strong>${formatDisplayDate(e.date)}</strong></td>
+          <td><strong>${escapeHtml(e.description || e.notes || 'Expense')}</strong></td>
+          <td>${hallBadge}</td>
+          <td><span class="badge" style="background:rgba(201,169,110,0.1);color:var(--wheat);">${escapeHtml(e.category)}</span></td>
+          <td>${escapeHtml(e.paid_to || '—')}</td>
+          <td>${escapeHtml(e.payment_method || 'Cash')}</td>
+          <td style="color:#fca5a5;font-weight:700;">₹${parseFloat(e.amount || 0).toLocaleString('en-IN')}</td>
+          <td style="font-size:0.75rem;color:rgba(245,240,232,0.5);">${escapeHtml(e.notes || '—')}</td>
+          <td>
+            <div style="display:flex;gap:4px;">
+              <button class="action-btn" onclick="openEditExpenseModal(${e.id || e._id})"><i class="fas fa-edit"></i></button>
+              <button class="action-btn del" onclick="deleteExpense(${e.id || e._id})"><i class="fas fa-trash"></i></button>
+            </div>
+          </td>
+        </tr>
+      `; }).join('');
     }
 
     function openNewExpenseModal() {
@@ -6335,50 +6348,57 @@
       try {
         const res = await authFetch('/api/staff?' + q.toString());
         allStaff = await res.json();
-
-        let activeCount = 0;
-        let totalPayroll = 0;
-        allStaff.forEach(s => {
-          if ((s.status || 'active').toLowerCase() === 'active') {
-            activeCount++;
-            totalPayroll += parseFloat(s.salary || 0);
-          }
-        });
-
-        document.getElementById('staffTotalVal').textContent = allStaff.length;
-        document.getElementById('staffActiveVal').textContent = activeCount;
-        document.getElementById('staffPayrollVal').textContent = '₹' + Math.round(totalPayroll).toLocaleString('en-IN');
-
-        const tbody = document.getElementById('tblStaffBody');
-        if (allStaff.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:rgba(245,240,232,0.4);">No staff registered yet.</td></tr>`;
-          return;
-        }
-
-        tbody.innerHTML = allStaff.map(s => {
-          const sid = s.id || s._id;
-          const isActive = (s.status || 'active').toLowerCase() === 'active';
-          return `
-            <tr>
-              <td><strong>${escapeHtml(s.name)}</strong></td>
-              <td>${s.phone ? `<a href="tel:${s.phone}" style="color:var(--cream);text-decoration:none;">${s.phone}</a>` : '—'}</td>
-              <td><span class="badge" style="background:rgba(201,169,110,0.1);color:var(--wheat);">${escapeHtml(s.role)}</span></td>
-              <td><strong>₹${parseFloat(s.salary || 0).toLocaleString('en-IN')}</strong> / mo</td>
-              <td>${s.joining_date || '—'}</td>
-              <td><span class="badge ${isActive ? 'badge-confirmed' : 'badge-rejected'}">${s.status || 'active'}</span></td>
-              <td>
-                <div style="display:flex;gap:4px;">
-                  <button class="action-btn pay" onclick="openSalaryPayModal(${sid})" title="Record Salary Payment"><i class="fas fa-hand-holding-usd"></i> Pay Salary</button>
-                  <button class="action-btn" onclick="openEditStaffModal(${sid})" title="Edit Profile"><i class="fas fa-edit"></i></button>
-                  <button class="action-btn del" onclick="deleteStaff(${sid})" title="Delete Profile"><i class="fas fa-trash"></i></button>
-                </div>
-              </td>
-            </tr>
-          `;
-        }).join('');
+        renderStaff();
       } catch (err) {
         console.error('Failed to load staff:', err);
       }
+    }
+
+    function renderStaff() {
+      let activeCount = 0;
+      let totalPayroll = 0;
+      (allStaff || []).forEach(s => {
+        if ((s.status || 'active').toLowerCase() === 'active') {
+          activeCount++;
+          totalPayroll += parseFloat(s.salary || 0);
+        }
+      });
+
+      const totalEl = document.getElementById('staffTotalVal');
+      const activeEl = document.getElementById('staffActiveVal');
+      const payrollEl = document.getElementById('staffPayrollVal');
+      if (totalEl) totalEl.textContent = (allStaff || []).length;
+      if (activeEl) activeEl.textContent = activeCount;
+      if (payrollEl) payrollEl.textContent = '₹' + Math.round(totalPayroll).toLocaleString('en-IN');
+
+      const tbody = document.getElementById('tblStaffBody');
+      if (!tbody) return;
+      if (!allStaff || allStaff.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:rgba(245,240,232,0.4);">No staff registered yet.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = allStaff.map(s => {
+        const sid = s.id || s._id;
+        const isActive = (s.status || 'active').toLowerCase() === 'active';
+        return `
+          <tr id="staff-row-${sid}">
+            <td><strong>${escapeHtml(s.name)}</strong></td>
+            <td>${s.phone ? `<a href="tel:${s.phone}" style="color:var(--cream);text-decoration:none;">${s.phone}</a>` : '—'}</td>
+            <td><span class="badge" style="background:rgba(201,169,110,0.1);color:var(--wheat);">${escapeHtml(s.role)}</span></td>
+            <td><strong>₹${parseFloat(s.salary || 0).toLocaleString('en-IN')}</strong> / mo</td>
+            <td>${s.joining_date || '—'}</td>
+            <td><span class="badge ${isActive ? 'badge-confirmed' : 'badge-rejected'}">${s.status || 'active'}</span></td>
+            <td>
+              <div style="display:flex;gap:4px;">
+                <button class="action-btn pay" onclick="openSalaryPayModal(${sid})" title="Record Salary Payment"><i class="fas fa-hand-holding-usd"></i> Pay Salary</button>
+                <button class="action-btn" onclick="openEditStaffModal(${sid})" title="Edit Profile"><i class="fas fa-edit"></i></button>
+                <button class="action-btn del" onclick="deleteStaff(${sid})" title="Delete Profile"><i class="fas fa-trash"></i></button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
     }
 
     async function loadSalaryPayments() {
