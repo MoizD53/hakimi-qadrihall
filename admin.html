@@ -430,22 +430,15 @@
     .hdr-pill-date {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 7px;
       background: rgba(201, 169, 110, 0.12);
       border: 1px solid rgba(201, 169, 110, 0.28);
       border-radius: 9999px;
       padding: 5px 12px;
-      cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: default;
       color: var(--cream);
       white-space: nowrap;
       user-select: none;
-    }
-    .hdr-pill-date:hover {
-      background: rgba(201, 169, 110, 0.22);
-      border-color: rgba(201, 169, 110, 0.5);
-      color: #fff;
-      transform: translateY(-0.5px);
     }
     .hdr-calendar-icon {
       font-size: 0.82rem;
@@ -456,25 +449,6 @@
       font-weight: 700;
       color: var(--cream);
       letter-spacing: 0.2px;
-    }
-    .hdr-today-tag {
-      font-size: 0.65rem;
-      font-weight: 800;
-      letter-spacing: 0.8px;
-      color: #fcd34d;
-      background: rgba(201, 169, 110, 0.18);
-      border: 1px solid rgba(201, 169, 110, 0.35);
-      padding: 1px 6px;
-      border-radius: 4px;
-    }
-    .hdr-chevron-icon {
-      font-size: 0.62rem;
-      color: rgba(201, 169, 110, 0.7);
-      transition: transform 0.2s ease;
-    }
-    .hdr-pill-date:hover .hdr-chevron-icon {
-      transform: translateY(1px);
-      color: var(--gold);
     }
     .hall-indicator{
       display:inline-flex;align-items:center;gap:0.45rem;padding:0.38rem 0.85rem;
@@ -1004,7 +978,7 @@
         padding: 3px 4px 3px 8px;
         gap: 6px;
       }
-      .hdr-weather-cond, .hdr-today-tag, .hdr-chevron-icon {
+      .hdr-weather-cond {
         display: none;
       }
       .hdr-pill-divider {
@@ -2145,11 +2119,9 @@
           <div class="hdr-pill-divider"></div>
 
           <!-- Date pill section -->
-          <div class="hdr-pill-date" id="hdrPillDateBtn" onclick="jumpToTodayCalendar()" title="Click to view Today on Calendar">
+          <div class="hdr-pill-date" id="hdrPillDate">
             <i class="far fa-calendar-alt hdr-calendar-icon"></i>
             <span class="hdr-date-text" id="hdrLiveDate">29 Oct 2026</span>
-            <span class="hdr-today-tag">TODAY</span>
-            <i class="fas fa-chevron-down hdr-chevron-icon"></i>
           </div>
         </div>
       </div>

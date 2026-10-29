@@ -961,7 +961,7 @@ app.get('/api/bookings/summary', requireAuth, async (req, res) => {
     let hallClause = '';
     const mainParams = [today];
     if (cleanHall !== 'all') {
-      hallClause = ' AND COALESCE(hall, "Evan-e-Hakimi") = ?';
+      hallClause = " AND LOWER(COALESCE(hall, 'Evan-e-Hakimi')) = LOWER(?)";
       mainParams.push(cleanHall);
     }
     if (fromDate) {
@@ -1014,9 +1014,10 @@ app.get('/api/bookings/summary', requireAuth, async (req, res) => {
           WHERE status NOT IN ('cancelled', 'CANCELLED', 'rejected', 'REJECTED')
             AND check_in <= ?
             AND (total_amount - advance_paid) > 0
+            ${hallClause}
           ORDER BY check_in ASC LIMIT 15
         `,
-        args: [twoDaysLater]
+        args: [twoDaysLater, ...(cleanHall !== 'all' ? [cleanHall] : []), ...(fromDate ? [fromDate] : []), ...(toDate ? [toDate] : [])]
       },
       // 4. Next 7 Days Upcoming Events
       {
@@ -1025,9 +1026,10 @@ app.get('/api/bookings/summary', requireAuth, async (req, res) => {
           FROM bookings
           WHERE status NOT IN ('cancelled', 'CANCELLED', 'rejected', 'REJECTED')
             AND check_in >= ? AND check_in <= ?
+            ${hallClause}
           ORDER BY check_in ASC LIMIT 15
         `,
-        args: [today, sevenDaysLater]
+        args: [today, sevenDaysLater, ...(cleanHall !== 'all' ? [cleanHall] : []), ...(fromDate ? [fromDate] : []), ...(toDate ? [toDate] : [])]
       }
     ];
 
