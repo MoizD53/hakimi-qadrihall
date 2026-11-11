@@ -587,12 +587,6 @@ async function assertNoBookingConflict(clientOrTx, bookingId, overrideDate, over
   const targetStartTime = overrideStartTime !== undefined ? overrideStartTime : target.start_time;
   const targetEndTime = overrideEndTime !== undefined ? overrideEndTime : target.end_time;
 
-  if (targetHall === 'Qadri Hall' && targetDate < '2026-11-21') {
-    const err = new Error('Qadri Hall is available for events starting 21 November 2026. 20 November 2026 and earlier dates are not available.');
-    err.status = 400;
-    throw err;
-  }
-
   // Optimized: Single batch round trip to Turso for date blocks AND confirmed bookings
   const [existingBlockRes, existingConfirmedRes] = clientOrTx.batch ? await clientOrTx.batch([
     { sql: `SELECT id, reason FROM date_blocks WHERE block_date = ? AND hall = ? LIMIT 1`, args: [targetDate, targetHall] },
@@ -700,27 +694,6 @@ async function getHallAvailabilityRange(hallName, startDate, endDate) {
           morning: { available: false, booked: false, label: 'Blocked by Admin' },
           evening: { available: false, booked: false, label: 'Blocked by Admin' },
           fullday: { available: false, booked: false, label: 'Blocked by Admin' }
-        },
-        bookings: []
-      };
-      curr.setUTCDate(curr.getUTCDate() + 1);
-      continue;
-    }
-
-    // Check Qadri Hall opening condition (< 21 Nov 2026)
-    if (cleanHall === 'Qadri Hall' && dateStr < '2026-11-21') {
-      days[dateStr] = {
-        date: dateStr,
-        hall: cleanHall,
-        color: 'red',
-        status: 'booked',
-        label: 'Opening 21 Nov 2026',
-        is_blocked: true,
-        block_reason: 'Bookings open from 21 Nov 2026',
-        slots: {
-          morning: { available: false, booked: false, label: 'Opens 21 Nov 2026' },
-          evening: { available: false, booked: false, label: 'Opens 21 Nov 2026' },
-          fullday: { available: false, booked: false, label: 'Opens 21 Nov 2026' }
         },
         bookings: []
       };
@@ -1121,16 +1094,6 @@ app.get('/api/bookings/check-availability', async (req, res) => {
     const bookingsOnDate = result.rows || [];
 
     const slotBreakdown = (hallName) => {
-      const isQadriTarget = hallName.toLowerCase().includes('qadri');
-      if (isQadriTarget && cleanDate < '2026-11-21') {
-        return {
-          morning: { available: false, status: 'UNAVAILABLE_DATE', label: 'Opens 21 Nov 2026', booking: null },
-          evening: { available: false, status: 'UNAVAILABLE_DATE', label: 'Opens 21 Nov 2026', booking: null },
-          fullday: { available: false, status: 'UNAVAILABLE_DATE', label: 'Opens 21 Nov 2026', booking: null },
-          majlis:  { available: false, status: 'UNAVAILABLE_DATE', label: 'Opens 21 Nov 2026', booking: null }
-        };
-      }
-
       const hBookings = bookingsOnDate.filter(b => {
         const isQ = (b.hall || 'Evan-e-Hakimi').toLowerCase().includes('qadri');
         return isQadriTarget ? isQ : !isQ;
@@ -1189,10 +1152,7 @@ app.get('/api/bookings/check-availability', async (req, res) => {
     let slotStatus = 'AVAILABLE';
     let conflictBooking = null;
 
-    if (cleanHall === 'Qadri Hall' && cleanDate < '2026-11-21') {
-      isAvailable = false;
-      slotStatus = 'UNAVAILABLE_DATE';
-    } else if (checkSlot === 'majlis' && (req.query.start_time || req.query.end_time)) {
+    if (checkSlot === 'majlis' && (req.query.start_time || req.query.end_time)) {
       const qStart = req.query.start_time || '10:30';
       const qEnd = req.query.end_time || '14:30';
       const isQadriTarget = cleanHall.toLowerCase().includes('qadri');
@@ -1318,10 +1278,6 @@ app.post('/api/bookings', async (req, res) => {
     // Input validation
     if (!custName || !phone || !eventDate || !eventSlot) {
       return res.status(400).json({ error: 'Customer name, phone, event date, and slot are required' });
-    }
-
-    if (cleanHall === 'Qadri Hall' && eventDate < '2026-11-21') {
-      return res.status(400).json({ error: 'Qadri Hall is available for events starting 21 November 2026. 20 November 2026 and earlier dates are not available.' });
     }
 
     const todayKolkata = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());

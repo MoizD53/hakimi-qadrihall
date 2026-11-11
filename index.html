@@ -3853,8 +3853,8 @@ function renderCustomerGrid(daysMap) {
     let statusText = 'Available';
 
     if (dayInfo.color === 'red') {
-      statusText = dayInfo.is_blocked ? 'Blocked' : (dayInfo.status === 'opening_soon' ? 'Opening Nov 21' : 'Booked');
-      if (dayInfo.status === 'opening_soon') dotColor = 'grey';
+      statusText = dayInfo.is_blocked ? 'Blocked' : 'Booked';
+
     } else if (dayInfo.color === 'yellow') {
       statusText = 'Partial';
     }

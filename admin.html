@@ -3977,7 +3977,7 @@
     const pageTitles = {
       'overview': { title: 'Overview', sub: '' },
       'calendar-hakimi': { title: 'Evan-e-Hakimi Calendar', sub: 'Hall 1 &bull; 2nd Floor &bull; Capacity: 35–40 Thals' },
-      'calendar-qadri': { title: 'Qadri Hall Calendar', sub: 'Hall 2 &bull; 3rd Floor &bull; Manageable for approved future booking dates' },
+      'calendar-qadri': { title: 'Qadri Hall Calendar', sub: 'Hall 2 &bull; 3rd Floor &bull; Availability &amp; Booking Schedule' },
       'calendar-combined': { title: 'Combined Halls Overview Calendar', sub: 'Unified availability & schedule &bull; Evan-e-Hakimi (2nd Fl) &amp; Qadri Hall (3rd Fl)' },
       'bookings': { title: 'All Hall Bookings', sub: 'Complete booking registry, search &bull; filter &bull; conflict enforcement' },
       'expenses': { title: 'Expense Management', sub: 'Track utilities, maintenance, cleaning, supplies &bull; category breakdown' },
@@ -4461,8 +4461,7 @@
 
           // Calculate Qadri availability
           let qadriColor = '#22c55e', qadriLabel = 'Avail';
-          if (dateStr < '2026-11-21') { qadriColor = '#64748b'; qadriLabel = 'Opening Nov 21'; }
-          else if (qadriBlock) { qadriColor = '#ef4444'; qadriLabel = 'Blocked'; }
+          if (qadriBlock) { qadriColor = '#ef4444'; qadriLabel = 'Blocked'; }
           else {
             const hasFull = qadriBookings.some(b => b.slot === 'fullday');
             const hasMorn = qadriBookings.some(b => b.slot === 'morning' || (b.slot === 'majlis' && timeRangesOverlap(b.start_time || '10:30', b.end_time || '14:30', '10:30', '14:30')));
@@ -4501,16 +4500,11 @@
           return match && b.check_in === dateStr && !REJECTED_STATUSES.includes(b.status);
         });
 
-        const isPreOpening = isQadri && dateStr < '2026-11-21';
         let colorCode = '#22c55e'; // GREEN
         let statusBadgeText = 'Available';
         let statusClass = 'status-green';
 
-        if (isPreOpening) {
-          colorCode = '#64748b';
-          statusBadgeText = 'Opening Nov 21';
-          statusClass = 'status-grey';
-        } else if (dayBlock) {
+        if (dayBlock) {
           colorCode = '#ef4444'; // RED
           statusBadgeText = 'Blocked';
           statusClass = 'status-red';
@@ -4608,17 +4602,10 @@
     }
 
     function openDateQuickBook(hallName, dateStr, preferredSlot = 'morning') {
-      const isQadri = (hallName || '').toLowerCase().includes('qadri');
       const todayStr = getTodayKolkata();
-      const qadriOpening = '2026-11-21';
-      const minDate = isQadri ? (todayStr > qadriOpening ? todayStr : qadriOpening) : todayStr;
 
       if (dateStr < todayStr) {
         showToast('Cannot book past dates', true);
-        return;
-      }
-      if (isQadri && dateStr < qadriOpening) {
-        showToast('Qadri Hall bookings open from 21 November 2026 onwards', true);
         return;
       }
 
@@ -6125,15 +6112,10 @@
     }
 
     function updateBookingDateLimits() {
-      const hallEl = document.getElementById('bHall');
       const bDateInput = document.getElementById('bDate');
       if (!bDateInput) return;
 
-      const hall = hallEl ? hallEl.value : '';
-      const isQadri = (hall || '').toLowerCase().includes('qadri');
-      const todayStr = getTodayKolkata();
-      const qadriOpening = '2026-11-21';
-      const minDate = isQadri ? (todayStr > qadriOpening ? todayStr : qadriOpening) : todayStr;
+      const minDate = getTodayKolkata();
 
       bDateInput.min = minDate;
       if (bDateInput._flatpickr) {
@@ -6152,12 +6134,12 @@
       recalculatePriceHint();
     }
 
-    function openNewBookingModal() {
+    function openNewBookingModal(defaultHall = 'Evan-e-Hakimi') {
       document.getElementById('formBooking').reset();
       document.getElementById('bEditId').value = '';
       document.getElementById('bookingModalTitle').textContent = 'Create Hall Booking';
       document.getElementById('rowInitialPayment').style.display = 'grid';
-      document.getElementById('bHall').value = 'Evan-e-Hakimi';
+      document.getElementById('bHall').value = (typeof defaultHall === 'string' && defaultHall) ? defaultHall : 'Evan-e-Hakimi';
       const todayStr = getTodayKolkata();
       setDateVal('bDate', todayStr);
       updateBookingDateLimits();
@@ -6266,13 +6248,8 @@
         }
 
         const todayKolkata = getTodayKolkata();
-        const isQadri = (payload.hall || '').toLowerCase().includes('qadri');
         if (!editId && payload.check_in < todayKolkata) {
           showToast('Cannot create bookings for past dates', true);
-          return;
-        }
-        if (isQadri && payload.check_in < '2026-11-21') {
-          showToast('Qadri Hall bookings open from 21 November 2026 onwards', true);
           return;
         }
 
@@ -7054,12 +7031,7 @@
           el.setAttribute('placeholder', placeholderText);
         }
         let minDate = null;
-        if (el.id === 'bDate') {
-          const hallEl = document.getElementById('bHall');
-          const isQadri = hallEl && (hallEl.value || '').toLowerCase().includes('qadri');
-          const todayStr = getTodayKolkata();
-          minDate = isQadri ? (todayStr > '2026-11-21' ? todayStr : '2026-11-21') : todayStr;
-        } else if (el.id === 'blockDate') {
+        if (el.id === 'bDate' || el.id === 'blockDate') {
           minDate = getTodayKolkata();
         }
 

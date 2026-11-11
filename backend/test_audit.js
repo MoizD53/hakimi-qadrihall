@@ -269,23 +269,24 @@ it('Evan-e-Hakimi is accepted as valid active venue', () => {
   assert.strictEqual(hall.toLowerCase().includes('hakimi'), true);
 });
 
-it('Qadri Hall is accepted as valid manageable venue for approved dates', () => {
+it('Qadri Hall is accepted as valid active venue with immediate date availability', () => {
   const hall = 'Qadri Hall';
   assert.strictEqual(hall.toLowerCase().includes('qadri'), true);
 });
 
-it('Qadri Hall customer booking window strictly opens from 21 November 2026 onwards', () => {
-  function isQadriDateSelectable(dateStr) {
-    return dateStr >= '2026-11-21';
+it('Qadri Hall customer booking window is open for today and future dates (no Nov 21 restriction)', () => {
+  function isQadriDateSelectable(dateStr, todayStr = '2026-11-11') {
+    return dateStr >= todayStr;
   }
-  // 20 November 2026 is excluded
-  assert.strictEqual(isQadriDateSelectable('2026-11-20'), false, '20 Nov 2026 must be excluded');
-  assert.strictEqual(isQadriDateSelectable('2026-11-15'), false, '15 Nov 2026 must be excluded');
-  assert.strictEqual(isQadriDateSelectable('2026-10-14'), false, 'Current date must be excluded for Qadri');
-  
-  // 21 November 2026 is selectable
-  assert.strictEqual(isQadriDateSelectable('2026-11-21'), true, '21 Nov 2026 must be first selectable date');
-  assert.strictEqual(isQadriDateSelectable('2026-11-22'), true, '22 Nov 2026 must be selectable');
+  // Past dates before today remain excluded
+  assert.strictEqual(isQadriDateSelectable('2026-10-14'), false, 'Past dates must be excluded');
+  assert.strictEqual(isQadriDateSelectable('2026-11-10'), false, 'Yesterday must be excluded');
+
+  // Today and pre-Nov-21 dates are immediately selectable
+  assert.strictEqual(isQadriDateSelectable('2026-11-11'), true, 'Today (11 Nov 2026) must be selectable');
+  assert.strictEqual(isQadriDateSelectable('2026-11-15'), true, '15 Nov 2026 must be selectable');
+  assert.strictEqual(isQadriDateSelectable('2026-11-20'), true, '20 Nov 2026 must be selectable');
+  assert.strictEqual(isQadriDateSelectable('2026-11-21'), true, '21 Nov 2026 must be selectable');
   assert.strictEqual(isQadriDateSelectable('2027-01-15'), true, '2027 dates must be selectable');
 });
 
@@ -297,7 +298,6 @@ it('Both halls maintain independent availability and zero cross-venue contaminat
 
   function getSlotAvailable(hallName, date, slot) {
     const isQadri = hallName.toLowerCase().includes('qadri');
-    if (isQadri && date < '2026-11-21') return false;
 
     const confirmed = mockBookings.filter(b => {
       const bIsQ = b.hall.toLowerCase().includes('qadri');
@@ -315,8 +315,9 @@ it('Both halls maintain independent availability and zero cross-venue contaminat
   assert.strictEqual(getSlotAvailable('Qadri Hall', '2026-11-21', 'morning'), false);
   assert.strictEqual(getSlotAvailable('Qadri Hall', '2026-11-21', 'evening'), true);
 
-  // On 2026-11-20: Qadri Hall is completely excluded, while Evan-e-Hakimi remains selectable
-  assert.strictEqual(getSlotAvailable('Qadri Hall', '2026-11-20', 'morning'), false);
+  // On 2026-11-20 and 2026-11-11: both halls are open and selectable independently
+  assert.strictEqual(getSlotAvailable('Qadri Hall', '2026-11-20', 'morning'), true);
+  assert.strictEqual(getSlotAvailable('Qadri Hall', '2026-11-11', 'morning'), true);
   assert.strictEqual(getSlotAvailable('Evan-e-Hakimi', '2026-11-20', 'morning'), true);
 });
 
