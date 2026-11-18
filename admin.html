@@ -2178,10 +2178,10 @@
             <div class="stat-sub">Pending advance collection</div>
             <i class="fas fa-hourglass-half stat-icon"></i>
           </div>
-          <div class="stat-card">
+          <div class="stat-card" style="cursor:pointer;" onclick="filterBookingsByAdvancePaid()" title="Click to view all bookings with 40% advance collected">
             <div class="stat-label">40% Advance Collected</div>
             <div class="stat-value" id="kpiAdvanceCollected" style="color:#60a5fa;">0</div>
-            <div class="stat-sub">Advance secured</div>
+            <div class="stat-sub">Advance secured &bull; View list &amp; send WhatsApp</div>
             <i class="fas fa-hand-holding-usd stat-icon"></i>
           </div>
           <div class="stat-card">
@@ -2952,6 +2952,56 @@
           <button type="button" class="action-btn" style="opacity:0.65;" onclick="if(currentStageBooking){ closeModal('modalBookingStage'); deleteBooking(currentStageBooking.id); }" title="Permanently Delete Booking Record"><i class="fas fa-trash"></i> Delete</button>
         </div>
         <button type="button" class="action-btn" onclick="closeModal('modalBookingStage')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ MODAL: WHATSAPP ADVANCE CONFIRMATION NOTICE ════════ -->
+  <div class="modal-overlay" id="modalWhatsAppAdvance" style="z-index: 10060;" onclick="if(event.target === this) closeModal('modalWhatsAppAdvance');">
+    <div class="modal-box" style="max-width: 520px; border-color: rgba(37, 211, 102, 0.4); box-shadow: 0 25px 60px rgba(0,0,0,0.85); background: #141a15;">
+      <div class="modal-header" style="border-bottom: 1px solid rgba(37, 211, 102, 0.2);">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div style="width:38px; height:38px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:1.3rem; background: rgba(37,211,102,0.15); color: #25D366; border: 1px solid rgba(37,211,102,0.3);">
+            <i class="fab fa-whatsapp"></i>
+          </div>
+          <div>
+            <h3 class="modal-title" style="margin:0; font-size:1.08rem; color: #86efac;" id="wpModalTitle">Send WhatsApp Booking Notice</h3>
+            <div style="font-size:0.7rem; color:rgba(245,240,232,0.5);" id="wpModalSubtitle">40% Advance Collected &bull; Balance Due 2-3 Days Prior</div>
+          </div>
+        </div>
+        <button class="modal-close" onclick="closeModal('modalWhatsAppAdvance')">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 1.2rem;">
+        <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(37,211,102,0.2); border-radius: 8px; padding: 0.8rem; margin-bottom: 0.9rem; font-size: 0.78rem;">
+          <div style="display:flex; justify-content:space-between; margin-bottom: 4px;">
+            <span style="opacity:0.7;">Customer:</span>
+            <strong id="wpCustomerName" style="color:#fff;"></strong>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom: 4px;">
+            <span style="opacity:0.7;">WhatsApp Number:</span>
+            <strong id="wpCustomerPhone" style="color:#25D366;"></strong>
+          </div>
+          <div style="display:flex; justify-content:space-between;">
+            <span style="opacity:0.7;">Event Date &amp; Hall:</span>
+            <strong id="wpEventInfo" style="color:var(--wheat);"></strong>
+          </div>
+        </div>
+
+        <label style="display:block; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.8px; color:#86efac; margin-bottom:6px; font-weight:600;">
+          <i class="fas fa-comment-alt"></i> Message Preview (Auto-Generated)
+        </label>
+        <textarea id="wpMessageText" class="form-ctrl" rows="8" style="width:100%; box-sizing:border-box; font-size:0.8rem; line-height:1.45; background:#0c120e; border:1px solid rgba(37,211,102,0.3); color:var(--cream); border-radius:6px; padding:0.7rem; font-family:inherit; resize:vertical;"></textarea>
+      </div>
+      <div class="modal-footer" style="padding: 0.9rem 1.2rem; display:flex; justify-content:space-between; align-items:center; gap:8px;">
+        <button type="button" class="action-btn" onclick="copyWhatsAppMessage()" style="font-size:0.82rem; padding:0.45rem 0.9rem;">
+          <i class="fas fa-copy"></i> Copy Message
+        </button>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="action-btn" onclick="closeModal('modalWhatsAppAdvance')" style="font-size:0.82rem; padding:0.45rem 0.9rem;">Close</button>
+          <button type="button" class="btn-quick" id="btnSendWpModal" onclick="sendWhatsAppFromModal()" style="background:#25D366; color:#ffffff; font-size:0.85rem; font-weight:600; padding:0.45rem 1.15rem; border:none; box-shadow:0 2px 10px rgba(37,211,102,0.35); display:inline-flex; align-items:center; gap:6px;">
+            <i class="fab fa-whatsapp" style="font-size:1.1rem;"></i> Send on WhatsApp
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -4199,7 +4249,10 @@
                   <button class="btn-quick" style="background:#22c55e;color:#0a1a12;padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="record100Full(${b.id})" title="Received 100% Full Payment at once (ek sath)"><i class="fas fa-check-double"></i> 100% Full</button>
                 `;
               } else if (bal > 0) {
-                actionBtn = `<button class="btn-quick" style="background:#22c55e;color:#0a1a12;padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="record60Balance(${b.id})" title="Received Remaining 60%"><i class="fas fa-check-double"></i> Received Remaining 60%</button>`;
+                actionBtn = `
+                  <button class="btn-quick" style="background:#25D366;color:#ffffff;padding:0.25rem 0.55rem;font-size:0.68rem;border:none;font-weight:600;display:inline-flex;align-items:center;gap:3px;" onclick="send40AdvanceWhatsAppDirect(${b.id})" title="Send WhatsApp Notice to Customer"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+                  <button class="btn-quick" style="background:#22c55e;color:#0a1a12;padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="record60Balance(${b.id})" title="Received Remaining 60%"><i class="fas fa-check-double"></i> 60% Bal</button>
+                `;
               } else {
                 actionBtn = `<span class="badge" style="background:rgba(34,197,94,0.18);color:#86efac;border:1px solid rgba(34,197,94,0.4);font-size:0.68rem;padding:3px 6px;">Fully Paid ✓</span>`;
               }
@@ -4336,6 +4389,9 @@
           payAction = `<span style="color:#86efac;font-size:0.75rem;font-weight:600;"><i class="fas fa-check-double"></i> 100% Settled</span>`;
         } else if (isAdvReceived || b.status === 'ADVANCE_PAID' || b.status === 'ADVANCE_PARTIALLY_PAID') {
           payAction = `
+            <button class="btn-quick" style="background:#25D366;color:#ffffff;font-size:0.75rem;padding:0.32rem 0.75rem;border:none;font-weight:600;display:inline-flex;align-items:center;gap:4px;" onclick="send40AdvanceWhatsAppDirect(${b.id})" title="Send WhatsApp Confirmation & Balance Reminder">
+              <i class="fab fa-whatsapp"></i> WhatsApp
+            </button>
             <button class="btn-quick" style="background:#22c55e;color:#0a1a12;font-size:0.75rem;padding:0.32rem 0.75rem;" onclick="record60Balance(${b.id})">
               <i class="fas fa-check-double"></i> Collect 60% Bal (₹${bal.toLocaleString('en-IN')})
             </button>
@@ -4686,6 +4742,9 @@
             `;
           } else if (isConfirmed && advPaid >= advReq && bal > 0) {
             actionsHtml = `
+              <button class="btn-quick" style="background:#25D366;color:#ffffff;padding:0.28rem 0.55rem;font-size:0.68rem;border:none;font-weight:600;display:inline-flex;align-items:center;gap:4px;" onclick="send40AdvanceWhatsAppDirect(${b.id})" title="Send WhatsApp Notice">
+                <i class="fab fa-whatsapp"></i> WhatsApp
+              </button>
               <button class="btn-quick" style="background:#22c55e;color:#0a1a12;padding:0.28rem 0.55rem;font-size:0.68rem;" onclick="record60Balance(${b.id})" title="Received Remaining 60%">
                 <i class="fas fa-check-double"></i> Received Remaining 60%
               </button>
@@ -5118,6 +5177,170 @@
     /* ════════ BOOKING STAGE MANAGEMENT & DIRECT PAYMENT ACTIONS ════════ */
     let currentStageBooking = null;
 
+    function normalizePhone(phone) {
+      if (!phone) return '';
+      const digits = String(phone).replace(/\D/g, '');
+      if (digits.length === 10) return '91' + digits;
+      if (digits.length === 11 && digits.startsWith('0')) return '91' + digits.slice(1);
+      if (digits.length === 12 && digits.startsWith('91')) return digits;
+      return digits;
+    }
+
+    function generate40AdvanceWhatsAppMessage(b) {
+      if (!b) return '';
+      const custName = b.customer_name || 'Guest';
+      const isQadri = (b.hall || '').toLowerCase().includes('qadri');
+      const hall = isQadri ? 'Qadri Hall (3rd Floor)' : 'Evan-e-Hakimi (2nd Floor)';
+      const dateFormatted = formatDisplayDate(b.check_in);
+      
+      let slotLabel = b.slot || 'Event';
+      if (slotLabel === 'morning') slotLabel = 'Morning Slot (10:30 AM – 2:30 PM)';
+      else if (slotLabel === 'evening') slotLabel = 'Evening Slot (6:30 PM – 10:30 PM)';
+      else if (slotLabel === 'fullday') slotLabel = 'Full Day Slot (10:00 AM – 10:00 PM)';
+      else if (slotLabel === 'majlis') {
+        slotLabel = b.start_time && b.end_time ? `Majlis Slot (${b.start_time} – ${b.end_time})` : 'Majlis Slot';
+      }
+
+      const total = parseFloat(b.total_amount || 0);
+      const advPaid = parseFloat(b.advancePaid || b.advance_paid || 0);
+      const advReq = b.advance_amount ? parseFloat(b.advance_amount) : Math.round(total * 0.4);
+      const recordedAdv = advPaid > 0 ? advPaid : advReq;
+      const bal = Math.max(0, total - recordedAdv);
+
+      return `السلام عليكم / Greetings ${custName},
+
+Your booking has been confirmed! 🎉
+
+🏛️ Venue: ${hall}
+📅 Event Date: ${dateFormatted}
+⏰ Slot: ${slotLabel}
+💰 Total Quoted Amount: ₹${total.toLocaleString('en-IN')}
+✅ 40% Advance Collected: ₹${recordedAdv.toLocaleString('en-IN')}
+⏳ Remaining Balance (60%): ₹${bal.toLocaleString('en-IN')}
+
+📌 Important Notice:
+The hall for this date has been successfully booked. Kindly deposit the remaining balance amount (₹${bal.toLocaleString('en-IN')}) 2 to 3 days before the event, to Aliasgar Challawala.
+
+Thank you!
+Evan-e-Hakimi & Qadri Hall Management`;
+    }
+
+    let currentWpBooking = null;
+
+    async function openAdvanceWhatsAppModal(bookingId, isJustRecorded = false) {
+      let b = allBookings.find(x => x.id === bookingId) || allEnquiriesList.find(x => x.id === bookingId);
+      if (!b) {
+        try {
+          const res = await authFetch(`/api/bookings/${bookingId}`);
+          b = await res.json();
+        } catch (_) {}
+      }
+      if (!b) {
+        showToast('Booking details not found', true);
+        return;
+      }
+      currentWpBooking = b;
+
+      const titleEl = document.getElementById('wpModalTitle');
+      const subEl = document.getElementById('wpModalSubtitle');
+      if (titleEl) {
+        titleEl.textContent = isJustRecorded ? '🎉 40% Advance Collected Successfully!' : 'Send WhatsApp Booking Notice';
+      }
+      if (subEl) {
+        subEl.textContent = isJustRecorded ? 'Send booking confirmation & balance due notice to customer on WhatsApp' : '40% Advance Collected • Remaining Balance Due 2-3 Days Prior';
+      }
+
+      const custEl = document.getElementById('wpCustomerName');
+      if (custEl) custEl.textContent = b.customer_name || 'Guest';
+
+      const phoneNorm = normalizePhone(b.phone);
+      const phoneEl = document.getElementById('wpCustomerPhone');
+      if (phoneEl) {
+        phoneEl.textContent = phoneNorm ? `+${phoneNorm}` : 'No phone number provided';
+        phoneEl.style.color = phoneNorm ? '#25D366' : '#fca5a5';
+      }
+
+      const infoEl = document.getElementById('wpEventInfo');
+      if (infoEl) {
+        const isQadri = (b.hall || '').toLowerCase().includes('qadri');
+        infoEl.textContent = `${formatDisplayDate(b.check_in)} • ${isQadri ? 'Qadri Hall (3rd Floor)' : 'Evan-e-Hakimi (2nd Floor)'}`;
+      }
+
+      const msgBox = document.getElementById('wpMessageText');
+      if (msgBox) {
+        msgBox.value = generate40AdvanceWhatsAppMessage(b);
+      }
+
+      const sendBtn = document.getElementById('btnSendWpModal');
+      if (sendBtn) {
+        sendBtn.disabled = !phoneNorm;
+        sendBtn.style.opacity = phoneNorm ? '1' : '0.5';
+      }
+
+      openModal('modalWhatsAppAdvance');
+    }
+
+    function sendWhatsAppFromModal() {
+      if (!currentWpBooking) return;
+      const phone = normalizePhone(currentWpBooking.phone);
+      if (!phone) {
+        showToast('Customer phone number not available', true);
+        return;
+      }
+      const msgBox = document.getElementById('wpMessageText');
+      const textToSend = msgBox ? msgBox.value : generate40AdvanceWhatsAppMessage(currentWpBooking);
+      const url = `https://wa.me/${phone}?text=${encodeURIComponent(textToSend)}`;
+      window.open(url, '_blank');
+      showToast(`Opening WhatsApp for ${currentWpBooking.customer_name || 'Customer'}...`);
+    }
+
+    async function copyWhatsAppMessage() {
+      const msgBox = document.getElementById('wpMessageText');
+      if (!msgBox || !msgBox.value) return;
+      try {
+        await navigator.clipboard.writeText(msgBox.value);
+        showToast('Message copied to clipboard! ✓');
+      } catch (_) {
+        msgBox.select();
+        document.execCommand('copy');
+        showToast('Message copied to clipboard! ✓');
+      }
+    }
+
+    async function send40AdvanceWhatsAppDirect(bookingId) {
+      let b = allBookings.find(x => x.id === bookingId) || allEnquiriesList.find(x => x.id === bookingId);
+      if (!b) {
+        try {
+          const res = await authFetch(`/api/bookings/${bookingId}`);
+          b = await res.json();
+        } catch (_) {}
+      }
+      if (!b) {
+        showToast('Booking details not found', true);
+        return;
+      }
+      const phone = normalizePhone(b.phone);
+      if (!phone) {
+        openAdvanceWhatsAppModal(bookingId);
+        showToast('Customer phone number is missing or invalid', true);
+        return;
+      }
+      const msg = generate40AdvanceWhatsAppMessage(b);
+      const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+      window.open(url, '_blank');
+      showToast(`Opening WhatsApp chat with ${escapeHtml(b.customer_name || 'Customer')}...`);
+    }
+
+    function filterBookingsByAdvancePaid() {
+      switchNav('bookings');
+      const pills = document.querySelectorAll('#bookingStatusTabs .tab-pill');
+      let targetPill = null;
+      pills.forEach(p => {
+        if (p.getAttribute('onclick')?.includes("'advance_paid'")) targetPill = p;
+      });
+      setBookingStatusTab('advance_paid', targetPill);
+    }
+
     async function record40Advance(bookingId) {
       let b = allBookings.find(x => x.id === bookingId) || allEnquiriesList.find(x => x.id === bookingId);
       if (!b) {
@@ -5158,7 +5381,8 @@
             showToast(data.message || '40% advance received successfully!');
             
             closeModal('modalBookingStage');
-            refreshAllActiveScreens();
+            await refreshAllActiveScreens();
+            openAdvanceWhatsAppModal(bookingId, true);
           } else {
             showToast(data.error || 'Failed to record advance', true);
             throw new Error(data.error || 'Failed to record advance');
@@ -5355,6 +5579,9 @@
               The remaining 60% balance of <strong>₹${bal.toLocaleString('en-IN')}</strong> is payable at Hakimi Tower, 2nd Floor, to Aliasgar Challawala, 2–3 days before the function.
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn-quick" style="background:#25D366;color:#ffffff;font-size:0.82rem;padding:0.45rem 0.9rem;border:none;box-shadow:0 2px 8px rgba(37,211,102,0.3);font-weight:600;display:inline-flex;align-items:center;gap:6px;" onclick="openAdvanceWhatsAppModal(${b.id})">
+                <i class="fab fa-whatsapp" style="font-size:1.05rem;"></i> Send WhatsApp Notice
+              </button>
               <button class="btn-quick" style="background:#22c55e;color:#0a1a12;font-size:0.82rem;padding:0.45rem 0.9rem;" onclick="record60Balance(${b.id})">
                 <i class="fas fa-check-double"></i> Received Remaining 60% (₹${bal.toLocaleString('en-IN')})
               </button>
@@ -5737,6 +5964,9 @@
           `;
         } else if (isConfirmedGroup && advPaid >= advReq && balance > 0) {
           stageButtons = `
+            <button class="btn-quick" style="background:#25D366;color:#ffffff;padding:0.25rem 0.55rem;font-size:0.68rem;border:none;font-weight:600;display:inline-flex;align-items:center;gap:4px;" onclick="send40AdvanceWhatsAppDirect(${b.id})" title="Send WhatsApp Notice">
+              <i class="fab fa-whatsapp"></i> WhatsApp
+            </button>
             <button class="btn-quick" style="background:#22c55e;color:#0a1a12;padding:0.25rem 0.55rem;font-size:0.68rem;" onclick="record60Balance(${b.id})" title="Received Remaining 60%">
               <i class="fas fa-check-double"></i> Received Remaining 60%
             </button>
