@@ -2965,8 +2965,8 @@
             <i class="fab fa-whatsapp"></i>
           </div>
           <div>
-            <h3 class="modal-title" style="margin:0; font-size:1.08rem; color: #86efac;" id="wpModalTitle">Send WhatsApp Booking Notice</h3>
-            <div style="font-size:0.7rem; color:rgba(245,240,232,0.5);" id="wpModalSubtitle">40% Advance Collected &bull; Balance Due 2-3 Days Prior</div>
+            <h3 class="modal-title" style="margin:0; font-size:1.08rem; color: #86efac;" id="wpModalTitle">Booking Confirmation Notice</h3>
+            <div style="font-size:0.7rem; color:rgba(245,240,232,0.5);" id="wpModalSubtitle">Booking Confirmed &bull; Send WhatsApp Confirmation to Customer</div>
           </div>
         </div>
         <button class="modal-close" onclick="closeModal('modalWhatsAppAdvance')">&times;</button>
@@ -4973,7 +4973,12 @@
       updateWorkflowPricing();
     }
 
+    let isWorkflowConfirming = false;
+
     async function executeWorkflowConfirm() {
+      if (isWorkflowConfirming) return;
+      isWorkflowConfirming = true;
+
       const bookingId = document.getElementById('wfBookingId').value;
       const hall = document.getElementById('wfHall').value;
       const date = document.getElementById('wfDate').value;
@@ -4996,7 +5001,10 @@
           confirmText: 'Verify & Confirm Anyway',
           cancelText: 'Cancel'
         });
-        if (!confirmed) return;
+        if (!confirmed) {
+          isWorkflowConfirming = false;
+          return;
+        }
       }
 
       const btn = document.getElementById('btnWfConfirm');
@@ -5042,14 +5050,22 @@
             <div style="font-size:0.95rem;color:#86efac;margin-bottom:4px;">
               <i class="fas fa-check-circle"></i> Booking Successfully Confirmed!
             </div>
-            <div style="font-size:0.75rem;color:var(--cream);font-weight:400;">
+            <div style="font-size:0.75rem;color:var(--cream);font-weight:400;margin-bottom:8px;">
               Reference: <strong>${data.booking.booking_reference}</strong> &bull; Status: <strong>CONFIRMED_PENDING_ADVANCE</strong>
+            </div>
+            <div style="display:flex;gap:8px;justify-content:center;margin-top:10px;">
+              <button type="button" class="btn-quick" style="background:#25D366;color:#ffffff;font-size:0.82rem;font-weight:600;padding:0.45rem 1rem;border:none;box-shadow:0 2px 10px rgba(37,211,102,0.35);display:inline-flex;align-items:center;gap:6px;" onclick="openBookingConfirmationWhatsApp('${bookingId}')">
+                <i class="fab fa-whatsapp"></i> Send WhatsApp Confirmation
+              </button>
             </div>
           `;
 
           loadOverview();
           loadEnquiries();
           loadBookings();
+
+          // Immediately trigger the WhatsApp confirmation modal on manual admin confirmation
+          triggerConfirmationWhatsAppOnce(data.booking || bookingId, `workflow_confirm_${bookingId}`);
         } else {
           showToast(data.error || 'Failed to confirm booking', true);
           btn.disabled = false;
@@ -5058,6 +5074,11 @@
       } catch (err) {
         showToast('Confirmation error: ' + err.message, true);
         btn.disabled = false;
+        btn.innerHTML = originalHTML;
+      } finally {
+        isWorkflowConfirming = false;
+      }
+    }
         btn.innerHTML = originalHTML;
       }
     }
@@ -5186,54 +5207,83 @@
       return digits;
     }
 
-    function generate40AdvanceWhatsAppMessage(b) {
+    function generateBookingConfirmationWhatsAppMessage(b) {
       if (!b) return '';
-      const custName = b.customer_name || 'Guest';
-      const isQadri = (b.hall || '').toLowerCase().includes('qadri');
-      const hall = isQadri ? 'Qadri Hall (3rd Floor)' : 'Evan-e-Hakimi (2nd Floor)';
-      const dateFormatted = formatDisplayDate(b.check_in);
-      
-      let slotLabel = b.slot || 'Event';
-      if (slotLabel === 'morning') slotLabel = 'Morning Slot (10:30 AM – 2:30 PM)';
-      else if (slotLabel === 'evening') slotLabel = 'Evening Slot (6:30 PM – 10:30 PM)';
-      else if (slotLabel === 'fullday') slotLabel = 'Full Day Slot (10:00 AM – 10:00 PM)';
-      else if (slotLabel === 'majlis') {
-        slotLabel = b.start_time && b.end_time ? `Majlis Slot (${b.start_time} – ${b.end_time})` : 'Majlis Slot';
+      const customerName = (b.customer_name || 'Customer').trim();
+      const isQadri = String(b.hall || '').toLowerCase().includes('qadri');
+      const venueName = isQadri ? 'Qadri Hall (3rd Floor)' : 'Evan-e-Hakimi (2nd Floor)';
+      const eventDate = formatDisplayDate(b.check_in);
+
+      let eventSlot = b.slot || 'Event';
+      if (eventSlot === 'morning') eventSlot = 'Morning (10:30 AM – 2:30 PM)';
+      else if (eventSlot === 'evening') eventSlot = 'Evening (6:30 PM – 10:30 PM)';
+      else if (eventSlot === 'fullday') eventSlot = 'Full Day (10:00 AM – 10:00 PM)';
+      else if (eventSlot === 'majlis') {
+        eventSlot = b.start_time && b.end_time ? `Majlis (${b.start_time} – ${b.end_time})` : 'Majlis';
+      } else {
+        eventSlot = eventSlot.charAt(0).toUpperCase() + eventSlot.slice(1);
       }
 
-      const total = parseFloat(b.total_amount || 0);
-      const advPaid = parseFloat(b.advancePaid || b.advance_paid || 0);
+      const total = parseFloat(b.total_amount || b.price || 0);
       const advReq = b.advance_amount ? parseFloat(b.advance_amount) : Math.round(total * 0.4);
-      const recordedAdv = advPaid > 0 ? advPaid : advReq;
-      const bal = Math.max(0, total - recordedAdv);
+      const balReq = Math.max(0, total - advReq);
 
-      return `السلام عليكم / Greetings ${custName},
+      const totalAmount = total.toLocaleString('en-IN');
+      const advanceAmount = advReq.toLocaleString('en-IN');
+      const remainingAmount = balReq.toLocaleString('en-IN');
 
-Your booking has been confirmed! 🎉
+      return `Hello ${customerName},
 
-🏛️ Venue: ${hall}
-📅 Event Date: ${dateFormatted}
-⏰ Slot: ${slotLabel}
-💰 Total Quoted Amount: ₹${total.toLocaleString('en-IN')}
-✅ 40% Advance Collected: ₹${recordedAdv.toLocaleString('en-IN')}
-⏳ Remaining Balance (60%): ₹${bal.toLocaleString('en-IN')}
+Your booking has been confirmed!
 
-📌 Important Notice:
-The hall for this date has been successfully booked. Kindly deposit the remaining balance amount (₹${bal.toLocaleString('en-IN')}) 2 to 3 days before the event, to Aliasgar Challawala.
+Venue: ${venueName}
+Event Date: ${eventDate}
+Slot: ${eventSlot}
+Total Amount: ₹${totalAmount}
 
-Thank you!
+Payment Terms:
+- 40% advance deposit: ₹${advanceAmount}
+- Remaining 60% balance: ₹${remainingAmount}, payable 2–3 days before the event.
+
+Thank you,
 Evan-e-Hakimi & Qadri Hall Management`;
     }
 
-    let currentWpBooking = null;
+    const generate40AdvanceWhatsAppMessage = generateBookingConfirmationWhatsAppMessage;
 
-    async function openAdvanceWhatsAppModal(bookingId, isJustRecorded = false) {
-      let b = allBookings.find(x => x.id === bookingId) || allEnquiriesList.find(x => x.id === bookingId);
-      if (!b) {
-        try {
-          const res = await authFetch(`/api/bookings/${bookingId}`);
-          b = await res.json();
-        } catch (_) {}
+    let currentWpBooking = null;
+    const processedConfirmationActions = new Set();
+    let isConfirmationWpInFlight = false;
+    let isWhatsAppWindowOpening = false;
+
+    async function triggerConfirmationWhatsAppOnce(bookingOrId, actionId) {
+      const id = typeof bookingOrId === 'object' && bookingOrId !== null ? bookingOrId.id : bookingOrId;
+      if (!id) return;
+      const actionKey = actionId || `confirm_${id}`;
+      if (processedConfirmationActions.has(actionKey)) return;
+      processedConfirmationActions.add(actionKey);
+
+      if (isConfirmationWpInFlight) return;
+      isConfirmationWpInFlight = true;
+      try {
+        await openBookingConfirmationWhatsApp(bookingOrId);
+      } finally {
+        setTimeout(() => { isConfirmationWpInFlight = false; }, 1000);
+      }
+    }
+
+    async function openBookingConfirmationWhatsApp(bookingOrId) {
+      let b = typeof bookingOrId === 'object' && bookingOrId !== null ? bookingOrId : null;
+      const bookingId = b ? b.id : bookingOrId;
+
+      if (!b || !b.customer_name) {
+        b = allBookings.find(x => x.id === bookingId) || allEnquiriesList.find(x => x.id === bookingId);
+        if (!b) {
+          try {
+            const res = await authFetch(`/api/bookings/${bookingId}`);
+            b = await res.json();
+          } catch (_) {}
+        }
       }
       if (!b) {
         showToast('Booking details not found', true);
@@ -5244,14 +5294,14 @@ Evan-e-Hakimi & Qadri Hall Management`;
       const titleEl = document.getElementById('wpModalTitle');
       const subEl = document.getElementById('wpModalSubtitle');
       if (titleEl) {
-        titleEl.textContent = isJustRecorded ? '🎉 40% Advance Collected Successfully!' : 'Send WhatsApp Booking Notice';
+        titleEl.textContent = 'Booking Confirmation Notice';
       }
       if (subEl) {
-        subEl.textContent = isJustRecorded ? 'Send booking confirmation & balance due notice to customer on WhatsApp' : '40% Advance Collected • Remaining Balance Due 2-3 Days Prior';
+        subEl.textContent = 'Booking Confirmed • Send WhatsApp Confirmation to Customer';
       }
 
       const custEl = document.getElementById('wpCustomerName');
-      if (custEl) custEl.textContent = b.customer_name || 'Guest';
+      if (custEl) custEl.textContent = b.customer_name || 'Customer';
 
       const phoneNorm = normalizePhone(b.phone);
       const phoneEl = document.getElementById('wpCustomerPhone');
@@ -5262,13 +5312,13 @@ Evan-e-Hakimi & Qadri Hall Management`;
 
       const infoEl = document.getElementById('wpEventInfo');
       if (infoEl) {
-        const isQadri = (b.hall || '').toLowerCase().includes('qadri');
+        const isQadri = String(b.hall || '').toLowerCase().includes('qadri');
         infoEl.textContent = `${formatDisplayDate(b.check_in)} • ${isQadri ? 'Qadri Hall (3rd Floor)' : 'Evan-e-Hakimi (2nd Floor)'}`;
       }
 
       const msgBox = document.getElementById('wpMessageText');
       if (msgBox) {
-        msgBox.value = generate40AdvanceWhatsAppMessage(b);
+        msgBox.value = generateBookingConfirmationWhatsAppMessage(b);
       }
 
       const sendBtn = document.getElementById('btnSendWpModal');
@@ -5280,15 +5330,21 @@ Evan-e-Hakimi & Qadri Hall Management`;
       openModal('modalWhatsAppAdvance');
     }
 
+    const openAdvanceWhatsAppModal = openBookingConfirmationWhatsApp;
+
     function sendWhatsAppFromModal() {
       if (!currentWpBooking) return;
+      if (isWhatsAppWindowOpening) return;
+      isWhatsAppWindowOpening = true;
+      setTimeout(() => { isWhatsAppWindowOpening = false; }, 1500);
+
       const phone = normalizePhone(currentWpBooking.phone);
       if (!phone) {
         showToast('Customer phone number not available', true);
         return;
       }
       const msgBox = document.getElementById('wpMessageText');
-      const textToSend = msgBox ? msgBox.value : generate40AdvanceWhatsAppMessage(currentWpBooking);
+      const textToSend = msgBox ? msgBox.value : generateBookingConfirmationWhatsAppMessage(currentWpBooking);
       const url = `https://wa.me/${phone}?text=${encodeURIComponent(textToSend)}`;
       window.open(url, '_blank');
       showToast(`Opening WhatsApp for ${currentWpBooking.customer_name || 'Customer'}...`);
@@ -5321,11 +5377,11 @@ Evan-e-Hakimi & Qadri Hall Management`;
       }
       const phone = normalizePhone(b.phone);
       if (!phone) {
-        openAdvanceWhatsAppModal(bookingId);
+        openBookingConfirmationWhatsApp(bookingId);
         showToast('Customer phone number is missing or invalid', true);
         return;
       }
-      const msg = generate40AdvanceWhatsAppMessage(b);
+      const msg = generateBookingConfirmationWhatsAppMessage(b);
       const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
       window.open(url, '_blank');
       showToast(`Opening WhatsApp chat with ${escapeHtml(b.customer_name || 'Customer')}...`);
@@ -5382,7 +5438,6 @@ Evan-e-Hakimi & Qadri Hall Management`;
             
             closeModal('modalBookingStage');
             await refreshAllActiveScreens();
-            openAdvanceWhatsAppModal(bookingId, true);
           } else {
             showToast(data.error || 'Failed to record advance', true);
             throw new Error(data.error || 'Failed to record advance');
@@ -6493,6 +6548,9 @@ Evan-e-Hakimi & Qadri Hall Management`;
             showToast(editId ? 'Booking updated successfully' : 'Booking created successfully');
             closeModal('modalBooking');
             refreshAllActiveScreens();
+            if (!editId && data.bookingId) {
+              triggerConfirmationWhatsAppOnce(data.bookingId, `create_booking_${data.bookingId}`);
+            }
           } else {
             showToast(data.error || 'Failed to save booking', true);
           }

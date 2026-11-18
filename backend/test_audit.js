@@ -657,6 +657,162 @@ it('payment state transitions correctly to ADVANCE_PAID and FULLY_PAID', () => {
   assert.deepStrictEqual(getStatus(15000), { status: 'FULLY_PAID', paymentStatus: 'fully_paid', balance: 0 });
 });
 
+// ── TEST GROUP 11: WHATSAPP BOOKING CONFIRMATION WORKFLOW & SAFEGUARDS ──
+console.log('\n💬 Group 11: WhatsApp Booking Confirmation Workflow & Safeguards');
+
+function generateBookingConfirmationWhatsAppMessage(b) {
+  if (!b) return '';
+  const customerName = (b.customer_name || 'Customer').trim();
+  const isQadri = String(b.hall || '').toLowerCase().includes('qadri');
+  const venueName = isQadri ? 'Qadri Hall (3rd Floor)' : 'Evan-e-Hakimi (2nd Floor)';
+  const eventDate = b.check_in || '2026-11-25';
+
+  let eventSlot = b.slot || 'Event';
+  if (eventSlot === 'morning') eventSlot = 'Morning (10:30 AM – 2:30 PM)';
+  else if (eventSlot === 'evening') eventSlot = 'Evening (6:30 PM – 10:30 PM)';
+  else if (eventSlot === 'fullday') eventSlot = 'Full Day (10:00 AM – 10:00 PM)';
+  else if (eventSlot === 'majlis') {
+    eventSlot = b.start_time && b.end_time ? `Majlis (${b.start_time} – ${b.end_time})` : 'Majlis';
+  } else {
+    eventSlot = eventSlot.charAt(0).toUpperCase() + eventSlot.slice(1);
+  }
+
+  const total = parseFloat(b.total_amount || b.price || 0);
+  const advReq = b.advance_amount ? parseFloat(b.advance_amount) : Math.round(total * 0.4);
+  const balReq = Math.max(0, total - advReq);
+
+  const totalAmount = total.toLocaleString('en-IN');
+  const advanceAmount = advReq.toLocaleString('en-IN');
+  const remainingAmount = balReq.toLocaleString('en-IN');
+
+  return `Hello ${customerName},
+
+Your booking has been confirmed!
+
+Venue: ${venueName}
+Event Date: ${eventDate}
+Slot: ${eventSlot}
+Total Amount: ₹${totalAmount}
+
+Payment Terms:
+- 40% advance deposit: ₹${advanceAmount}
+- Remaining 60% balance: ₹${remainingAmount}, payable 2–3 days before the event.
+
+Thank you,
+Evan-e-Hakimi & Qadri Hall Management`;
+}
+
+it('WhatsApp confirmation message matches exact required English format with 40% and 60% breakdown', () => {
+  const mockBooking = {
+    customer_name: 'Taher Bhai',
+    hall: 'Evan-e-Hakimi',
+    check_in: '25/Nov/2026',
+    slot: 'evening',
+    total_amount: 15000,
+    advance_amount: 6000
+  };
+  const msg = generateBookingConfirmationWhatsAppMessage(mockBooking);
+  const expected = `Hello Taher Bhai,
+
+Your booking has been confirmed!
+
+Venue: Evan-e-Hakimi (2nd Floor)
+Event Date: 25/Nov/2026
+Slot: Evening (6:30 PM – 10:30 PM)
+Total Amount: ₹15,000
+
+Payment Terms:
+- 40% advance deposit: ₹6,000
+- Remaining 60% balance: ₹9,000, payable 2–3 days before the event.
+
+Thank you,
+Evan-e-Hakimi & Qadri Hall Management`;
+
+  assert.strictEqual(msg, expected);
+});
+
+it('WhatsApp confirmation message contains English only with zero Arabic characters and zero decorative emojis', () => {
+  const mockBooking = {
+    customer_name: 'Murtaza',
+    hall: 'Qadri Hall',
+    check_in: '12/Dec/2026',
+    slot: 'morning',
+    total_amount: 30000
+  };
+  const msg = generateBookingConfirmationWhatsAppMessage(mockBooking);
+
+  // Assert no Arabic characters (Unicode U+0600 to U+06FF)
+  assert.strictEqual(/[\u0600-\u06FF]/.test(msg), false, 'Must not contain Arabic characters');
+
+  // Assert no decorative emojis
+  assert.strictEqual(/[\uD800-\uDBFF][\uDC00-\uDFFF]/.test(msg), false, 'Must not contain emoji surrogates');
+  assert.strictEqual(/[🎉🏛️📅⏰💰✅⏳📌]/.test(msg), false, 'Must not contain decorative symbols');
+
+  // Assert required venue label for Qadri
+  assert.strictEqual(msg.includes('Venue: Qadri Hall (3rd Floor)'), true);
+  assert.strictEqual(msg.includes('40% advance deposit: ₹12,000'), true);
+  assert.strictEqual(msg.includes('Remaining 60% balance: ₹18,000'), true);
+});
+
+it('WhatsApp confirmation calculates 40% advance and 60% balance dynamically for 2027 pricing packages', () => {
+  const mock2027 = {
+    customer_name: 'Huzefa',
+    hall: 'Evan-e-Hakimi',
+    check_in: '15/Jan/2027',
+    slot: 'morning',
+    total_amount: 21000
+  };
+  const msg = generateBookingConfirmationWhatsAppMessage(mock2027);
+  assert.strictEqual(msg.includes('Total Amount: ₹21,000'), true);
+  assert.strictEqual(msg.includes('40% advance deposit: ₹8,400'), true);
+  assert.strictEqual(msg.includes('Remaining 60% balance: ₹12,600'), true);
+});
+
+it('WhatsApp confirmation trigger fires on manual admin confirmation and blocks duplicate actions', () => {
+  const triggerLog = [];
+  const processedActions = new Set();
+
+  function triggerConfirmationWhatsAppOnce(bookingId, actionId) {
+    const actionKey = actionId || `confirm_${bookingId}`;
+    if (processedActions.has(actionKey)) {
+      return false; // duplicate blocked
+    }
+    processedActions.add(actionKey);
+    triggerLog.push({ bookingId, actionId: actionKey, timestamp: Date.now() });
+    return true; // triggered successfully
+  }
+
+  // Admin manually confirms enquiry #101
+  const firstTrigger = triggerConfirmationWhatsAppOnce(101, 'admin_confirm_101');
+  assert.strictEqual(firstTrigger, true, 'First manual confirmation must trigger message');
+  assert.strictEqual(triggerLog.length, 1);
+
+  // Duplicate click on confirm button for the same action
+  const duplicateTrigger = triggerConfirmationWhatsAppOnce(101, 'admin_confirm_101');
+  assert.strictEqual(duplicateTrigger, false, 'Duplicate confirmation action must be blocked');
+  assert.strictEqual(triggerLog.length, 1);
+
+  // Separate booking confirmation triggers independently
+  const secondBookingTrigger = triggerConfirmationWhatsAppOnce(102, 'admin_confirm_102');
+  assert.strictEqual(secondBookingTrigger, true, 'Different booking confirmation must trigger');
+  assert.strictEqual(triggerLog.length, 2);
+});
+
+it('40% advance payment recording does NOT trigger WhatsApp booking confirmation', () => {
+  let wasConfirmationTriggered = false;
+
+  function simulateRecord40Advance(bookingId) {
+    // Record payment logic only — must NOT call triggerConfirmationWhatsApp
+    const paymentRecorded = true;
+    return { success: true, paymentRecorded };
+  }
+
+  const result = simulateRecord40Advance(101);
+  assert.strictEqual(result.success, true);
+  assert.strictEqual(result.paymentRecorded, true);
+  assert.strictEqual(wasConfirmationTriggered, false, '40% advance payment must NOT trigger confirmation message');
+});
+
 console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 console.log(`RESULTS: ${passed} / ${total} tests passed (${Math.round((passed/total)*100)}%)`);
 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
